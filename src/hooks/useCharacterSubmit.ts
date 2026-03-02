@@ -54,6 +54,8 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
       const { error: insertError } = await supabase.from('characters').insert({
         invite_code_id: state.inviteCodeId,
         status: 'submitted',
+        player_name: state.playerName,
+        invite_code: state.inviteCode,
         name: state.name,
         age: state.age,
         gender: state.gender,
