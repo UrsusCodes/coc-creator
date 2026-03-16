@@ -162,6 +162,7 @@ export function CardEditorPage() {
   const [zoom, setZoom] = useState(0.3)
   const [copied, setCopied] = useState(false)
   const [preview, setPreview] = useState(false)
+  const [fieldFilter, setFieldFilter] = useState('')
   const [dragState, setDragState] = useState<DragState | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -442,7 +443,13 @@ export function CardEditorPage() {
 
         {/* Field list */}
         <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {fields.map((f) => (
+          <input
+            value={fieldFilter}
+            onChange={(e) => setFieldFilter(e.target.value)}
+            placeholder="Szukaj pola..."
+            className="w-full px-2 py-1 mb-1 bg-coc-surface-light border border-coc-border rounded text-xs text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light"
+          />
+          {fields.filter((f) => !fieldFilter || f.label.toLowerCase().includes(fieldFilter.toLowerCase()) || f.id.toLowerCase().includes(fieldFilter.toLowerCase())).map((f) => (
             <button
               key={f.id}
               onClick={(e) => handleFieldClick(f.id, e)}

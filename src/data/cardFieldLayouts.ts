@@ -97,24 +97,24 @@ export const FRONT_FIELDS: FieldBox[] = [
 
   // ── Nazwy specjalizacji (open sloty na karcie) ──
   // Kolumna 1: Broń Palna ×3, Język Obcy ×3
-  { id: 'spec_bron_palna_1', label: 'Broń Palna spec.1', x: 13, y: 32.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_bron_palna_2', label: 'Broń Palna spec.2', x: 13, y: 35.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_bron_palna_3', label: 'Broń Palna spec.3', x: 13, y: 38.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_jezyk_obcy_1', label: 'Język Obcy spec.1', x: 13, y: 50.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_jezyk_obcy_2', label: 'Język Obcy spec.2', x: 13, y: 53.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_jezyk_obcy_3', label: 'Język Obcy spec.3', x: 13, y: 56.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_bron_palna_1', label: 'Broń Palna spec.1', x: 13, y: 32.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_bron_palna_2', label: 'Broń Palna spec.2', x: 13, y: 35.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_bron_palna_3', label: 'Broń Palna spec.3', x: 13, y: 38.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_1', label: 'Język Obcy spec.1', x: 13, y: 50.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_2', label: 'Język Obcy spec.2', x: 13, y: 53.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_3', label: 'Język Obcy spec.3', x: 13, y: 56.5, w: 10, h: 2.5, fontSize: 7 },
   // Kolumna 2: Nauka ×3, Pilotaż ×2
-  { id: 'spec_nauka_1', label: 'Nauka spec.1', x: 44, y: 30, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_nauka_2', label: 'Nauka spec.2', x: 44, y: 33, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_nauka_3', label: 'Nauka spec.3', x: 44, y: 36, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 44, y: 54, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 44, y: 57, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_nauka_1', label: 'Nauka spec.1', x: 44, y: 30, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_nauka_2', label: 'Nauka spec.2', x: 44, y: 33, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_nauka_3', label: 'Nauka spec.3', x: 44, y: 36, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 44, y: 54, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 44, y: 57, w: 10, h: 2.5, fontSize: 7 },
   // Kolumna 3: Szt./Rzem. ×3, Walka Wręcz ×2
-  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 74, y: 24.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 74, y: 27.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 74, y: 30.5, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74, y: 54, w: 10, h: 1.2, fontSize: 6 },
-  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74, y: 57, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 74, y: 24.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 74, y: 27.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 74, y: 30.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74, y: 54, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74, y: 57, w: 10, h: 2.5, fontSize: 7 },
 
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
