@@ -34,12 +34,21 @@ export interface SkillColumnGrid {
   rows: SkillRow[]
 }
 
+export interface ListGrid {
+  id: string
+  label: string
+  x: number; y: number; w: number; h: number
+  rowCount: number
+  fontSize?: number
+}
+
 export interface CardLayout {
   id: string
   name: string
   image: string
   fields: FieldBox[]
   skillGrids?: SkillColumnGrid[]
+  listGrids?: ListGrid[]
 }
 
 // ─── FRONT CARD (2479×3508) ───────────────────────────────────
@@ -191,11 +200,13 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
   { id: 'significant_people', label: 'Ważne osoby', x: 5.37, y: 29.86, w: 33.08, h: 6.07, fontSize: 9, maxLines: 8 },
   { id: 'meaningful_locations', label: 'Znaczące miejsca', x: 5.61, y: 37.99, w: 32.68, h: 6.26, fontSize: 9, maxLines: 5 },
   { id: 'traits', label: 'Inne przymioty', x: 5.53, y: 46.42, w: 32.19, h: 9.08, fontSize: 9, maxLines: 6 },
+]
 
-  { id: 'equipment', label: 'Ekwipunek', x: 4.81, y: 72.12, w: 20, h: 12, fontSize: 8, maxLines: 10 },
-  { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
-  { id: 'spending_level', label: 'Pozycja', x: 52, y: 82, w: 20, h: 6, fontSize: 8 },
-  { id: 'cash', label: 'Gotówka', x: 77, y: 95, w: 16, h: 2, fontSize: 8, align: 'center' },
+export const BACK_CLASSIC_LIST_GRIDS: ListGrid[] = [
+  { id: 'equipment_grid', label: 'Ekwipunek (24)', x: 4, y: 72, w: 22, h: 22, rowCount: 24, fontSize: 7 },
+  { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
+  { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
+  { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
 ]
 
 // ─── BACK CARD (ToC / Drive+Pillars) ─────────────────────────
@@ -206,11 +217,14 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'sources', label: 'Źródła Stabilności', x: 5.53, y: 29.95, w: 32.03, h: 5.66, fontSize: 9, maxLines: 6 },
   { id: 'drive', label: 'Motywacja', x: 5.77, y: 38.18, w: 32.27, h: 5.86, fontSize: 9, maxLines: 5 },
   { id: 'other_traits', label: 'Inne przymioty', x: 5.86, y: 46.44, w: 32.35, h: 9.31, fontSize: 9, maxLines: 6 },
+]
 
-  { id: 'equipment', label: 'Ekwipunek', x: 4, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
-  { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
-  { id: 'spending_level', label: 'Pozycja', x: 52, y: 82, w: 20, h: 6, fontSize: 8 },
-  { id: 'cash', label: 'Gotówka', x: 77, y: 95, w: 16, h: 2, fontSize: 8, align: 'center' },
+// ToC uses same bottom grids as classic — positions copied after user sets classic
+export const BACK_TOC_LIST_GRIDS: ListGrid[] = [
+  { id: 'equipment_grid', label: 'Ekwipunek (24)', x: 4, y: 72, w: 22, h: 22, rowCount: 24, fontSize: 7 },
+  { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
+  { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
+  { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
 ]
 
 // ─── SKILL GRIDS (front card only) ────────────────────────────
@@ -303,6 +317,6 @@ export const FRONT_SKILL_GRIDS: SkillColumnGrid[] = [SKILL_GRID_COL1, SKILL_GRID
 
 export const CARD_LAYOUTS: CardLayout[] = [
   { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
-  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS },
-  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS },
+  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS, listGrids: BACK_CLASSIC_LIST_GRIDS },
+  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS, listGrids: BACK_TOC_LIST_GRIDS },
 ]

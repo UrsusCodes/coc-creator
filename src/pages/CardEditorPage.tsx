@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
+import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid, type ListGrid } from '@/data/cardFieldLayouts'
 import { Button } from '@/components/ui/Button'
 import { Copy, Check, ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff } from 'lucide-react'
 
@@ -137,6 +137,18 @@ function saveGridsToDisk(layoutId: string, grids: SkillColumnGrid[]) {
   localStorage.setItem(GRIDS_STORAGE_KEY, JSON.stringify(data))
 }
 
+const LIST_GRIDS_KEY = 'coc-card-editor-list-grids'
+
+function loadSavedListGrids(): Record<string, ListGrid[]> {
+  try { return JSON.parse(localStorage.getItem(LIST_GRIDS_KEY) ?? '{}') } catch { return {} }
+}
+
+function saveListGridsToDisk(layoutId: string, lg: ListGrid[]) {
+  const data = loadSavedListGrids()
+  data[layoutId] = lg
+  localStorage.setItem(LIST_GRIDS_KEY, JSON.stringify(data))
+}
+
 type DragMode = 'move' | 'resize-br' | 'marquee' | null
 
 interface DragState {
@@ -162,6 +174,10 @@ export function CardEditorPage() {
     const saved = loadSavedGrids()
     return saved[layout.id] ?? (layout.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] }))
   })
+  const [listGrids, setListGrids] = useState<ListGrid[]>(() => {
+    const saved = loadSavedListGrids()
+    return saved[layout.id] ?? (layout.listGrids ?? []).map((g) => ({ ...g }))
+  })
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [zoom, setZoom] = useState(0.3)
   const [copied, setCopied] = useState(false)
@@ -186,33 +202,42 @@ export function CardEditorPage() {
     setFields(savedF[l.id] ?? l.fields.map((f) => ({ ...f })))
     const savedG = loadSavedGrids()
     setGrids(savedG[l.id] ?? (l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
+    const savedLG = loadSavedListGrids()
+    setListGrids(savedLG[l.id] ?? (l.listGrids ?? []).map((g) => ({ ...g })))
     setSelected(new Set())
   }
 
   // Auto-save on field/grid changes
   useEffect(() => { saveToDisk(layout.id, fields) }, [fields, layout.id])
   useEffect(() => { if (grids.length > 0) saveGridsToDisk(layout.id, grids) }, [grids, layout.id])
+  useEffect(() => { if (listGrids.length > 0) saveListGridsToDisk(layout.id, listGrids) }, [listGrids, layout.id])
 
   const resetToDefaults = () => {
     if (!confirm('Zresetować pozycje do domyślnych?')) return
     const l = CARD_LAYOUTS[layoutIdx]
     setFields(l.fields.map((f) => ({ ...f })))
     setGrids((l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
+    setListGrids((l.listGrids ?? []).map((g) => ({ ...g })))
     const data = loadSaved()
     delete data[layout.id]
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     const gData = loadSavedGrids()
     delete gData[layout.id]
     localStorage.setItem(GRIDS_STORAGE_KEY, JSON.stringify(gData))
+    const lgData = loadSavedListGrids()
+    delete lgData[layout.id]
+    localStorage.setItem(LIST_GRIDS_KEY, JSON.stringify(lgData))
   }
 
   const resetAll = () => {
     if (!confirm('Usunąć WSZYSTKIE zapisane pozycje dla wszystkich kart?')) return
     localStorage.removeItem(STORAGE_KEY)
     localStorage.removeItem(GRIDS_STORAGE_KEY)
+    localStorage.removeItem(LIST_GRIDS_KEY)
     const l = CARD_LAYOUTS[layoutIdx]
     setFields(l.fields.map((f) => ({ ...f })))
     setGrids((l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
+    setListGrids((l.listGrids ?? []).map((g) => ({ ...g })))
   }
 
   // --- Selection ---
@@ -258,7 +283,9 @@ export function CardEditorPage() {
       const f = fields.find((ff) => ff.id === id)
       if (f) { originals.set(id, { x: f.x, y: f.y, w: f.w, h: f.h }); continue }
       const g = grids.find((gg) => gg.id === id)
-      if (g) originals.set(id, { x: g.x, y: g.y, w: g.w, h: g.h })
+      if (g) { originals.set(id, { x: g.x, y: g.y, w: g.w, h: g.h }); continue }
+      const lg = listGrids.find((ll) => ll.id === id)
+      if (lg) originals.set(id, { x: lg.x, y: lg.y, w: lg.w, h: lg.h })
     }
     setDragState({ mode, startX: e.clientX, startY: e.clientY, originals })
   }
@@ -300,6 +327,7 @@ export function CardEditorPage() {
         })
       setFields((prev) => applyDrag(prev))
       setGrids((prev) => applyDrag(prev))
+      setListGrids((prev) => applyDrag(prev))
     }
 
     const handleMouseUp = () => {
@@ -312,6 +340,7 @@ export function CardEditorPage() {
           item.y < mq.y + mq.h && item.y + item.h > mq.y
         for (const f of fields) { if (intersects(f)) hits.add(f.id) }
         for (const g of grids) { if (intersects(g)) hits.add(g.id) }
+        for (const lg of listGrids) { if (intersects(lg)) hits.add(lg.id) }
         setSelected((prev) => new Set([...prev, ...hits]))
       }
       setMarquee(null)
@@ -372,7 +401,7 @@ export function CardEditorPage() {
   // --- Export ---
   const exportJson = () => {
     const data = {
-      [layout.id]: { fields, skillGrids: grids.length > 0 ? grids : undefined },
+      [layout.id]: { fields, skillGrids: grids.length > 0 ? grids : undefined, listGrids: listGrids.length > 0 ? listGrids : undefined },
     }
     navigator.clipboard.writeText(JSON.stringify(data, null, 2))
     setCopied(true)
@@ -481,6 +510,29 @@ export function CardEditorPage() {
                 <div className="font-medium">{g.label} ({g.rows.length})</div>
                 <div className="font-mono text-[10px] opacity-60">
                   {g.x.toFixed(1)}, {g.y.toFixed(1)} — {g.w.toFixed(1)}×{g.h.toFixed(1)}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* List grids in left panel */}
+        {listGrids.length > 0 && (
+          <div className="p-2 border-b border-coc-border">
+            <div className="text-[10px] text-coc-text-muted font-medium uppercase mb-1">Siatki list</div>
+            {listGrids.map((lg) => (
+              <button
+                key={lg.id}
+                onClick={(e) => { e.stopPropagation(); setSelected(new Set([lg.id])) }}
+                className={`w-full text-left text-xs px-2 py-1 rounded cursor-pointer transition-colors mb-0.5 ${
+                  selected.has(lg.id)
+                    ? 'bg-coc-accent/20 text-coc-accent-light border border-coc-accent/40'
+                    : 'hover:bg-coc-surface-light text-coc-text-muted border border-transparent'
+                }`}
+              >
+                <div className="font-medium">{lg.label}</div>
+                <div className="font-mono text-[10px] opacity-60">
+                  {lg.x.toFixed(1)}, {lg.y.toFixed(1)} — {lg.w.toFixed(1)}×{lg.h.toFixed(1)}
                 </div>
               </button>
             ))}
@@ -783,6 +835,48 @@ export function CardEditorPage() {
                       startDrag('resize-br', e)
                     }}
                   />
+                )}
+              </div>
+            )
+          })}
+
+          {/* List grid overlays */}
+          {listGrids.map((lg) => {
+            const isSelected = selected.has(lg.id)
+            return (
+              <div
+                key={lg.id}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  const multiKey = e.shiftKey || e.ctrlKey || e.metaKey
+                  if (multiKey) {
+                    e.preventDefault()
+                    setSelected((prev) => { const n = new Set(prev); n.has(lg.id) ? n.delete(lg.id) : n.add(lg.id); return n })
+                    return
+                  }
+                  let ids: Set<string>
+                  if (!selected.has(lg.id)) { ids = new Set([lg.id]); setSelected(ids) } else { ids = selected }
+                  startDrag('move', e, ids)
+                }}
+                className={`absolute cursor-move ${isSelected ? 'ring-2 ring-amber-400 bg-amber-400/10' : 'ring-1 ring-amber-400/40 bg-amber-400/5'}`}
+                style={{ left: `${lg.x}%`, top: `${lg.y}%`, width: `${lg.w}%`, height: `${lg.h}%` }}
+              >
+                {Array.from({ length: lg.rowCount }).map((_, ri) => (
+                  <div
+                    key={ri}
+                    className="absolute w-full border-b border-amber-400/20"
+                    style={{ top: `${(ri / lg.rowCount) * 100}%`, height: `${(1 / lg.rowCount) * 100}%` }}
+                  >
+                    {!preview && ri === 0 && (
+                      <span className="absolute text-amber-300/70 px-0.5" style={{ fontSize: 10, top: '5%', height: '90%', display: 'flex', alignItems: 'center' }}>
+                        {lg.label}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {isSelected && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-amber-400 cursor-se-resize"
+                    onMouseDown={(e) => { e.stopPropagation(); startDrag('resize-br', e) }} />
                 )}
               </div>
             )
