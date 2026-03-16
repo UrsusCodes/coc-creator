@@ -70,6 +70,33 @@ export async function adminUpdateCharacter(password: string, charId: string, dat
 /**
  * Validate admin password by making a test request
  */
+export async function adminGetCharacterHistory(password: string, charId: string) {
+  const res = await adminFetch(`/characters/${charId}/history`, password)
+  if (!res.ok) throw new Error('Błąd pobierania historii')
+  return res.json()
+}
+
+export async function adminCreateShareToken(password: string, charId: string, type: 'view' | 'edit') {
+  const res = await adminFetch(`/characters/${charId}/share`, password, {
+    method: 'POST',
+    body: JSON.stringify({ type }),
+  })
+  if (!res.ok) throw new Error('Błąd tworzenia tokenu')
+  return res.json()
+}
+
+export async function adminGetShareTokens(password: string, charId: string) {
+  const res = await adminFetch(`/characters/${charId}/share`, password)
+  if (!res.ok) throw new Error('Błąd pobierania tokenów')
+  return res.json()
+}
+
+export async function adminDeleteShareToken(password: string, tokenId: string) {
+  const res = await adminFetch(`/share/${tokenId}`, password, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Błąd usuwania tokenu')
+  return res.json()
+}
+
 export async function adminValidatePassword(password: string): Promise<boolean> {
   try {
     const res = await adminFetch('/ping', password)

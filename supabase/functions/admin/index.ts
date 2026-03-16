@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // DELETE /codes/:id
-    const codeDeleteMatch = path.match(/^\/codes\/(.+)$/)
+    const codeDeleteMatch = path.match(/^\/codes\/([^/]+)$/)
     if (codeDeleteMatch && req.method === 'DELETE') {
       const { error } = await supabase
         .from('invite_codes')
@@ -89,14 +89,89 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
-    // PUT /characters/:id - update a character
-    const charUpdateMatch = path.match(/^\/characters\/(.+)$/)
-    if (charUpdateMatch && req.method === 'PUT') {
+    // GET /characters/:id/history - version history for a character
+    const historyMatch = path.match(/^\/characters\/([^/]+)\/history$/)
+    if (historyMatch && req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('character_history')
+        .select('*')
+        .eq('character_id', historyMatch[1])
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // GET /characters/:id/share - list share tokens for a character
+    const shareListMatch = path.match(/^\/characters\/([^/]+)\/share$/)
+    if (shareListMatch && req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('share_tokens')
+        .select('*')
+        .eq('character_id', shareListMatch[1])
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // POST /characters/:id/share - create a share token
+    const shareCreateMatch = path.match(/^\/characters\/([^/]+)\/share$/)
+    if (shareCreateMatch && req.method === 'POST') {
       const body = await req.json()
+      const token = crypto.randomUUID()
+      const { data, error } = await supabase
+        .from('share_tokens')
+        .insert({
+          character_id: shareCreateMatch[1],
+          token,
+          type: body.type,
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // DELETE /share/:tokenId - delete a share token
+    const shareDeleteMatch = path.match(/^\/share\/([^/]+)$/)
+    if (shareDeleteMatch && req.method === 'DELETE') {
+      const { error } = await supabase
+        .from('share_tokens')
+        .delete()
+        .eq('id', shareDeleteMatch[1])
+      if (error) throw error
+      return jsonResponse({ deleted: true })
+    }
+
+    // PUT /characters/:id - update a character (with history snapshot)
+    const charUpdateMatch = path.match(/^\/characters\/([^/]+)$/)
+    if (charUpdateMatch && req.method === 'PUT') {
+      const charId = charUpdateMatch[1]
+      const body = await req.json()
+
+      // Extract change comment (not a character field)
+      const { _change_comment, ...updateData } = body
+
+      // Fetch current state for snapshot
+      const { data: current, error: fetchErr } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('id', charId)
+        .single()
+      if (fetchErr) throw fetchErr
+
+      // Save snapshot to history
+      await supabase.from('character_history').insert({
+        character_id: charId,
+        snapshot: current,
+        changed_by: 'admin',
+        change_comment: _change_comment ?? '',
+      })
+
+      // Apply update
       const { data, error } = await supabase
         .from('characters')
-        .update(body)
-        .eq('id', charUpdateMatch[1])
+        .update(updateData)
+        .eq('id', charId)
         .select()
         .single()
       if (error) throw error
@@ -104,7 +179,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // DELETE /characters/:id
-    const charDeleteMatch = path.match(/^\/characters\/(.+)$/)
+    const charDeleteMatch = path.match(/^\/characters\/([^/]+)$/)
     if (charDeleteMatch && req.method === 'DELETE') {
       const { error } = await supabase
         .from('characters')

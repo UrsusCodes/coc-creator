@@ -1,56 +1,133 @@
-import { useState } from 'react'
-import { ArrowLeft, Save, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
-import { adminUpdateCharacter } from '@/lib/admin'
-import { getSkillDisplayName, getSkillBase } from '@/data/skills'
-import { CHARACTERISTIC_MAP } from '@/data/characteristics'
-import { OCCUPATIONS } from '@/data/occupations'
-import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
-import { halfValue, fifthValue } from '@/lib/utils'
+import { adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens, adminDeleteShareToken } from '@/lib/admin'
+import { getSkillBase } from '@/data/skills'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
-
-const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
+import { CharacterSheet, type CharacterSheetData } from '@/components/shared/CharacterSheet'
+import { CharacterHistory } from '@/components/shared/CharacterHistory'
+import { BasicInfoEditor } from './edit/BasicInfoEditor'
+import { CharacteristicsEditor } from './edit/CharacteristicsEditor'
+import { DerivedEditor } from './edit/DerivedEditor'
+import { SkillsEditor } from './edit/SkillsEditor'
+import { BackstoryEditor } from './edit/BackstoryEditor'
+import { EquipmentEditor } from './edit/EquipmentEditor'
+import type { ShareToken, HistoryEntry } from '@/types/character'
 
 interface CharacterViewerProps {
-  character: {
-    id: string
-    name: string
-    age: number
-    gender: string
-    appearance: string
-    characteristics: Record<string, number>
-    luck: number
-    derived: Record<string, unknown>
-    occupation_id: string
-    occupation_skill_points: Record<string, number>
-    personal_skill_points: Record<string, number>
-    backstory: Record<string, string>
-    equipment: string[]
-    cash: string
-    assets: string
-    spending_level: string
-    era: string
-    method: string
-    status: string
-    player_name?: string
-    invite_code?: string
-    admin_notes?: string
-  }
+  character: CharacterSheetData
   onBack: () => void
-  onUpdate?: (updated: { id: string; admin_notes: string }) => void
+  onUpdate?: (updated: Partial<CharacterSheetData> & { id: string }) => void
 }
 
 export function CharacterViewer({ character: char, onBack, onUpdate }: CharacterViewerProps) {
   const { password } = useAdminStore()
+
+  // Edit mode
+  const [editMode, setEditMode] = useState(false)
+  const [editData, setEditData] = useState<CharacterSheetData>(structuredClone(char))
+  const [changeComment, setChangeComment] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  // Share tokens
+  const [tokens, setTokens] = useState<ShareToken[]>([])
+  const [tokensLoading, setTokensLoading] = useState(false)
+  const [copiedTokenId, setCopiedTokenId] = useState<string | null>(null)
+  const [showTokens, setShowTokens] = useState(false)
+
+  // History
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  // Admin notes (independent of edit mode)
   const [notes, setNotes] = useState(char.admin_notes ?? '')
   const [notesSaving, setNotesSaving] = useState(false)
   const [notesSaved, setNotesSaved] = useState(false)
 
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
-  const derived = char.derived as { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
+  useEffect(() => {
+    setEditData(structuredClone(char))
+    setNotes(char.admin_notes ?? '')
+  }, [char])
+
+  // --- Edit mode handlers ---
+
+  const handleFieldChange = (field: string, value: unknown) => {
+    setEditData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleCharacteristicChange = (key: string, value: number) => {
+    setEditData((prev) => ({
+      ...prev,
+      characteristics: { ...prev.characteristics, [key]: value },
+    }))
+  }
+
+  const handleDerivedChange = (field: string, value: number | string) => {
+    setEditData((prev) => ({
+      ...prev,
+      derived: { ...prev.derived, [field]: value },
+    }))
+  }
+
+  const handleSkillChange = (skillId: string, totalValue: number) => {
+    const base = getSkillBase(skillId)
+    let baseVal: number
+    if (base === 'half_dex') baseVal = Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
+    else if (base === 'edu') baseVal = editData.characteristics['EDU'] ?? 0
+    else baseVal = base
+    const points = Math.max(0, totalValue - baseVal)
+    setEditData((prev) => ({
+      ...prev,
+      occupation_skill_points: { ...prev.occupation_skill_points, [skillId]: points },
+      personal_skill_points: { ...prev.personal_skill_points },
+    }))
+  }
+
+  const handleBackstoryChange = (key: string, value: string) => {
+    setEditData((prev) => ({
+      ...prev,
+      backstory: { ...prev.backstory, [key]: value },
+    }))
+  }
+
+  const handleSave = async () => {
+    if (!password) return
+    setSaving(true)
+    try {
+      const { id, created_at, updated_at, ...fields } = editData as CharacterSheetData & { created_at?: string; updated_at?: string }
+      const updated = await adminUpdateCharacter(password, char.id, { ...fields, _change_comment: changeComment })
+      onUpdate?.({ ...updated, id: char.id })
+      setEditMode(false)
+      setChangeComment('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      // Refresh history
+      if (showHistory) loadHistory()
+    } catch {
+      // error silently
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setEditData(structuredClone(char))
+    setChangeComment('')
+    setEditMode(false)
+  }
+
+  const handleRestore = (snapshot: HistoryEntry['snapshot']) => {
+    setEditData(snapshot as unknown as CharacterSheetData)
+    setEditMode(true)
+    setChangeComment('Przywrócenie wcześniejszej wersji')
+  }
+
+  // --- Notes (independent) ---
 
   const handleSaveNotes = async () => {
     if (!password) return
@@ -67,172 +144,252 @@ export function CharacterViewer({ character: char, onBack, onUpdate }: Character
     }
   }
 
-  // Merge all skill points
-  const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }
-  for (const [id, pts] of Object.entries(char.personal_skill_points)) {
-    allSkillPoints[id] = (allSkillPoints[id] ?? 0) + pts
+  // --- Share tokens ---
+
+  const loadTokens = async () => {
+    if (!password) return
+    setTokensLoading(true)
+    try {
+      const data = await adminGetShareTokens(password, char.id)
+      setTokens(data)
+    } catch {
+      // error silently
+    } finally {
+      setTokensLoading(false)
+    }
   }
 
-  const getBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
-    if (base === 'half_dex') return Math.floor((char.characteristics['DEX'] ?? 0) / 2)
-    if (base === 'edu') return char.characteristics['EDU'] ?? 0
-    return base
+  const createToken = async (type: 'view' | 'edit') => {
+    if (!password) return
+    try {
+      const token = await adminCreateShareToken(password, char.id, type)
+      setTokens((prev) => [token, ...prev])
+    } catch {
+      // error silently
+    }
+  }
+
+  const deleteToken = async (tokenId: string) => {
+    if (!password) return
+    try {
+      await adminDeleteShareToken(password, tokenId)
+      setTokens((prev) => prev.filter((t) => t.id !== tokenId))
+    } catch {
+      // error silently
+    }
+  }
+
+  const copyTokenUrl = (token: string) => {
+    const baseUrl = window.location.origin + window.location.pathname.replace(/\/admin.*/, '')
+    navigator.clipboard.writeText(`${baseUrl}/c/${token}`)
+    setCopiedTokenId(token)
+    setTimeout(() => setCopiedTokenId(null), 2000)
+  }
+
+  const handleToggleTokens = () => {
+    if (!showTokens && tokens.length === 0) loadTokens()
+    setShowTokens(!showTokens)
+  }
+
+  // --- History ---
+
+  const loadHistory = async () => {
+    if (!password) return
+    setHistoryLoading(true)
+    try {
+      const data = await adminGetCharacterHistory(password, char.id)
+      setHistory(data)
+    } catch {
+      // error silently
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  const handleToggleHistory = () => {
+    if (!showHistory && history.length === 0) loadHistory()
+    setShowHistory(!showHistory)
   }
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" onClick={onBack}>
-        <ArrowLeft className="w-4 h-4" /> Wróć do listy
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="w-4 h-4" /> Wróć do listy
+        </Button>
+        <div className="flex items-center gap-2">
+          {!editMode && (
+            <Button variant="secondary" size="sm" onClick={() => setEditMode(true)}>
+              <Pencil className="w-3.5 h-3.5" /> Edytuj
+            </Button>
+          )}
+          {editMode && (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleCancel}>
+                <X className="w-3.5 h-3.5" /> Anuluj
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-serif font-bold">{char.name}</h2>
+          <h2 className="text-xl font-serif font-bold">{editMode ? editData.name : char.name}</h2>
           <Badge variant={char.status === 'submitted' ? 'success' : 'warning'}>
             {char.status === 'submitted' ? 'Zatwierdzona' : 'Szkic'}
           </Badge>
         </div>
 
-        {/* Basic info */}
-        <div className="grid grid-cols-3 gap-2 text-sm mb-4">
-          {char.player_name && <div><span className="text-coc-text-muted">Gracz:</span> {char.player_name}</div>}
-          {char.invite_code && <div><span className="text-coc-text-muted">Kod:</span> <span className="font-mono">{char.invite_code}</span></div>}
-          <div><span className="text-coc-text-muted">Wiek:</span> {char.age}</div>
-          <div><span className="text-coc-text-muted">Płeć:</span> {char.gender}</div>
-          <div><span className="text-coc-text-muted">Zawód:</span> {occupation?.name ?? char.occupation_id}</div>
-          <div><span className="text-coc-text-muted">Era:</span> {ERA_LABELS[char.era as keyof typeof ERA_LABELS]}</div>
-          <div><span className="text-coc-text-muted">Metoda:</span> {METHOD_LABELS[char.method as keyof typeof METHOD_LABELS]}</div>
-        </div>
-        {char.appearance && (
-          <div className="text-sm mb-4">
-            <span className="text-coc-text-muted">Wygląd:</span> {char.appearance}
-          </div>
-        )}
+        {editMode ? (
+          <div className="space-y-6">
+            <BasicInfoEditor
+              data={editData}
+              onChange={(field, value) => handleFieldChange(field, value)}
+            />
+            <CharacteristicsEditor
+              characteristics={editData.characteristics}
+              luck={editData.luck}
+              onCharChange={handleCharacteristicChange}
+              onLuckChange={(v) => handleFieldChange('luck', v)}
+            />
+            <DerivedEditor
+              derived={editData.derived as { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }}
+              onChange={handleDerivedChange}
+            />
+            <SkillsEditor
+              occupationSkillPoints={editData.occupation_skill_points}
+              personalSkillPoints={editData.personal_skill_points}
+              characteristics={editData.characteristics}
+              onChange={handleSkillChange}
+            />
+            <BackstoryEditor
+              backstory={editData.backstory}
+              onChange={handleBackstoryChange}
+            />
+            <EquipmentEditor
+              equipment={editData.equipment}
+              cash={editData.cash}
+              assets={editData.assets}
+              spendingLevel={editData.spending_level}
+              onEquipmentChange={(eq) => handleFieldChange('equipment', eq)}
+              onFieldChange={(field, value) => handleFieldChange(field, value)}
+            />
 
-        {/* Characteristics */}
-        <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Cechy</h4>
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          {CHAR_KEYS.map((key) => {
-            const val = char.characteristics[key] ?? 0
-            return (
-              <div key={key} className="text-center bg-coc-surface-light rounded-lg p-2">
-                <div className="text-xs text-coc-text-muted">{CHARACTERISTIC_MAP[key].abbreviation}</div>
-                <div className="text-lg font-bold font-mono">{val}</div>
-                <div className="text-xs text-coc-text-muted">{halfValue(val)} / {fifthValue(val)}</div>
+            {/* Save section */}
+            <div className="border-t border-coc-border pt-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-coc-text-muted mb-1">Komentarz do zmiany</label>
+                <input
+                  value={changeComment}
+                  onChange={(e) => setChangeComment(e.target.value)}
+                  placeholder="Co zostało zmienione..."
+                  className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors"
+                />
               </div>
-            )
-          })}
-        </div>
-
-        {/* Derived */}
-        {derived && (
-          <>
-            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Atrybuty pochodne</h4>
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              <MiniStat label="PW" value={derived.hp} />
-              <MiniStat label="PM" value={derived.mp} />
-              <MiniStat label="PP" value={derived.san} />
-              <MiniStat label="Szczęście" value={char.luck} />
-              <MiniStat label="PO" value={derived.db} />
-              <MiniStat label="Krzepa" value={derived.build} />
-              <MiniStat label="Ruch" value={derived.move_rate} />
-              <MiniStat label="Unik" value={derived.dodge} />
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saved ? 'Zapisano!' : 'Zapisz zmiany'}
+              </Button>
             </div>
-          </>
-        )}
-
-        {/* Skills */}
-        <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Umiejętności</h4>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm mb-4 max-h-[250px] overflow-y-auto">
-          {Object.entries(allSkillPoints)
-            .filter(([, pts]) => pts > 0)
-            .sort(([a], [b]) => getSkillDisplayName(a).localeCompare(getSkillDisplayName(b), 'pl'))
-            .map(([skillId, pts]) => {
-              const base = getBase(skillId)
-              return (
-                <div key={skillId} className="flex justify-between py-0.5">
-                  <span className="text-coc-text-muted truncate">{getSkillDisplayName(skillId)}</span>
-                  <span className="font-mono font-bold ml-2">{base + pts}%</span>
-                </div>
-              )
-            })}
-        </div>
-
-        {/* Backstory */}
-        {Object.keys(char.backstory).length > 0 && (
-          <>
-            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Historia postaci</h4>
-            <div className="space-y-2 mb-4">
-              {Object.entries(char.backstory).map(([key, value]) => {
-                if (!value) return null
-                const labels: Record<string, string> = {
-                  ideology: 'Ideologia / Przekonania',
-                  significant_people_who: 'Ważne osoby — Kto',
-                  significant_people_why: 'Ważne osoby — Dlaczego',
-                  meaningful_locations: 'Znaczące miejsca',
-                  treasured_possessions: 'Rzeczy osobiste',
-                  traits: 'Przymioty',
-                  appearance_description: 'Opis postaci',
-                  key_connection: 'Kluczowa więź',
-                }
-                return (
-                  <div key={key}>
-                    <div className="text-xs text-coc-text-muted">{labels[key] ?? key}</div>
-                    <div className="text-sm whitespace-pre-wrap">{value}</div>
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
-
-        {/* Equipment */}
-        {char.equipment.length > 0 && (
-          <>
-            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Ekwipunek</h4>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {char.cash && <Badge>Gotówka: {char.cash}</Badge>}
-              {char.assets && <Badge>Dobytek: {char.assets}</Badge>}
-              {char.spending_level && <Badge>Poziom życia: {char.spending_level}</Badge>}
-            </div>
-            <ul className="text-sm space-y-0.5 mb-4">
-              {char.equipment.map((item, i) => (
-                <li key={i} className="text-coc-text-muted">• {item}</li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {/* Admin notes */}
-        <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Notatki MG</h4>
-        <div className="mb-4">
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notatki dla Strażnika Tajemnic..."
-            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors min-h-[80px] resize-y"
-          />
-          <div className="flex items-center gap-2 mt-2">
-            <Button size="sm" onClick={handleSaveNotes} disabled={notesSaving}>
-              {notesSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              {notesSaved ? 'Zapisano!' : 'Zapisz notatki'}
-            </Button>
           </div>
-        </div>
+        ) : (
+          <CharacterSheet character={char} />
+        )}
+      </Card>
 
-        {/* Export buttons */}
+      {/* Admin notes */}
+      <Card>
+        <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Notatki MG</h4>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Notatki dla Strażnika Tajemnic..."
+          className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors min-h-[80px] resize-y"
+        />
+        <div className="flex items-center gap-2 mt-2">
+          <Button size="sm" onClick={handleSaveNotes} disabled={notesSaving}>
+            {notesSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {notesSaved ? 'Zapisano!' : 'Zapisz notatki'}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Share links */}
+      <Card>
+        <button
+          type="button"
+          onClick={handleToggleTokens}
+          className="flex items-center gap-2 text-sm font-medium text-coc-text-muted uppercase tracking-wider cursor-pointer hover:text-coc-text transition-colors w-full"
+        >
+          <Link className="w-4 h-4" />
+          Linki udostępniania
+          {tokensLoading && <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" />}
+        </button>
+        {showTokens && (
+          <div className="mt-3 space-y-3">
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={() => createToken('view')}>
+                Generuj link do podglądu
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => createToken('edit')}>
+                Generuj link do edycji
+              </Button>
+            </div>
+            {tokens.length > 0 && (
+              <div className="space-y-1">
+                {tokens.map((t) => (
+                  <div key={t.id} className="flex items-center gap-2 text-sm py-1">
+                    <Badge variant={t.type === 'edit' ? 'warning' : 'default'}>
+                      {t.type === 'edit' ? 'Edycja' : 'Podgląd'}
+                    </Badge>
+                    <span className="font-mono text-xs text-coc-text-muted truncate flex-1">{t.token}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyTokenUrl(t.token)}
+                      className="p-1 text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer"
+                      title="Kopiuj link"
+                    >
+                      {copiedTokenId === t.token ? <Check className="w-3.5 h-3.5 text-coc-accent-light" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteToken(t.id)}
+                      className="p-1 text-coc-text-muted hover:text-coc-danger transition-colors cursor-pointer"
+                      title="Usuń token"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* History */}
+      <Card>
+        <button
+          type="button"
+          onClick={handleToggleHistory}
+          className="flex items-center gap-2 text-sm font-medium text-coc-text-muted uppercase tracking-wider cursor-pointer hover:text-coc-text transition-colors w-full"
+        >
+          <History className="w-4 h-4" />
+          Historia zmian
+          {historyLoading && <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" />}
+        </button>
+        {showHistory && (
+          <div className="mt-3">
+            <CharacterHistory entries={history} onRestore={handleRestore} />
+          </div>
+        )}
+      </Card>
+
+      {/* Export buttons */}
+      <Card>
         <ExportButtons character={char} />
       </Card>
-    </div>
-  )
-}
-
-function MiniStat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="text-center bg-coc-accent/10 rounded p-1.5">
-      <div className="text-[10px] text-coc-text-muted">{label}</div>
-      <div className="font-bold font-mono">{value}</div>
     </div>
   )
 }

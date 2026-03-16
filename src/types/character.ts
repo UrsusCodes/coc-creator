@@ -50,3 +50,20 @@ export interface CharacterData {
   created_at?: string
   updated_at?: string
 }
+
+export interface ShareToken {
+  id: string
+  character_id: string
+  token: string
+  type: 'view' | 'edit'
+  created_at: string
+}
+
+export interface HistoryEntry {
+  id: string
+  character_id: string
+  snapshot: CharacterData
+  changed_by: string
+  change_comment: string
+  created_at: string
+}
