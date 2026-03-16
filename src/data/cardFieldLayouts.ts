@@ -62,7 +62,7 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'player_name', label: 'Gracz', x: 31.14, y: 9.17, w: 28, h: 1.5, fontSize: 10 },
   { id: 'occupation', label: 'Zawód', x: 31.34, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
   { id: 'age', label: 'Wiek', x: 31.55, y: 13.84, w: 10, h: 1.5, fontSize: 10, align: 'center' },
-  { id: 'gender', label: 'Płeć', x: 48.25, y: 13.99, w: 15.5, h: 1.5, fontSize: 10 },
+  { id: 'gender', label: 'Płeć', x: 49.06, y: 13.80, w: 15.5, h: 1.5, fontSize: 10 },
   { id: 'residence', label: 'Miejsce zamieszkania', x: 39.79, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
   { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.67, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
   { id: 'death_place', label: 'Miejsce śmierci', x: 36.73, y: 20.80, w: 27.33, h: 1.69, fontSize: 9 },
