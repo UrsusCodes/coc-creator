@@ -195,7 +195,7 @@ export const FRONT_FIELDS: FieldBox[] = [
 // ─── BACK CARD (Classic) ──────────────────────────────────────
 
 export const BACK_CLASSIC_FIELDS: FieldBox[] = [
-  { id: 'appearance_description', label: 'Opis postaci', x: 5.94, y: 10.06, w: 32.27, h: 9.40, fontSize: 9, maxLines: 7 },
+  { id: 'appearance_description', label: 'Opis postaci', x: 5.94, y: 9.68, w: 32.27, h: 9.40, fontSize: 9, maxLines: 7 },
   { id: 'ideology', label: 'Ideologia i przekonania', x: 5.69, y: 21.52, w: 32.43, h: 5.66, fontSize: 9, maxLines: 6 },
   { id: 'significant_people', label: 'Ważne osoby', x: 5.37, y: 29.86, w: 33.08, h: 6.07, fontSize: 9, maxLines: 8 },
   { id: 'meaningful_locations', label: 'Znaczące miejsca', x: 5.61, y: 37.99, w: 32.68, h: 6.26, fontSize: 9, maxLines: 5 },
@@ -266,9 +266,9 @@ BACK_CLASSIC_FIELDS.push(...BACK_BOTTOM_FIELDS)
 
 export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'appearance_description', label: 'Opis postaci', x: 5.69, y: 10.06, w: 32.43, h: 8.26, fontSize: 9, maxLines: 7 },
-  { id: 'pillars', label: 'Filary Poczytalności', x: 6.18, y: 21.63, w: 32.35, h: 9.40, fontSize: 9, maxLines: 7 },
-  { id: 'sources', label: 'Źródła Stabilności', x: 5.53, y: 29.95, w: 32.03, h: 5.66, fontSize: 9, maxLines: 6 },
-  { id: 'drive', label: 'Motywacja', x: 5.77, y: 38.18, w: 32.27, h: 5.86, fontSize: 9, maxLines: 5 },
+  { id: 'pillars', label: 'Filary Poczytalności', x: 5.64, y: 21.53, w: 32.62, h: 5.88, fontSize: 9, maxLines: 7 },
+  { id: 'sources', label: 'Źródła Stabilności', x: 5.53, y: 29.76, w: 32.97, h: 6.23, fontSize: 9, maxLines: 6 },
+  { id: 'drive', label: 'Motywacja', x: 5.77, y: 38.18, w: 32.40, h: 5.86, fontSize: 9, maxLines: 5 },
   { id: 'other_traits', label: 'Inne przymioty', x: 5.86, y: 46.44, w: 32.35, h: 9.31, fontSize: 9, maxLines: 6 },
 ]
 
