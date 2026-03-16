@@ -171,6 +171,7 @@ export function CardEditorPage() {
   const [marquee, setMarquee] = useState<MarqueeRect | null>(null)
   const marqueeRef = useRef<MarqueeRect | null>(null)
   marqueeRef.current = marquee
+  const justFinishedDrag = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Image dimensions in px (all cards are 2479x3508)
@@ -223,20 +224,22 @@ export function CardEditorPage() {
   }
 
   const handleCanvasClick = () => {
-    if (!dragState && !marquee) setSelected(new Set())
+    // Don't clear selection if we just finished a drag or marquee
+    if (justFinishedDrag.current) {
+      justFinishedDrag.current = false
+      return
+    }
+    setSelected(new Set())
   }
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    // Only start marquee if clicking directly on the container or the image
-    const target = e.target as HTMLElement
-    if (target !== containerRef.current && target.tagName !== 'IMG') return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
     const px = ((e.clientX - rect.left) / rect.width) * 100
     const py = ((e.clientY - rect.top) / rect.height) * 100
     setDragState({ mode: 'marquee', startX: e.clientX, startY: e.clientY, originals: new Map() })
     setMarquee({ x: px, y: py, w: 0, h: 0 })
-    if (!e.shiftKey) setSelected(new Set())
+    if (!e.shiftKey && !e.ctrlKey && !e.metaKey) setSelected(new Set())
   }
 
   // --- Drag & Resize ---
@@ -313,6 +316,9 @@ export function CardEditorPage() {
       }
       setMarquee(null)
       setDragState(null)
+      justFinishedDrag.current = true
+      // Reset flag after click event fires
+      requestAnimationFrame(() => { justFinishedDrag.current = false })
     }
 
     window.addEventListener('mousemove', handleMouseMove)
