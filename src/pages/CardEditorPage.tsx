@@ -110,9 +110,11 @@ const SAMPLE_DATA: Record<string, string> = {
 }
 
 const LIST_GRID_SAMPLES: Record<string, string[]> = {
-  equipment_grid: [
-    'Skórzana teczka z notatkami', 'Rewolwer .32 (6 naboi)', 'Latarka elektryczna',
+  equipment_grid_l: [
+    'Skórzana teczka', 'Rewolwer .32 (6 naboi)', 'Latarka elektryczna',
     'Zestaw do rysowania', 'Lupa powiększająca', 'Apteczka polowa',
+  ],
+  equipment_grid_r: [
     'Nóż kieszonkowy', 'Aparat fotograficzny', 'Kompas', 'Lina 15m',
     'Zapałki i świece', 'Notatnik i ołówki',
   ],
@@ -879,8 +881,12 @@ export function CardEditorPage() {
                   if (!selected.has(lg.id)) { ids = new Set([lg.id]); setSelected(ids) } else { ids = selected }
                   startDrag('move', e, ids)
                 }}
-                className={`absolute cursor-move ${isSelected ? 'ring-2 ring-purple-400 bg-purple-400/10' : 'ring-1 ring-purple-400/40 bg-purple-400/5'}`}
-                style={{ left: `${lg.x}%`, top: `${lg.y}%`, width: `${lg.w}%`, height: `${lg.h}%` }}
+                className="absolute cursor-move"
+                style={{
+                  left: `${lg.x}%`, top: `${lg.y}%`, width: `${lg.w}%`, height: `${lg.h}%`,
+                  outline: isSelected ? '2px solid #c084fc' : '1px solid rgba(192,132,252,0.4)',
+                  backgroundColor: isSelected ? 'rgba(192,132,252,0.1)' : 'rgba(192,132,252,0.05)',
+                }}
               >
                 {Array.from({ length: lg.rowCount }).map((_, ri) => {
                   const samples = LIST_GRID_SAMPLES[lg.id]
@@ -888,8 +894,8 @@ export function CardEditorPage() {
                   return (
                     <div
                       key={ri}
-                      className="absolute w-full border-b border-purple-400/20"
-                      style={{ top: `${(ri / lg.rowCount) * 100}%`, height: `${(1 / lg.rowCount) * 100}%` }}
+                      className="absolute w-full"
+                      style={{ top: `${(ri / lg.rowCount) * 100}%`, height: `${(1 / lg.rowCount) * 100}%`, borderBottom: '1px solid rgba(192,132,252,0.2)' }}
                     >
                       {preview && sampleText ? (
                         <span className="absolute px-1 truncate" style={{
@@ -899,7 +905,7 @@ export function CardEditorPage() {
                           color: '#1a1a1a', fontFamily: 'Georgia, serif',
                         }}>{sampleText}</span>
                       ) : !preview && ri === 0 ? (
-                        <span className="absolute text-purple-300/70 px-0.5" style={{ fontSize: 10, top: '5%', height: '90%', display: 'flex', alignItems: 'center' }}>
+                        <span className="absolute px-0.5" style={{ fontSize: 10, top: '5%', height: '90%', display: 'flex', alignItems: 'center', color: 'rgba(192,132,252,0.7)' }}>
                           {lg.label}
                         </span>
                       ) : null}
@@ -907,7 +913,7 @@ export function CardEditorPage() {
                   )
                 })}
                 {isSelected && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-purple-400 cursor-se-resize"
+                  <div className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style={{ backgroundColor: '#c084fc' }}
                     onMouseDown={(e) => { e.stopPropagation(); startDrag('resize-br', e) }} />
                 )}
               </div>

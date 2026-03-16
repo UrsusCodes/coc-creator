@@ -203,7 +203,8 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
 ]
 
 export const BACK_CLASSIC_LIST_GRIDS: ListGrid[] = [
-  { id: 'equipment_grid', label: 'Ekwipunek (24)', x: 4, y: 72, w: 22, h: 22, rowCount: 24, fontSize: 7 },
+  { id: 'equipment_grid_l', label: 'Ekwipunek L (12)', x: 4, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
+  { id: 'equipment_grid_r', label: 'Ekwipunek R (12)', x: 16, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
   { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
   { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
   { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
@@ -221,7 +222,8 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
 
 // ToC uses same bottom grids as classic — positions copied after user sets classic
 export const BACK_TOC_LIST_GRIDS: ListGrid[] = [
-  { id: 'equipment_grid', label: 'Ekwipunek (24)', x: 4, y: 72, w: 22, h: 22, rowCount: 24, fontSize: 7 },
+  { id: 'equipment_grid_l', label: 'Ekwipunek L (12)', x: 4, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
+  { id: 'equipment_grid_r', label: 'Ekwipunek R (12)', x: 16, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
   { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
   { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
   { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
