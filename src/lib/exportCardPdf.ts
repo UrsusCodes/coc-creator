@@ -214,8 +214,17 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const PW = 595
   const PH = 842
 
-  // Scale factor for font sizes (card is 2479px wide, page is 595pt)
-  const SCALE = PW / 2479
+  // PDF font sizes — layout fontSizes are design hints, we override for PDF
+  // Map layout fontSize → actual PDF pt size
+  const PDF_FONT_SIZE: Record<number, number> = {
+    7: 5.5,    // skills, equip, weapons, specs
+    8: 6,    // photo placeholder
+    9: 7,    // backstory text, residence, spending
+    10: 8,   // basic info (player, occupation, age, gender)
+    11: 9,   // name
+    12: 9,   // derived (san, hp, luck, mp)
+    13: 11,   // characteristics main values
+  }
 
   // Merged skill points
   const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }
@@ -245,7 +254,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       if (!value) continue
 
       const font = f.bold ? fontBold : fontRegular
-      const fontSize = Math.max(4, (f.fontSize ?? 9) * SCALE)
+      const fontSize = PDF_FONT_SIZE[f.fontSize ?? 9] ?? (f.fontSize ?? 9) * 0.85
       const fieldX = (f.x / 100) * PW
       const fieldY = PH - (f.y / 100) * PH
       const fieldW = (f.w / 100) * PW
@@ -279,7 +288,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         const gridW = (grid.w / 100) * PW
         const gridH = (grid.h / 100) * PH
         const rowH = gridH / grid.rows.length
-        const fontSize = Math.max(3.5, 6 * SCALE)
+        const fontSize = 5.5
 
         for (let ri = 0; ri < grid.rows.length; ri++) {
           const row = grid.rows[ri]
