@@ -236,7 +236,7 @@ export function CardEditorPage() {
   // Auto-save on field/grid changes
   useEffect(() => { saveToDisk(layout.id, fields) }, [fields, layout.id])
   useEffect(() => { if (grids.length > 0) saveGridsToDisk(layout.id, grids) }, [grids, layout.id])
-  useEffect(() => { if (listGrids.length > 0) saveListGridsToDisk(layout.id, listGrids) }, [listGrids, layout.id])
+  useEffect(() => { saveListGridsToDisk(layout.id, listGrids) }, [listGrids, layout.id])
 
   const resetToDefaults = () => {
     if (!confirm('Zresetować pozycje do domyślnych?')) return
