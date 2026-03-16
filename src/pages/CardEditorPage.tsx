@@ -217,16 +217,9 @@ export function CardEditorPage() {
   // --- Selection ---
   const handleFieldClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (e.shiftKey || e.ctrlKey || e.metaKey) {
-      setSelected((prev) => {
-        const next = new Set(prev)
-        if (next.has(id)) next.delete(id)
-        else next.add(id)
-        return next
-      })
-    } else {
-      setSelected(new Set([id]))
-    }
+    // Multi-key clicks are handled in onMouseDown — skip here
+    if (e.shiftKey || e.ctrlKey || e.metaKey) return
+    setSelected(new Set([id]))
   }
 
   const handleCanvasClick = () => {
