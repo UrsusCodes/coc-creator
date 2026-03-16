@@ -3,6 +3,8 @@ import fontkit from '@pdf-lib/fontkit'
 import { CARD_LAYOUTS, FRONT_SKILL_GRIDS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillBase, getSkillDisplayName, getBaseSkillId, getSpecialization } from '@/data/skills'
+import { WEAPONS } from '@/data/weapons'
+import { DRIVES } from '@/data/drivePillars'
 import { halfValue, fifthValue } from '@/lib/utils'
 import type { CharacteristicKey } from '@/types/common'
 
@@ -79,14 +81,16 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'build') return String(derived.build)
   if (id === 'dodge') return String(derived.dodge)
   if (id === 'spending_level') return char.spending_level
-  if (id === 'cash') return char.cash
+  if (id === 'cash') {
+    // Parse just the amount from cash string (e.g. "Gotówka: 250 $ | Dobytek: ..." → "250 $")
+    const match = char.cash.match(/[\d\s,.]+\s*\$/)
+    return match ? match[0].trim() : char.cash
+  }
 
-  // Weapon fields: weap1_name, weap1_skill, weap1_half, etc.
-  // Characters don't have structured weapon data yet — leave empty
+  // Weapon fields — filled by parseEquipment()
   if (id.startsWith('weap')) return ''
 
-  // Spec name fields: spec_bron_palna_1 etc.
-  // Handled separately by matchSpecializations
+  // Spec name fields — filled by matchSpecializations
   if (id.startsWith('spec_')) return ''
 
   // Back card — classic backstory
@@ -105,37 +109,125 @@ function getFieldValue(id: string, char: ExportCharacter): string {
     const driveId = char.backstory.drive as string | undefined
     const detail = char.backstory.drive_detail as string | undefined
     if (!driveId) return ''
-    // Import DRIVES inline to get name
-    const name = driveId // Will be resolved by the generator
-    return detail ? `${name}: ${detail}` : name
+    const driveObj = DRIVES.find((d) => d.id === driveId)
+    const name = driveObj?.name ?? driveId
+    return detail ? `${name}: ${detail}` : `${name}: ${driveObj?.description ?? ''}`
   }
   if (id === 'pillars') {
     const p = char.backstory.pillars as string[] | undefined
     return p ? p.filter(Boolean).join('\n') : ''
   }
   if (id === 'sources') {
+    const catLabels: Record<string, string> = { person: 'Osoba', place: 'Miejsce', organization: 'Organizacja' }
     const s = char.backstory.sources as { name: string; category: string; description: string }[] | undefined
-    return s ? s.map((src) => `${src.name} (${src.category})${src.description ? ' — ' + src.description : ''}`).join('\n') : ''
+    return s ? s.map((src) => `${src.name}, ${catLabels[src.category] ?? src.category}: ${src.description || ''}`).join('\n') : ''
   }
   if (id === 'other_traits') return String(char.backstory.other_traits ?? '')
 
-  // Bottom section — equipment, assets, position, contacts
-  if (id.startsWith('equip_l_') || id.startsWith('equip_r_')) {
-    const col = id.startsWith('equip_l_') ? 'l' : 'r'
-    const idx = parseInt(id.split('_').pop()!) - 1
-    const offset = col === 'r' ? 12 : 0
-    return char.equipment[idx + offset] ?? ''
-  }
-  if (id.startsWith('asset_')) {
-    const idx = parseInt(id.split('_').pop()!) - 1
-    const assetStr = char.assets
-    const items = assetStr.split('\n').map((s) => s.replace(/^[•\-]\s*/, '').trim()).filter(Boolean)
-    return items[idx] ?? ''
-  }
-  // position_ and contact_ — not in character data yet
-  if (id.startsWith('position_') || id.startsWith('contact_')) return ''
+  // Bottom section — filled by parseEquipment()
+  if (id.startsWith('equip_') || id.startsWith('asset_') || id.startsWith('position_') || id.startsWith('contact_')) return ''
 
   return ''
+}
+
+// ── Parse equipment[] into categorized slots ──
+
+interface ParsedEquipment {
+  weapons: { name: string; skill: string; half: string; fifth: string; dmg: string; range: string; attacks: string; ammo: string; malf: string }[]
+  equipLeft: string[]
+  equipRight: string[]
+  assets: string[]
+  positions: string[]
+}
+
+function parseEquipment(char: ExportCharacter): Record<string, string> {
+  const result: Record<string, string> = {}
+  const equip: string[] = []
+  const assets: string[] = []
+  const positions: string[] = []
+  const weapons: ParsedEquipment['weapons'] = []
+
+  // Merge skill points for weapon skill lookup
+  const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }
+  for (const [k, v] of Object.entries(char.personal_skill_points)) {
+    allSkillPoints[k] = (allSkillPoints[k] ?? 0) + v
+  }
+
+  for (const item of char.equipment) {
+    // Check for tagged items
+    if (item.startsWith('[Mieszkanie]') || item.startsWith('[Transport]')) {
+      assets.push(item.replace(/^\[.*?\]\s*/, ''))
+      continue
+    }
+    if (item.startsWith('[Styl życia]')) {
+      positions.push(item.replace(/^\[.*?\]\s*/, ''))
+      continue
+    }
+
+    // Check if it's a weapon (match against WEAPONS data by name)
+    const weapon = WEAPONS.find((w) => item.includes(w.name))
+    if (weapon) {
+      const skillBase = resolveBase(weapon.skill_id, char.characteristics)
+      const skillPoints = allSkillPoints[weapon.skill_id] ?? 0
+      const total = skillBase + skillPoints
+      weapons.push({
+        name: weapon.name,
+        skill: total > 0 ? String(total) : '',
+        half: total > 0 ? String(halfValue(total)) : '',
+        fifth: total > 0 ? String(fifthValue(total)) : '',
+        dmg: weapon.damage,
+        range: weapon.range,
+        attacks: weapon.attacks_per_round,
+        ammo: weapon.ammo ? String(weapon.ammo) : '—',
+        malf: weapon.malfunction ? String(weapon.malfunction) : '—',
+      })
+      continue
+    }
+
+    // Regular equipment
+    equip.push(item)
+  }
+
+  // Also parse assets string
+  if (char.assets) {
+    const assetItems = char.assets.split('\n').map((s) => s.replace(/^[•\-]\s*/, '').trim()).filter(Boolean)
+    assets.push(...assetItems)
+  }
+
+  // Fill weapon fields (up to 5)
+  for (let i = 0; i < Math.min(weapons.length, 5); i++) {
+    const w = weapons[i]
+    const n = i + 1
+    result[`weap${n}_name`] = w.name
+    result[`weap${n}_skill`] = w.skill
+    result[`weap${n}_half`] = w.half
+    result[`weap${n}_fifth`] = w.fifth
+    result[`weap${n}_dmg`] = w.dmg
+    result[`weap${n}_range`] = w.range
+    result[`weap${n}_attacks`] = w.attacks
+    result[`weap${n}_ammo`] = w.ammo
+    result[`weap${n}_malf`] = w.malf
+  }
+
+  // Fill equipment (left col 1-12, right col 1-12)
+  for (let i = 0; i < Math.min(equip.length, 12); i++) {
+    result[`equip_l_${i + 1}`] = equip[i]
+  }
+  for (let i = 12; i < Math.min(equip.length, 24); i++) {
+    result[`equip_r_${i - 11}`] = equip[i]
+  }
+
+  // Fill assets (up to 12)
+  for (let i = 0; i < Math.min(assets.length, 12); i++) {
+    result[`asset_${i + 1}`] = assets[i]
+  }
+
+  // Fill positions (up to 6)
+  for (let i = 0; i < Math.min(positions.length, 6); i++) {
+    result[`position_${i + 1}`] = positions[i]
+  }
+
+  return result
 }
 
 // ── Specialization matching ──
@@ -234,6 +326,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
 
   // Spec names mapping
   const specNames = matchSpecializations(char)
+  const equipData = parseEquipment(char)
 
   // ── Render a page ──
   function renderPage(
@@ -250,7 +343,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     // Render regular fields
     for (const f of fields) {
       // Get value — check spec names first, then regular mapping
-      let value = specNames[f.id] ?? getFieldValue(f.id, char)
+      const value = equipData[f.id] ?? specNames[f.id] ?? getFieldValue(f.id, char)
       if (!value) continue
 
       const font = f.bold ? fontBold : fontRegular
