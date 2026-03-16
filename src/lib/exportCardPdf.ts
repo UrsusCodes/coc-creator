@@ -56,8 +56,8 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'name') return char.name
   if (id === 'player_name') return char.player_name ?? ''
   if (id === 'occupation') return OCCUPATIONS.find((o) => o.id === char.occupation_id)?.name ?? ''
-  if (id === 'age') return String(char.age)
-  if (id === 'gender') return char.gender
+  if (id === 'age') return `${char.age} lat`
+  if (id === 'gender') return char.gender === 'M' ? 'Mężczyzna' : char.gender === 'F' ? 'Kobieta' : char.gender
   if (id === 'photo' || id === 'residence' || id === 'birthplace' || id === 'death_place') return ''
 
   // Characteristics — main values
@@ -424,20 +424,21 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
           const fifth = fifthValue(totalValue)
 
           // Render value in sub-columns
-          const renderCell = (offsetPct: number, text: string) => {
+          const renderCell = (offsetPct: number, text: string, bold = false) => {
+            const cellFont = bold ? fontBold : fontRegular
             const cellX = gridX + (offsetPct / 100) * gridW
             const cellW = (grid.cellW / 100) * gridW
-            const tw = fontRegular.widthOfTextAtSize(text, fontSize)
+            const tw = cellFont.widthOfTextAtSize(text, fontSize)
             page.drawText(text, {
               x: cellX + (cellW - tw) / 2,
               y: rowY - fontSize - (rowH - fontSize) / 2,
               size: fontSize,
-              font: fontRegular,
+              font: cellFont,
               color: INK,
             })
           }
 
-          renderCell(grid.valueX, String(totalValue))
+          renderCell(grid.valueX, String(totalValue), true)
           if (half > 0) renderCell(grid.halfX, String(half))
           if (fifth > 0) renderCell(grid.fifthX, String(fifth))
         }

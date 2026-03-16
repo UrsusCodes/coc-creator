@@ -61,8 +61,8 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'name', label: 'Imię Badacza', x: 35.25, y: 6.71, w: 28, h: 1.5, fontSize: 11, bold: true },
   { id: 'player_name', label: 'Gracz', x: 31.14, y: 9.17, w: 28, h: 1.5, fontSize: 10 },
   { id: 'occupation', label: 'Zawód', x: 31.34, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
-  { id: 'age', label: 'Wiek', x: 31.55, y: 13.84, w: 10, h: 1.5, fontSize: 10, align: 'center' },
-  { id: 'gender', label: 'Płeć', x: 49.06, y: 13.80, w: 15.5, h: 1.5, fontSize: 10 },
+  { id: 'age', label: 'Wiek', x: 31.68, y: 13.94, w: 10, h: 1.5, fontSize: 10, align: 'center' },
+  { id: 'gender', label: 'Płeć', x: 48.52, y: 13.89, w: 15.5, h: 1.5, fontSize: 10 },
   { id: 'residence', label: 'Miejsce zamieszkania', x: 39.79, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
   { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.67, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
   { id: 'death_place', label: 'Miejsce śmierci', x: 36.73, y: 20.80, w: 27.33, h: 1.69, fontSize: 9 },
@@ -79,30 +79,30 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'char_move', label: 'RUCH', x: 85.30, y: 19.75, w: 6.46, h: 4.45, fontSize: 13, align: 'center', bold: true },
 
   // ── Cechy — połówki ──
-  { id: 'char_str_half', label: 'SIŁ ½', x: 71.90, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_str_half', label: 'SIŁ ½', x: 71.80, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
   { id: 'char_dex_half', label: 'ZRĘ ½', x: 81.79, y: 7.45, w: 2.49, h: 1.49, fontSize: 9, align: 'center' },
   { id: 'char_pow_half', label: 'MOC ½', x: 92.03, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
   { id: 'char_con_half', label: 'KON ½', x: 71.77, y: 13.97, w: 2.63, h: 1.49, fontSize: 9, align: 'center' },
   { id: 'char_app_half', label: 'WYG ½', x: 82.06, y: 13.88, w: 2.09, h: 1.30, fontSize: 9, align: 'center' },
   { id: 'char_edu_half', label: 'WYK ½', x: 92.29, y: 13.97, w: 1.96, h: 1.39, fontSize: 9, align: 'center' },
-  { id: 'char_siz_half', label: 'BUD ½', x: 71.90, y: 20.02, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
-  { id: 'char_int_half', label: 'INT ½', x: 82.06, y: 20.21, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_siz_half', label: 'BUD ½', x: 71.80, y: 20.02, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_int_half', label: 'INT ½', x: 82.09, y: 20.11, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
 
   // ── Cechy — piątki ──
   { id: 'char_str_fifth', label: 'SIŁ ⅕', x: 71.91, y: 9.73, w: 2.22, h: 1.2, fontSize: 9, align: 'center' },
   { id: 'char_dex_fifth', label: 'ZRĘ ⅕', x: 82.06, y: 9.63, w: 2.22, h: 1.49, fontSize: 9, align: 'center' },
-  { id: 'char_pow_fifth', label: 'MOC ⅕', x: 92.16, y: 9.63, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_pow_fifth', label: 'MOC ⅕', x: 92.19, y: 9.63, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
   { id: 'char_con_fifth', label: 'KON ⅕', x: 71.91, y: 15.87, w: 2.49, h: 1.39, fontSize: 9, align: 'center' },
-  { id: 'char_app_fifth', label: 'WYG ⅕', x: 82.06, y: 15.97, w: 2.22, h: 1.30, fontSize: 9, align: 'center' },
-  { id: 'char_edu_fifth', label: 'WYK ⅕', x: 92.16, y: 16.06, w: 2.09, h: 1.30, fontSize: 9, align: 'center' },
-  { id: 'char_siz_fifth', label: 'BUD ⅕', x: 71.77, y: 22.30, w: 2.90, h: 1.30, fontSize: 9, align: 'center' },
-  { id: 'char_int_fifth', label: 'INT ⅕', x: 81.93, y: 22.11, w: 2.36, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_app_fifth', label: 'WYG ⅕', x: 81.96, y: 15.87, w: 2.22, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_edu_fifth', label: 'WYK ⅕', x: 92.06, y: 15.96, w: 2.09, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_siz_fifth', label: 'BUD ⅕', x: 71.57, y: 22.30, w: 2.90, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_int_fifth', label: 'INT ⅕', x: 81.83, y: 22.11, w: 2.36, h: 1.39, fontSize: 9, align: 'center' },
 
   // ── Atrybuty pochodne ──
   { id: 'san', label: 'Poczytalność', x: 6.55, y: 28.31, w: 8.52, h: 1.51, fontSize: 12, align: 'center', bold: true },
   { id: 'hp', label: 'PW', x: 33.86, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
   { id: 'luck', label: 'Szczęście', x: 57.69, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
-  { id: 'mp', label: 'PM', x: 76.60, y: 28.11, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'mp', label: 'PM', x: 76.60, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
 
   // ── Nazwy specjalizacji (open sloty na karcie) ──
   // Kolumna 1: Broń Palna ×3, Język Obcy ×3
