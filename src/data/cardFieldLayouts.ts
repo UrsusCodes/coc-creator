@@ -58,14 +58,14 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'photo', label: 'Zdjęcie', x: 5.92, y: 3.93, w: 18.58, h: 19.88, fontSize: 8, align: 'center' },
 
   // ── Dane Badacza ──
-  { id: 'name', label: 'Imię Badacza', x: 34.75, y: 6.71, w: 28, h: 1.5, fontSize: 11, bold: true },
-  { id: 'player_name', label: 'Gracz', x: 30.04, y: 9.07, w: 28, h: 1.5, fontSize: 10 },
-  { id: 'occupation', label: 'Zawód', x: 30.44, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'name', label: 'Imię Badacza', x: 35.25, y: 6.71, w: 28, h: 1.5, fontSize: 11, bold: true },
+  { id: 'player_name', label: 'Gracz', x: 31.14, y: 9.17, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'occupation', label: 'Zawód', x: 31.34, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
   { id: 'age', label: 'Wiek', x: 31.55, y: 13.84, w: 10, h: 1.5, fontSize: 10, align: 'center' },
-  { id: 'gender', label: 'Płeć', x: 47.65, y: 13.99, w: 15.5, h: 1.5, fontSize: 10 },
-  { id: 'residence', label: 'Miejsce zamieszkania', x: 39.59, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
-  { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.30, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
-  { id: 'death_place', label: 'Miejsce śmierci', x: 36.36, y: 20.99, w: 27.33, h: 1.69, fontSize: 9 },
+  { id: 'gender', label: 'Płeć', x: 48.25, y: 13.99, w: 15.5, h: 1.5, fontSize: 10 },
+  { id: 'residence', label: 'Miejsce zamieszkania', x: 39.79, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
+  { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.67, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
+  { id: 'death_place', label: 'Miejsce śmierci', x: 36.73, y: 20.80, w: 27.33, h: 1.69, fontSize: 9 },
 
   // ── Cechy — wartości główne ── (top-right 3×3 grid)
   { id: 'char_str', label: 'SIŁ', x: 64.91, y: 7.36, w: 6.06, h: 3.69, fontSize: 13, align: 'center', bold: true },
@@ -99,7 +99,7 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'char_int_fifth', label: 'INT ⅕', x: 81.93, y: 22.11, w: 2.36, h: 1.39, fontSize: 9, align: 'center' },
 
   // ── Atrybuty pochodne ──
-  { id: 'san', label: 'Poczytalność', x: 6.08, y: 28.21, w: 8.52, h: 1.51, fontSize: 12, align: 'center', bold: true },
+  { id: 'san', label: 'Poczytalność', x: 6.55, y: 28.31, w: 8.52, h: 1.51, fontSize: 12, align: 'center', bold: true },
   { id: 'hp', label: 'PW', x: 33.86, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
   { id: 'luck', label: 'Szczęście', x: 57.69, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
   { id: 'mp', label: 'PM', x: 76.60, y: 28.11, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
@@ -279,7 +279,7 @@ BACK_TOC_FIELDS.push(...BACK_BOTTOM_FIELDS)
 
 export const SKILL_GRID_COL1: SkillColumnGrid = {
   id: 'skills_grid_col1', label: 'Umiejętności kol.1',
-  x: 15.10, y: 33.83, w: 19.11, h: 47.94,
+  x: 15.10, y: 33.83, w: 19.11, h: 48.04,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'antropologia', type: 'fixed' },
@@ -307,7 +307,7 @@ export const SKILL_GRID_COL1: SkillColumnGrid = {
 
 export const SKILL_GRID_COL2: SkillColumnGrid = {
   id: 'skills_grid_col2', label: 'Umiejętności kol.2',
-  x: 42.93, y: 33.92, w: 22.20, h: 48.03,
+  x: 42.93, y: 34.02, w: 21.93, h: 47.84,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'medycyna', type: 'fixed' },
