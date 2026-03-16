@@ -31,9 +31,6 @@ export interface SkillColumnGrid {
   halfX: number
   fifthX: number
   cellW: number
-  // Where to write specialization name in open slots
-  specNameX: number
-  specNameW: number
   rows: SkillRow[]
 }
 
@@ -98,7 +95,26 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'luck', label: 'Szczęście', x: 55, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
   { id: 'mp', label: 'PM', x: 77, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
 
-  // Umiejętności — handled by skillGrids, not regular fields
+  // ── Nazwy specjalizacji (open sloty na karcie) ──
+  // Kolumna 1: Broń Palna ×3, Język Obcy ×3
+  { id: 'spec_bron_palna_1', label: 'Broń Palna spec.1', x: 13, y: 32.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_bron_palna_2', label: 'Broń Palna spec.2', x: 13, y: 35.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_bron_palna_3', label: 'Broń Palna spec.3', x: 13, y: 38.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_jezyk_obcy_1', label: 'Język Obcy spec.1', x: 13, y: 50.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_jezyk_obcy_2', label: 'Język Obcy spec.2', x: 13, y: 53.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_jezyk_obcy_3', label: 'Język Obcy spec.3', x: 13, y: 56.5, w: 10, h: 1.2, fontSize: 6 },
+  // Kolumna 2: Nauka ×3, Pilotaż ×2
+  { id: 'spec_nauka_1', label: 'Nauka spec.1', x: 44, y: 30, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_nauka_2', label: 'Nauka spec.2', x: 44, y: 33, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_nauka_3', label: 'Nauka spec.3', x: 44, y: 36, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 44, y: 54, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 44, y: 57, w: 10, h: 1.2, fontSize: 6 },
+  // Kolumna 3: Szt./Rzem. ×3, Walka Wręcz ×2
+  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 74, y: 24.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 74, y: 27.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 74, y: 30.5, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74, y: 54, w: 10, h: 1.2, fontSize: 6 },
+  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74, y: 57, w: 10, h: 1.2, fontSize: 6 },
 
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
@@ -203,7 +219,6 @@ export const SKILL_GRID_COL1: SkillColumnGrid = {
   id: 'skills_grid_col1', label: 'Umiejętności kol.1',
   x: 3, y: 21, w: 30, h: 62,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
-  specNameX: 32, specNameW: 34,
   rows: [
     { skillId: 'antropologia', type: 'fixed' },
     { skillId: 'archeologia', type: 'fixed' },
@@ -232,7 +247,6 @@ export const SKILL_GRID_COL2: SkillColumnGrid = {
   id: 'skills_grid_col2', label: 'Umiejętności kol.2',
   x: 35, y: 21, w: 30, h: 62,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
-  specNameX: 22, specNameW: 44,
   rows: [
     { skillId: 'medycyna', type: 'fixed' },
     { skillId: 'mity_cthulhu', type: 'fixed' },
@@ -261,7 +275,6 @@ export const SKILL_GRID_COL3: SkillColumnGrid = {
   id: 'skills_grid_col3', label: 'Umiejętności kol.3',
   x: 67, y: 21, w: 27, h: 62,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
-  specNameX: 30, specNameW: 36,
   rows: [
     { skillId: 'spostrzegawczosc', type: 'fixed' },
     { skillId: 'sztuka_rzemioslo:_open1', type: 'open_spec', parentSkill: 'sztuka_rzemioslo' },

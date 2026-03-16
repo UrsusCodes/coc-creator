@@ -66,6 +66,15 @@ const SAMPLE_DATA: Record<string, string> = {
   'skill:wiedza_o_naturze': '10', 'skill:wspinaczka': '20',
   'skill:wycena': '25', 'skill:zastraszanie': '15', 'skill:zreczne_palce': '10',
 
+  // ── Nazwy specjalizacji (osobne pola) ──
+  spec_bron_palna_1: 'Pist. Masz.',
+  spec_bron_palna_2: '', spec_bron_palna_3: '',
+  spec_jezyk_obcy_1: 'Łacina', spec_jezyk_obcy_2: 'Angielski', spec_jezyk_obcy_3: '',
+  spec_nauka_1: 'Archeologia', spec_nauka_2: 'Historia', spec_nauka_3: '',
+  spec_pilotaz_1: 'Samolot', spec_pilotaz_2: '',
+  spec_sztuka_1: 'Fotografia', spec_sztuka_2: '', spec_sztuka_3: '',
+  spec_walka_1: 'Miecz', spec_walka_2: '',
+
   // ── Uzbrojenie (5 broni × kolumny) ──
   weap1_name: 'Rewolwer .32', weap1_skill: '50', weap1_half: '25', weap1_fifth: '10', weap1_dmg: '1D8', weap1_range: '15m', weap1_attacks: '1', weap1_ammo: '6', weap1_malf: '100',
   weap2_name: 'Sztylet', weap2_skill: '45', weap2_half: '22', weap2_fifth: '9', weap2_dmg: '1D4+MO', weap2_range: 'dost.', weap2_attacks: '1', weap2_ammo: '—', weap2_malf: '—',
@@ -515,8 +524,6 @@ export function CardEditorPage() {
                 { key: 'halfX', label: '½ X' },
                 { key: 'fifthX', label: '⅕ X' },
                 { key: 'cellW', label: 'Szer. kratki' },
-                { key: 'specNameX', label: 'Spec. X' },
-                { key: 'specNameW', label: 'Spec. W' },
               ].map(({ key, label }) => (
                 <div key={key}>
                   <label className="text-[10px] text-coc-text-muted">{label}</label>
@@ -645,11 +652,18 @@ export function CardEditorPage() {
                 {/* Row lines + preview values */}
                 {g.rows.map((row, ri) => {
                   const val = SAMPLE_DATA[`skill:${row.skillId}`]
-                  const spec = SAMPLE_DATA[`spec:${row.skillId}`]
                   const numVal = val ? parseInt(val) : 0
                   const half = Math.floor(numVal / 2)
                   const fifth = Math.floor(numVal / 5)
-                  const fontSize = Math.max(5, 7 * zoom * 2.5)
+                  const fontSize = Math.max(4, 5.5 * zoom * 2.5)
+                  const cellStyle = (leftPct: number): React.CSSProperties => ({
+                    position: 'absolute',
+                    left: `${leftPct}%`, width: `${g.cellW}%`,
+                    top: '5%', height: '90%',
+                    fontSize, fontFamily: 'Georgia, serif',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#1a1a1a',
+                  })
                   return (
                     <div
                       key={row.skillId}
@@ -659,65 +673,18 @@ export function CardEditorPage() {
                         height: `${(1 / g.rows.length) * 100}%`,
                       }}
                     >
-                      {preview && (
+                      {preview ? (
                         <>
-                          {/* Spec name for open slots */}
-                          {spec && (
-                            <span
-                              className="absolute text-neutral-800 truncate"
-                              style={{
-                                left: `${g.specNameX}%`,
-                                width: `${g.specNameW}%`,
-                                top: '10%', height: '80%',
-                                fontSize, fontFamily: 'Georgia, serif', lineHeight: 1,
-                                display: 'flex', alignItems: 'center',
-                              }}
-                            >{spec}</span>
-                          )}
-                          {/* Value */}
-                          {val && (
-                            <span
-                              className="absolute text-neutral-800"
-                              style={{
-                                left: `${g.valueX}%`, width: `${g.cellW}%`,
-                                top: '10%', height: '80%',
-                                fontSize, fontFamily: 'Georgia, serif', fontWeight: 700,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              }}
-                            >{val}</span>
-                          )}
-                          {/* Half */}
-                          {val && numVal > 0 && (
-                            <span
-                              className="absolute text-neutral-800"
-                              style={{
-                                left: `${g.halfX}%`, width: `${g.cellW}%`,
-                                top: '10%', height: '80%',
-                                fontSize, fontFamily: 'Georgia, serif',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              }}
-                            >{half}</span>
-                          )}
-                          {/* Fifth */}
-                          {val && numVal > 0 && (
-                            <span
-                              className="absolute text-neutral-800"
-                              style={{
-                                left: `${g.fifthX}%`, width: `${g.cellW}%`,
-                                top: '10%', height: '80%',
-                                fontSize, fontFamily: 'Georgia, serif',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              }}
-                            >{fifth}</span>
-                          )}
+                          {val && <span style={{ ...cellStyle(g.valueX), fontWeight: 700 }}>{val}</span>}
+                          {val && numVal > 0 && <span style={cellStyle(g.halfX)}>{half}</span>}
+                          {val && numVal > 0 && <span style={cellStyle(g.fifthX)}>{fifth}</span>}
                         </>
-                      )}
-                      {!preview && (
+                      ) : (
                         <span
                           className="absolute text-green-300/70 truncate px-0.5"
                           style={{
-                            fontSize: Math.max(5, 6 * zoom * 2.5),
-                            top: '10%', height: '80%',
+                            fontSize: Math.max(4, 5 * zoom * 2.5),
+                            top: '5%', height: '90%',
                             display: 'flex', alignItems: 'center',
                           }}
                         >{row.skillId.replace(/:_open\d/, ':(…)')}</span>
