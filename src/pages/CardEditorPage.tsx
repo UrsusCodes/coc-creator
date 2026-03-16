@@ -234,7 +234,9 @@ export function CardEditorPage() {
   }
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.target !== containerRef.current && !(e.target as HTMLElement).querySelector('img')) return
+    // Only start marquee if clicking directly on the container or the image
+    const target = e.target as HTMLElement
+    if (target !== containerRef.current && target.tagName !== 'IMG') return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
     const px = ((e.clientX - rect.left) / rect.width) * 100
@@ -618,13 +620,19 @@ export function CardEditorPage() {
                 key={f.id}
                 onClick={(e) => handleFieldClick(f.id, e)}
                 onMouseDown={(e) => {
+                  if (e.shiftKey) {
+                    e.stopPropagation()
+                    setSelected((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(f.id)) next.delete(f.id)
+                      else next.add(f.id)
+                      return next
+                    })
+                    return
+                  }
                   let activeIds: Set<string>
                   if (!selected.has(f.id)) {
-                    if (!e.shiftKey) {
-                      activeIds = new Set([f.id])
-                    } else {
-                      activeIds = new Set([...selected, f.id])
-                    }
+                    activeIds = new Set([f.id])
                     setSelected(activeIds)
                   } else {
                     activeIds = selected
@@ -681,9 +689,19 @@ export function CardEditorPage() {
                 key={g.id}
                 onClick={(e) => handleFieldClick(g.id, e)}
                 onMouseDown={(e) => {
+                  if (e.shiftKey) {
+                    e.stopPropagation()
+                    setSelected((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(g.id)) next.delete(g.id)
+                      else next.add(g.id)
+                      return next
+                    })
+                    return
+                  }
                   let activeIds: Set<string>
                   if (!selected.has(g.id)) {
-                    activeIds = e.shiftKey ? new Set([...selected, g.id]) : new Set([g.id])
+                    activeIds = new Set([g.id])
                     setSelected(activeIds)
                   } else {
                     activeIds = selected
