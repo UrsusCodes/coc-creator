@@ -46,80 +46,80 @@ export interface CardLayout {
 
 export const FRONT_FIELDS: FieldBox[] = [
   // ── Zdjęcie ──
-  { id: 'photo', label: 'Zdjęcie', x: 3.5, y: 2.5, w: 8.5, h: 10, fontSize: 8, align: 'center' },
+  { id: 'photo', label: 'Zdjęcie', x: 5.92, y: 3.93, w: 18.58, h: 19.88, fontSize: 8, align: 'center' },
 
   // ── Dane Badacza ──
-  { id: 'name', label: 'Imię Badacza', x: 13.5, y: 3.0, w: 28, h: 1.5, fontSize: 11, bold: true },
-  { id: 'player_name', label: 'Gracz', x: 13.5, y: 4.7, w: 28, h: 1.5, fontSize: 10 },
-  { id: 'occupation', label: 'Zawód', x: 13.5, y: 6.4, w: 28, h: 1.5, fontSize: 10 },
-  { id: 'age', label: 'Wiek', x: 13.5, y: 8.1, w: 10, h: 1.5, fontSize: 10, align: 'center' },
-  { id: 'gender', label: 'Płeć', x: 26, y: 8.1, w: 15.5, h: 1.5, fontSize: 10 },
-  { id: 'residence', label: 'Miejsce zamieszkania', x: 13.5, y: 9.8, w: 28, h: 1.5, fontSize: 9 },
-  { id: 'birthplace', label: 'Miejsce urodzenia', x: 13.5, y: 11.5, w: 28, h: 1.5, fontSize: 9 },
-  { id: 'death_place', label: 'Miejsce śmierci', x: 13.5, y: 13.2, w: 28, h: 1.5, fontSize: 9 },
+  { id: 'name', label: 'Imię Badacza', x: 34.75, y: 6.71, w: 28, h: 1.5, fontSize: 11, bold: true },
+  { id: 'player_name', label: 'Gracz', x: 30.04, y: 9.07, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'occupation', label: 'Zawód', x: 30.44, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'age', label: 'Wiek', x: 29.37, y: 13.90, w: 10, h: 1.5, fontSize: 10, align: 'center' },
+  { id: 'gender', label: 'Płeć', x: 47.65, y: 13.99, w: 15.5, h: 1.5, fontSize: 10 },
+  { id: 'residence', label: 'Miejsce zamieszkania', x: 39.59, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
+  { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.30, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
+  { id: 'death_place', label: 'Miejsce śmierci', x: 36.36, y: 20.99, w: 27.33, h: 1.69, fontSize: 9 },
 
   // ── Cechy — wartości główne ── (top-right 3×3 grid)
-  { id: 'char_str', label: 'SIŁ', x: 55.5, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_dex', label: 'ZRĘ', x: 67, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_pow', label: 'MOC', x: 81, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_con', label: 'KON', x: 55.5, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_app', label: 'WYG', x: 67, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_edu', label: 'WYK', x: 81, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_siz', label: 'BUD', x: 55.5, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_int', label: 'INT', x: 67, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_move', label: 'RUCH', x: 81, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_str', label: 'SIŁ', x: 64.91, y: 7.36, w: 6.06, h: 3.69, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_dex', label: 'ZRĘ', x: 74.80, y: 7.17, w: 7, h: 4.07, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_pow', label: 'MOC', x: 85.03, y: 7.36, w: 6.33, h: 4.17, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_con', label: 'KON', x: 65.05, y: 13.79, w: 6.06, h: 3.60, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_app', label: 'WYG', x: 75.20, y: 13.32, w: 6.19, h: 4.26, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_edu', label: 'WYK', x: 85.57, y: 13.70, w: 5.79, h: 3.41, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_siz', label: 'BUD', x: 64.91, y: 20.03, w: 6.46, h: 3.60, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_int', label: 'INT', x: 75.20, y: 20.13, w: 6.19, h: 3.69, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_move', label: 'RUCH', x: 85.30, y: 19.75, w: 6.46, h: 4.45, fontSize: 13, align: 'center', bold: true },
 
   // ── Cechy — połówki ──
-  { id: 'char_str_half', label: 'SIŁ ½', x: 55.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_dex_half', label: 'ZRĘ ½', x: 67, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_pow_half', label: 'MOC ½', x: 81, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_con_half', label: 'KON ½', x: 55.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_app_half', label: 'WYG ½', x: 67, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_edu_half', label: 'WYK ½', x: 81, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_siz_half', label: 'BUD ½', x: 55.5, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_int_half', label: 'INT ½', x: 67, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_str_half', label: 'SIŁ ½', x: 71.90, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_dex_half', label: 'ZRĘ ½', x: 81.79, y: 7.45, w: 2.49, h: 1.49, fontSize: 9, align: 'center' },
+  { id: 'char_pow_half', label: 'MOC ½', x: 92.03, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_con_half', label: 'KON ½', x: 71.77, y: 13.97, w: 2.63, h: 1.49, fontSize: 9, align: 'center' },
+  { id: 'char_app_half', label: 'WYG ½', x: 82.06, y: 13.88, w: 2.09, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_edu_half', label: 'WYK ½', x: 92.29, y: 13.97, w: 1.96, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_siz_half', label: 'BUD ½', x: 71.90, y: 20.02, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_int_half', label: 'INT ½', x: 82.06, y: 20.21, w: 2.22, h: 1.39, fontSize: 9, align: 'center' },
 
   // ── Cechy — piątki ──
-  { id: 'char_str_fifth', label: 'SIŁ ⅕', x: 59, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_dex_fifth', label: 'ZRĘ ⅕', x: 70.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_pow_fifth', label: 'MOC ⅕', x: 84.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_con_fifth', label: 'KON ⅕', x: 59, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_app_fifth', label: 'WYG ⅕', x: 70.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_edu_fifth', label: 'WYK ⅕', x: 84.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_siz_fifth', label: 'BUD ⅕', x: 59, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
-  { id: 'char_int_fifth', label: 'INT ⅕', x: 70.5, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_str_fifth', label: 'SIŁ ⅕', x: 71.91, y: 9.73, w: 2.22, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_dex_fifth', label: 'ZRĘ ⅕', x: 82.06, y: 9.63, w: 2.22, h: 1.49, fontSize: 9, align: 'center' },
+  { id: 'char_pow_fifth', label: 'MOC ⅕', x: 92.16, y: 9.63, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_con_fifth', label: 'KON ⅕', x: 71.91, y: 15.87, w: 2.49, h: 1.39, fontSize: 9, align: 'center' },
+  { id: 'char_app_fifth', label: 'WYG ⅕', x: 82.06, y: 15.97, w: 2.22, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_edu_fifth', label: 'WYK ⅕', x: 92.16, y: 16.06, w: 2.09, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_siz_fifth', label: 'BUD ⅕', x: 71.77, y: 22.30, w: 2.90, h: 1.30, fontSize: 9, align: 'center' },
+  { id: 'char_int_fifth', label: 'INT ⅕', x: 81.93, y: 22.11, w: 2.36, h: 1.39, fontSize: 9, align: 'center' },
 
   // ── Atrybuty pochodne ──
-  { id: 'san', label: 'Poczytalność', x: 5, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
-  { id: 'hp', label: 'PW', x: 27, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
-  { id: 'luck', label: 'Szczęście', x: 55, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
-  { id: 'mp', label: 'PM', x: 77, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'san', label: 'Poczytalność', x: 6.08, y: 28.21, w: 8.52, h: 1.51, fontSize: 12, align: 'center', bold: true },
+  { id: 'hp', label: 'PW', x: 33.86, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'luck', label: 'Szczęście', x: 57.69, y: 28.21, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'mp', label: 'PM', x: 76.60, y: 28.11, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
 
   // ── Nazwy specjalizacji (open sloty na karcie) ──
   // Kolumna 1: Broń Palna ×3, Język Obcy ×3
-  { id: 'spec_bron_palna_1', label: 'Broń Palna spec.1', x: 13, y: 32.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_bron_palna_2', label: 'Broń Palna spec.2', x: 13, y: 35.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_bron_palna_3', label: 'Broń Palna spec.3', x: 13, y: 38.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_jezyk_obcy_1', label: 'Język Obcy spec.1', x: 13, y: 50.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_jezyk_obcy_2', label: 'Język Obcy spec.2', x: 13, y: 53.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_jezyk_obcy_3', label: 'Język Obcy spec.3', x: 13, y: 56.5, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_bron_palna_1', label: 'Broń Palna spec.1', x: 13.40, y: 43.71, w: 9.19, h: 1.2, fontSize: 7 },
+  { id: 'spec_bron_palna_2', label: 'Broń Palna spec.2', x: 13, y: 46.05, w: 9.73, h: 1.2, fontSize: 7 },
+  { id: 'spec_bron_palna_3', label: 'Broń Palna spec.3', x: 13.27, y: 48.67, w: 9.46, h: 1.2, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_1', label: 'Język Obcy spec.1', x: 13.94, y: 63.14, w: 9.73, h: 1.01, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_2', label: 'Język Obcy spec.2', x: 13.81, y: 67.85, w: 9.33, h: 0.91, fontSize: 7 },
+  { id: 'spec_jezyk_obcy_3', label: 'Język Obcy spec.3', x: 14.08, y: 65.62, w: 9.06, h: 0.91, fontSize: 7 },
   // Kolumna 2: Nauka ×3, Pilotaż ×2
-  { id: 'spec_nauka_1', label: 'Nauka spec.1', x: 44, y: 30, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_nauka_2', label: 'Nauka spec.2', x: 44, y: 33, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_nauka_3', label: 'Nauka spec.3', x: 44, y: 36, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 44, y: 54, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 44, y: 57, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_nauka_1', label: 'Nauka spec.1', x: 41.98, y: 41.40, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_nauka_2', label: 'Nauka spec.2', x: 41.98, y: 43.83, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_nauka_3', label: 'Nauka spec.3', x: 42.12, y: 46.07, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 41.85, y: 60.56, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 41.71, y: 62.99, w: 10, h: 1.2, fontSize: 7 },
   // Kolumna 3: Szt./Rzem. ×3, Walka Wręcz ×2
-  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 74, y: 24.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 74, y: 27.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 74, y: 30.5, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74, y: 54, w: 10, h: 2.5, fontSize: 7 },
-  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74, y: 57, w: 10, h: 2.5, fontSize: 7 },
+  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 73.73, y: 36.76, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 73.73, y: 39.09, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 73.60, y: 41.43, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74.27, y: 60.46, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74.54, y: 62.89, w: 10, h: 1.2, fontSize: 7 },
 
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
   // Broń 1
-  { id: 'weap1_name', label: 'Broń 1 nazwa', x: 3.5, y: 86, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap1_name', label: 'Broń 1 nazwa', x: 3.5, y: 85.71, w: 12, h: 1.3, fontSize: 7 },
   { id: 'weap1_skill', label: 'B1 %', x: 16, y: 86, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
   { id: 'weap1_half', label: 'B1 ½', x: 22, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
   { id: 'weap1_fifth', label: 'B1 ⅕', x: 27, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
@@ -174,13 +174,13 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'weap5_malf', label: 'B5 kaw', x: 60, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
 
   // ── Walka (prawa dolna) ──
-  { id: 'damage_bonus', label: 'Mod obrażeń', x: 70, y: 86, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
-  { id: 'build', label: 'Krzepa', x: 70, y: 88.5, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
-  { id: 'dodge', label: 'Unik', x: 70, y: 93.5, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
+  { id: 'damage_bonus', label: 'Mod obrażeń', x: 69.19, y: 85.24, w: 4.89, h: 1.99, fontSize: 10, align: 'center', bold: true },
+  { id: 'build', label: 'Krzepa', x: 69.60, y: 88.98, w: 4.35, h: 1.90, fontSize: 10, align: 'center', bold: true },
+  { id: 'dodge', label: 'Unik', x: 69.33, y: 92.45, w: 4.62, h: 1.8, fontSize: 10, align: 'center', bold: true },
 
   // ── Zasoby (prawa dolna) ──
-  { id: 'spending_level', label: 'Poz. wydatków', x: 83, y: 86, w: 12, h: 1.8, fontSize: 9, align: 'center' },
-  { id: 'cash', label: 'Gotówka', x: 83, y: 93.5, w: 12, h: 1.8, fontSize: 9, align: 'center' },
+  { id: 'spending_level', label: 'Poz. wydatków', x: 84.88, y: 85.24, w: 4.07, h: 2.18, fontSize: 9, align: 'center' },
+  { id: 'cash', label: 'Gotówka', x: 84.88, y: 88.84, w: 4.60, h: 2.18, fontSize: 9, align: 'center' },
 ]
 
 // ─── BACK CARD (Classic) ──────────────────────────────────────
@@ -217,7 +217,7 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
 
 export const SKILL_GRID_COL1: SkillColumnGrid = {
   id: 'skills_grid_col1', label: 'Umiejętności kol.1',
-  x: 3, y: 21, w: 30, h: 62,
+  x: 15.10, y: 33.83, w: 19.11, h: 47.94,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'antropologia', type: 'fixed' },
@@ -245,7 +245,7 @@ export const SKILL_GRID_COL1: SkillColumnGrid = {
 
 export const SKILL_GRID_COL2: SkillColumnGrid = {
   id: 'skills_grid_col2', label: 'Umiejętności kol.2',
-  x: 35, y: 21, w: 30, h: 62,
+  x: 42.93, y: 33.92, w: 22.20, h: 48.03,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'medycyna', type: 'fixed' },
@@ -273,7 +273,7 @@ export const SKILL_GRID_COL2: SkillColumnGrid = {
 
 export const SKILL_GRID_COL3: SkillColumnGrid = {
   id: 'skills_grid_col3', label: 'Umiejętności kol.3',
-  x: 67, y: 21, w: 27, h: 62,
+  x: 73.72, y: 33.72, w: 20.95, h: 48.03,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'spostrzegawczosc', type: 'fixed' },

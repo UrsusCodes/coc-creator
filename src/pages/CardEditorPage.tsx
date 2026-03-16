@@ -137,14 +137,18 @@ function saveGridsToDisk(layoutId: string, grids: SkillColumnGrid[]) {
   localStorage.setItem(GRIDS_STORAGE_KEY, JSON.stringify(data))
 }
 
-type DragMode = 'move' | 'resize-br' | null
+type DragMode = 'move' | 'resize-br' | 'marquee' | null
 
 interface DragState {
   mode: DragMode
   startX: number
   startY: number
-  // Snapshot of all selected fields at drag start
   originals: Map<string, { x: number; y: number; w: number; h: number }>
+  started?: boolean // true once mouse moved enough to start real drag
+}
+
+interface MarqueeRect {
+  x: number; y: number; w: number; h: number // % of card
 }
 
 export function CardEditorPage() {
@@ -164,6 +168,9 @@ export function CardEditorPage() {
   const [preview, setPreview] = useState(false)
   const [fieldFilter, setFieldFilter] = useState('')
   const [dragState, setDragState] = useState<DragState | null>(null)
+  const [marquee, setMarquee] = useState<MarqueeRect | null>(null)
+  const marqueeRef = useRef<MarqueeRect | null>(null)
+  marqueeRef.current = marquee
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Image dimensions in px (all cards are 2479x3508)
@@ -223,7 +230,18 @@ export function CardEditorPage() {
   }
 
   const handleCanvasClick = () => {
-    if (!dragState) setSelected(new Set())
+    if (!dragState && !marquee) setSelected(new Set())
+  }
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.target !== containerRef.current && !(e.target as HTMLElement).querySelector('img')) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const px = ((e.clientX - rect.left) / rect.width) * 100
+    const py = ((e.clientY - rect.top) / rect.height) * 100
+    setDragState({ mode: 'marquee', startX: e.clientX, startY: e.clientY, originals: new Map() })
+    setMarquee({ x: px, y: py, w: 0, h: 0 })
+    if (!e.shiftKey) setSelected(new Set())
   }
 
   // --- Drag & Resize ---
@@ -253,6 +271,21 @@ export function CardEditorPage() {
     const handleMouseMove = (e: MouseEvent) => {
       const dx = e.clientX - dragState.startX
       const dy = e.clientY - dragState.startY
+
+      if (dragState.mode === 'marquee') {
+        const rect = containerRef.current?.getBoundingClientRect()
+        if (!rect) return
+        const startPx = ((dragState.startX - rect.left) / rect.width) * 100
+        const startPy = ((dragState.startY - rect.top) / rect.height) * 100
+        const curPx = ((e.clientX - rect.left) / rect.width) * 100
+        const curPy = ((e.clientY - rect.top) / rect.height) * 100
+        setMarquee({
+          x: Math.min(startPx, curPx), y: Math.min(startPy, curPy),
+          w: Math.abs(curPx - startPx), h: Math.abs(curPy - startPy),
+        })
+        return
+      }
+
       const { dpx, dpy } = pxToPercent(dx, dy)
 
       const applyDrag = <T extends { id: string; x: number; y: number; w: number; h: number }>(items: T[]): T[] =>
@@ -272,6 +305,18 @@ export function CardEditorPage() {
     }
 
     const handleMouseUp = () => {
+      // Marquee select: find all fields/grids intersecting the marquee
+      const mq = marqueeRef.current
+      if (dragState.mode === 'marquee' && mq && mq.w > 0.5 && mq.h > 0.5) {
+        const hits = new Set<string>()
+        const intersects = (item: { x: number; y: number; w: number; h: number; id: string }) =>
+          item.x < mq.x + mq.w && item.x + item.w > mq.x &&
+          item.y < mq.y + mq.h && item.y + item.h > mq.y
+        for (const f of fields) { if (intersects(f)) hits.add(f.id) }
+        for (const g of grids) { if (intersects(g)) hits.add(g.id) }
+        setSelected((prev) => new Set([...prev, ...hits]))
+      }
+      setMarquee(null)
       setDragState(null)
     }
 
@@ -548,6 +593,7 @@ export function CardEditorPage() {
       <div className="flex-1 overflow-auto bg-neutral-900" onClick={handleCanvasClick}>
         <div
           ref={containerRef}
+          onMouseDown={handleCanvasMouseDown}
           className="relative inline-block m-8"
           style={{
             width: IMG_W * zoom,
@@ -722,6 +768,17 @@ export function CardEditorPage() {
               </div>
             )
           })}
+
+          {/* Marquee selection rectangle */}
+          {marquee && marquee.w > 0.3 && (
+            <div
+              className="absolute border-2 border-dashed border-blue-400 bg-blue-400/10 pointer-events-none"
+              style={{
+                left: `${marquee.x}%`, top: `${marquee.y}%`,
+                width: `${marquee.w}%`, height: `${marquee.h}%`,
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
