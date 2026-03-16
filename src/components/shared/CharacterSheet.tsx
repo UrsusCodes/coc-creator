@@ -215,7 +215,7 @@ function DrivePillarsDisplay({ backstory }: { backstory: Record<string, unknown>
       <SectionHeader>Motywacja</SectionHeader>
       <div className="text-sm">
         <span className="font-medium">{drive?.name ?? driveId}</span>
-        {drive && <span className="text-coc-text-muted"> — {drive.description}</span>}
+        {drive && <span className="text-coc-text-muted">: {drive.description}</span>}
         {driveDetail && <div className="text-coc-text-muted mt-1 italic">{driveDetail}</div>}
       </div>
 
@@ -237,8 +237,8 @@ function DrivePillarsDisplay({ backstory }: { backstory: Record<string, unknown>
             {sources.map((s, i) => (
               <div key={i} className="text-sm">
                 <span className="font-medium">{s.name}</span>
-                <span className="text-coc-text-muted"> ({SOURCE_CATEGORY_LABELS[s.category] ?? s.category})</span>
-                {s.description && <div className="text-coc-text-muted text-xs">{s.description}</div>}
+                <span className="text-coc-text-muted">, {SOURCE_CATEGORY_LABELS[s.category] ?? s.category}</span>
+                {s.description && <span className="text-coc-text-muted">: {s.description}</span>}
               </div>
             ))}
           </div>
