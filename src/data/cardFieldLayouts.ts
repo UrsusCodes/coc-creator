@@ -307,7 +307,7 @@ export const SKILL_GRID_COL1: SkillColumnGrid = {
 
 export const SKILL_GRID_COL2: SkillColumnGrid = {
   id: 'skills_grid_col2', label: 'Umiejętności kol.2',
-  x: 42.93, y: 34.02, w: 21.93, h: 47.84,
+  x: 44.01, y: 33.82, w: 20.45, h: 48.03,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'medycyna', type: 'fixed' },
@@ -335,7 +335,7 @@ export const SKILL_GRID_COL2: SkillColumnGrid = {
 
 export const SKILL_GRID_COL3: SkillColumnGrid = {
   id: 'skills_grid_col3', label: 'Umiejętności kol.3',
-  x: 73.88, y: 33.78, w: 20.71, h: 48.14,
+  x: 74.28, y: 33.88, w: 20.04, h: 47.95,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'spostrzegawczosc', type: 'fixed' },
