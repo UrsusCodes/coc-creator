@@ -109,6 +109,27 @@ const SAMPLE_DATA: Record<string, string> = {
   assets: '• Mieszkanie w Arkham\n• Stary Ford Model A\n• Kolekcja artefaktów',
 }
 
+const LIST_GRID_SAMPLES: Record<string, string[]> = {
+  equipment_grid: [
+    'Skórzana teczka z notatkami', 'Rewolwer .32 (6 naboi)', 'Latarka elektryczna',
+    'Zestaw do rysowania', 'Lupa powiększająca', 'Apteczka polowa',
+    'Nóż kieszonkowy', 'Aparat fotograficzny', 'Kompas', 'Lina 15m',
+    'Zapałki i świece', 'Notatnik i ołówki',
+  ],
+  assets_grid: [
+    'Mieszkanie w Arkham (wynajem)', 'Ford Model A (1928)', 'Konto w First National Bank',
+    'Kolekcja artefaktów', 'Biblioteczka prywatna',
+  ],
+  position_grid: [
+    'Środowisko akademickie Miskatonic U.', 'Towarzystwo Archeologiczne',
+    'Szanowany wykładowca',
+  ],
+  contacts_grid: [
+    'Dr Henry Armitage (bibliotekarz)', 'Sierżant O\'Brien (policja Arkham)',
+    'Maria Kowalska (siostra)',
+  ],
+}
+
 function loadSaved(): Record<string, FieldBox[]> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -858,24 +879,35 @@ export function CardEditorPage() {
                   if (!selected.has(lg.id)) { ids = new Set([lg.id]); setSelected(ids) } else { ids = selected }
                   startDrag('move', e, ids)
                 }}
-                className={`absolute cursor-move ${isSelected ? 'ring-2 ring-amber-400 bg-amber-400/10' : 'ring-1 ring-amber-400/40 bg-amber-400/5'}`}
+                className={`absolute cursor-move ${isSelected ? 'ring-2 ring-purple-400 bg-purple-400/10' : 'ring-1 ring-purple-400/40 bg-purple-400/5'}`}
                 style={{ left: `${lg.x}%`, top: `${lg.y}%`, width: `${lg.w}%`, height: `${lg.h}%` }}
               >
-                {Array.from({ length: lg.rowCount }).map((_, ri) => (
-                  <div
-                    key={ri}
-                    className="absolute w-full border-b border-amber-400/20"
-                    style={{ top: `${(ri / lg.rowCount) * 100}%`, height: `${(1 / lg.rowCount) * 100}%` }}
-                  >
-                    {!preview && ri === 0 && (
-                      <span className="absolute text-amber-300/70 px-0.5" style={{ fontSize: 10, top: '5%', height: '90%', display: 'flex', alignItems: 'center' }}>
-                        {lg.label}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {Array.from({ length: lg.rowCount }).map((_, ri) => {
+                  const samples = LIST_GRID_SAMPLES[lg.id]
+                  const sampleText = preview && samples ? samples[ri] : undefined
+                  return (
+                    <div
+                      key={ri}
+                      className="absolute w-full border-b border-purple-400/20"
+                      style={{ top: `${(ri / lg.rowCount) * 100}%`, height: `${(1 / lg.rowCount) * 100}%` }}
+                    >
+                      {preview && sampleText ? (
+                        <span className="absolute px-1 truncate" style={{
+                          fontSize: Math.max(10, (lg.fontSize ?? 7) * zoom * 2.5),
+                          top: '5%', height: '90%', width: '100%',
+                          display: 'flex', alignItems: 'center',
+                          color: '#1a1a1a', fontFamily: 'Georgia, serif',
+                        }}>{sampleText}</span>
+                      ) : !preview && ri === 0 ? (
+                        <span className="absolute text-purple-300/70 px-0.5" style={{ fontSize: 10, top: '5%', height: '90%', display: 'flex', alignItems: 'center' }}>
+                          {lg.label}
+                        </span>
+                      ) : null}
+                    </div>
+                  )
+                })}
                 {isSelected && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-amber-400 cursor-se-resize"
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-purple-400 cursor-se-resize"
                     onMouseDown={(e) => { e.stopPropagation(); startDrag('resize-br', e) }} />
                 )}
               </div>
