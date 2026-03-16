@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { KeyRound } from 'lucide-react'
 import { Stepper } from '@/components/ui/Stepper'
 import { useCharacterStore } from '@/stores/characterStore'
@@ -12,45 +12,56 @@ import { StepOccupation } from './StepOccupation'
 import { StepOccupationSkills } from './StepOccupationSkills'
 import { StepPersonalSkills } from './StepPersonalSkills'
 import { StepBackstory } from './StepBackstory'
+import { StepDrivePillars } from './StepDrivePillars'
 import { StepEquipment } from './StepEquipment'
 import { StepBasicInfo } from './StepBasicInfo'
 import { StepReview } from './StepReview'
 
-const STEP_LABELS = [
-  PL.step_invite_code,
-  PL.step_characteristics,
-  PL.step_age,
-  PL.step_age_modifiers,
-  PL.step_derived,
-  PL.step_occupation,
-  PL.step_occupation_skills,
-  PL.step_personal_skills,
-  PL.step_backstory,
-  PL.step_equipment,
-  PL.step_basic_info,
-  PL.step_review,
-]
+function buildSteps(hasDrivePillars: boolean) {
+  const backstoryLabel = hasDrivePillars ? 'Motywacja i Filary' : PL.step_backstory
+  const BackstoryComponent = hasDrivePillars ? StepDrivePillars : StepBackstory
 
-const STEP_COMPONENTS = [
-  StepInviteCode,
-  StepCharacteristics,
-  StepAge,
-  StepAgeModifiers,
-  StepDerived,
-  StepOccupation,
-  StepOccupationSkills,
-  StepPersonalSkills,
-  StepBackstory,
-  StepEquipment,
-  StepBasicInfo,
-  StepReview,
-]
+  return {
+    labels: [
+      PL.step_invite_code,
+      PL.step_characteristics,
+      PL.step_age,
+      PL.step_age_modifiers,
+      PL.step_derived,
+      PL.step_occupation,
+      PL.step_occupation_skills,
+      PL.step_personal_skills,
+      backstoryLabel,
+      PL.step_equipment,
+      PL.step_basic_info,
+      PL.step_review,
+    ],
+    components: [
+      StepInviteCode,
+      StepCharacteristics,
+      StepAge,
+      StepAgeModifiers,
+      StepDerived,
+      StepOccupation,
+      StepOccupationSkills,
+      StepPersonalSkills,
+      BackstoryComponent,
+      StepEquipment,
+      StepBasicInfo,
+      StepReview,
+    ],
+  }
+}
 
 export function WizardShell() {
   const currentStep = useCharacterStore((s) => s.currentStep)
   const timesUsed = useCharacterStore((s) => s.timesUsed)
   const inviteCodeId = useCharacterStore((s) => s.inviteCodeId)
+  const perks = useCharacterStore((s) => s.perks)
   const setStep = useCharacterStore((s) => s.setStep)
+
+  const hasDrivePillars = perks.includes('drive_pillars')
+  const { labels: STEP_LABELS, components: STEP_COMPONENTS } = useMemo(() => buildSteps(hasDrivePillars), [hasDrivePillars])
   const StepComponent = STEP_COMPONENTS[currentStep]
 
   // On mount (page refresh), always start at step 0 (code entry)

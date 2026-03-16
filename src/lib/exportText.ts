@@ -17,7 +17,7 @@ interface ExportCharacter {
   occupation_id: string
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string
@@ -106,7 +106,7 @@ export function exportCharacterAsText(char: ExportCharacter): string {
     key_connection: 'Kluczowa więź',
   }
 
-  const backstoryEntries = Object.entries(char.backstory).filter(([, v]) => v)
+  const backstoryEntries = Object.entries(char.backstory).filter(([, v]) => v && typeof v === 'string')
   if (backstoryEntries.length > 0) {
     lines.push('───── HISTORIA POSTACI ─────')
     for (const [key, value] of backstoryEntries) {
@@ -114,6 +114,20 @@ export function exportCharacterAsText(char: ExportCharacter): string {
       lines.push(`  ${value}`)
       lines.push('')
     }
+  }
+
+  // Drive+Pillars variant
+  const pillars = char.backstory.pillars as string[] | undefined
+  const sources = char.backstory.sources as { name: string; category: string; description: string }[] | undefined
+  if (pillars && pillars.length > 0) {
+    lines.push('Filary Poczytalności:')
+    for (const p of pillars) lines.push(`  • ${p}`)
+    lines.push('')
+  }
+  if (sources && sources.length > 0) {
+    lines.push('Źródła Stabilności:')
+    for (const s of sources) lines.push(`  • ${s.name} (${s.category}) — ${s.description}`)
+    lines.push('')
   }
 
   // Equipment

@@ -1,9 +1,11 @@
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
+import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
+import type { StabilitySource } from '@/types/character'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
@@ -30,7 +32,7 @@ export interface CharacterSheetData {
   occupation_id: string
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string
@@ -130,22 +132,26 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
           })}
       </div>
 
-      {/* Backstory */}
-      {Object.keys(char.backstory).length > 0 && (
-        <>
-          <SectionHeader>Historia postaci</SectionHeader>
-          <div className="space-y-2">
-            {Object.entries(char.backstory).map(([key, value]) => {
-              if (!value) return null
-              return (
-                <div key={key}>
-                  <div className="text-xs text-coc-text-muted">{BACKSTORY_LABELS[key] ?? key}</div>
-                  <div className="text-sm whitespace-pre-wrap">{value}</div>
-                </div>
-              )
-            })}
-          </div>
-        </>
+      {/* Backstory — Drive+Pillars variant or traditional */}
+      {char.backstory.drive ? (
+        <DrivePillarsDisplay backstory={char.backstory} />
+      ) : (
+        Object.keys(char.backstory).length > 0 && (
+          <>
+            <SectionHeader>Historia postaci</SectionHeader>
+            <div className="space-y-2">
+              {Object.entries(char.backstory).map(([key, value]) => {
+                if (!value || typeof value !== 'string') return null
+                return (
+                  <div key={key}>
+                    <div className="text-xs text-coc-text-muted">{BACKSTORY_LABELS[key] ?? key}</div>
+                    <div className="text-sm whitespace-pre-wrap">{value}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )
       )}
 
       {/* Equipment */}
@@ -178,5 +184,73 @@ function MiniStat({ label, value }: { label: string; value: number | string }) {
       <div className="text-[10px] text-coc-text-muted">{label}</div>
       <div className="font-bold font-mono">{value}</div>
     </div>
+  )
+}
+
+const SOURCE_CATEGORY_LABELS: Record<string, string> = {
+  person: 'Osoba',
+  place: 'Miejsce',
+  organization: 'Organizacja',
+}
+
+function DrivePillarsDisplay({ backstory }: { backstory: Record<string, unknown> }) {
+  const driveId = backstory.drive as string
+  const driveDetail = backstory.drive_detail as string | undefined
+  const pillars = (backstory.pillars as string[]) ?? []
+  const sources = (backstory.sources as StabilitySource[]) ?? []
+  const otherTraits = backstory.other_traits as string | undefined
+  const appearanceDesc = backstory.appearance_description as string | undefined
+
+  const drive = DRIVES.find((d) => d.id === driveId)
+
+  return (
+    <>
+      {appearanceDesc && (
+        <>
+          <SectionHeader>Opis postaci</SectionHeader>
+          <div className="text-sm whitespace-pre-wrap">{appearanceDesc}</div>
+        </>
+      )}
+
+      <SectionHeader>Motywacja</SectionHeader>
+      <div className="text-sm">
+        <span className="font-medium">{drive?.name ?? driveId}</span>
+        {drive && <span className="text-coc-text-muted"> — {drive.description}</span>}
+        {driveDetail && <div className="text-coc-text-muted mt-1 italic">{driveDetail}</div>}
+      </div>
+
+      {pillars.length > 0 && (
+        <>
+          <SectionHeader>Filary Poczytalności</SectionHeader>
+          <ul className="text-sm space-y-0.5">
+            {pillars.map((p, i) => (
+              <li key={i} className="text-coc-text-muted">• {p}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {sources.length > 0 && (
+        <>
+          <SectionHeader>Źródła Stabilności</SectionHeader>
+          <div className="space-y-2">
+            {sources.map((s, i) => (
+              <div key={i} className="text-sm">
+                <span className="font-medium">{s.name}</span>
+                <span className="text-coc-text-muted"> ({SOURCE_CATEGORY_LABELS[s.category] ?? s.category})</span>
+                {s.description && <div className="text-coc-text-muted text-xs">{s.description}</div>}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {otherTraits && (
+        <>
+          <SectionHeader>Inne przymioty</SectionHeader>
+          <div className="text-sm whitespace-pre-wrap">{otherTraits}</div>
+        </>
+      )}
+    </>
   )
 }

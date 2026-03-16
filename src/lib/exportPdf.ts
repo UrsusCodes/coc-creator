@@ -21,7 +21,7 @@ interface ExportCharacter {
   occupation_id: string
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string
@@ -289,7 +289,7 @@ function buildPage(page: PDFPage, font: PDFFont, fontBold: PDFFont, char: Export
 
   for (const section of bsSections) {
     const value = char.backstory[section.key]
-    if (!value) continue
+    if (!value || typeof value !== 'string') continue
     if (y < M + 10) break
 
     const labelText = section.label + ': '

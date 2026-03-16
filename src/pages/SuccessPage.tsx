@@ -26,7 +26,7 @@ interface CharacterRecord {
   occupation_id: string
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string
@@ -191,7 +191,7 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
           <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Historia postaci</h4>
           <div className="space-y-2">
             {Object.entries(char.backstory).map(([key, value]) => {
-              if (!value) return null
+              if (!value || typeof value !== 'string') return null
               const labels: Record<string, string> = {
                 ideology: 'Ideologia / Przekonania',
                 significant_people_who: 'Ważne osoby — Kto',
@@ -201,6 +201,9 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
                 traits: 'Przymioty',
                 appearance_description: 'Opis postaci',
                 key_connection: 'Kluczowa więź',
+                drive: 'Motywacja',
+                drive_detail: 'Szczegóły motywacji',
+                other_traits: 'Inne przymioty',
               }
               return (
                 <div key={key}>

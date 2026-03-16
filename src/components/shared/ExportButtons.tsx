@@ -14,7 +14,7 @@ interface ExportCharacter {
   occupation_id: string
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string

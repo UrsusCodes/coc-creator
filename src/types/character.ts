@@ -21,6 +21,18 @@ export interface Backstory {
   traits: string
   appearance_description: string
   key_connection: string
+  // Drive+Pillars variant fields
+  drive?: string
+  drive_detail?: string
+  pillars?: string[]
+  sources?: StabilitySource[]
+  other_traits?: string
+}
+
+export interface StabilitySource {
+  name: string
+  category: 'person' | 'place' | 'organization'
+  description: string
 }
 
 export interface CharacterData {

@@ -112,7 +112,7 @@ export function SharedCharacterPage() {
     } : prev)
   }
 
-  const handleBackstoryChange = (key: string, value: string) => {
+  const handleBackstoryChange = (key: string, value: unknown) => {
     setEditData((prev) => prev ? {
       ...prev,
       backstory: { ...prev.backstory, [key]: value },

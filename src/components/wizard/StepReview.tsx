@@ -118,9 +118,12 @@ export function StepReview() {
       </Section>
 
       {/* Backstory */}
-      <Section title="Historia postaci">
+      <Section title={store.backstory.drive ? 'Motywacja i Filary' : 'Historia postaci'}>
         {Object.entries(store.backstory).map(([key, value]) => {
           if (!value) return null
+          // Skip complex fields (handled separately)
+          if (key === 'pillars' || key === 'sources') return null
+          if (typeof value !== 'string') return null
           const labels: Record<string, string> = {
             ideology: 'Ideologia / Przekonania',
             significant_people_who: 'Ważne osoby — Kto',
@@ -130,6 +133,9 @@ export function StepReview() {
             traits: 'Przymioty',
             appearance_description: 'Opis postaci',
             key_connection: 'Kluczowa więź',
+            drive: 'Motywacja',
+            drive_detail: 'Szczegóły motywacji',
+            other_traits: 'Inne przymioty',
           }
           return (
             <div key={key} className="mb-2">
@@ -138,6 +144,22 @@ export function StepReview() {
             </div>
           )
         })}
+        {store.backstory.pillars && store.backstory.pillars.length > 0 && (
+          <div className="mb-2">
+            <div className="text-xs text-coc-text-muted">Filary Poczytalności</div>
+            <ul className="text-sm">
+              {store.backstory.pillars.map((p, i) => <li key={i}>• {p}</li>)}
+            </ul>
+          </div>
+        )}
+        {store.backstory.sources && store.backstory.sources.length > 0 && (
+          <div className="mb-2">
+            <div className="text-xs text-coc-text-muted">Źródła Stabilności</div>
+            {store.backstory.sources.map((s, i) => (
+              <div key={i} className="text-sm">{s.name} ({s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}){s.description ? ` — ${s.description}` : ''}</div>
+            ))}
+          </div>
+        )}
       </Section>
 
       {/* Lifestyle & Equipment */}

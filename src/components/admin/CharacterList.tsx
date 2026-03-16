@@ -22,7 +22,7 @@ interface CharacterRow {
   derived: Record<string, unknown>
   occupation_skill_points: Record<string, number>
   personal_skill_points: Record<string, number>
-  backstory: Record<string, string>
+  backstory: Record<string, unknown>
   equipment: string[]
   cash: string
   assets: string

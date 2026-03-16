@@ -65,7 +65,7 @@ export function StepBackstory() {
               key={table.id}
               label={table.label}
               description={table.description}
-              value={backstory[fieldKey] ?? ''}
+              value={(backstory[fieldKey] as string) ?? ''}
               onChange={(v) => updateField(fieldKey, v)}
               onRoll={() => handleRoll(table.id, fieldKey)}
             />
