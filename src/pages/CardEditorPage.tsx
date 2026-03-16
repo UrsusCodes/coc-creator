@@ -88,7 +88,7 @@ const SAMPLE_DATA: Record<string, string> = {
   dodge: '30',
 
   // ── Zasoby ──
-  spending_level: 'Średni',
+  spending_level: '50',
   cash: '$142',
 
   // ── Back classic ──
@@ -656,7 +656,7 @@ export function CardEditorPage() {
                 <span
                   className={`absolute inset-0 px-1 overflow-hidden ${isLongText ? 'whitespace-pre-wrap' : 'flex items-center whitespace-nowrap'}`}
                   style={{
-                    fontSize: Math.max(6, (f.fontSize ?? 10) * zoom * 2.5),
+                    fontSize: Math.max(10, (f.fontSize ?? 10) * zoom * 2.5),
                     textAlign: f.align ?? 'left',
                     justifyContent: !isLongText ? (f.align === 'center' ? 'center' : f.align === 'right' ? 'flex-end' : 'flex-start') : undefined,
                     fontWeight: f.bold ? 700 : 400,
@@ -727,7 +727,7 @@ export function CardEditorPage() {
                   const numVal = val ? parseInt(val) : 0
                   const half = Math.floor(numVal / 2)
                   const fifth = Math.floor(numVal / 5)
-                  const fontSize = Math.max(4, 5.5 * zoom * 2.5)
+                  const fontSize = Math.max(10, 5.5 * zoom * 2.5)
                   const cellStyle = (leftPct: number): React.CSSProperties => ({
                     position: 'absolute',
                     left: `${leftPct}%`, width: `${g.cellW}%`,
@@ -755,7 +755,7 @@ export function CardEditorPage() {
                         <span
                           className="absolute text-green-300/70 truncate px-0.5"
                           style={{
-                            fontSize: Math.max(4, 5 * zoom * 2.5),
+                            fontSize: Math.max(10, 5 * zoom * 2.5),
                             top: '5%', height: '90%',
                             display: 'flex', alignItems: 'center',
                           }}

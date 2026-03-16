@@ -52,7 +52,7 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'name', label: 'Imię Badacza', x: 34.75, y: 6.71, w: 28, h: 1.5, fontSize: 11, bold: true },
   { id: 'player_name', label: 'Gracz', x: 30.04, y: 9.07, w: 28, h: 1.5, fontSize: 10 },
   { id: 'occupation', label: 'Zawód', x: 30.44, y: 11.53, w: 28, h: 1.5, fontSize: 10 },
-  { id: 'age', label: 'Wiek', x: 29.37, y: 13.90, w: 10, h: 1.5, fontSize: 10, align: 'center' },
+  { id: 'age', label: 'Wiek', x: 31.55, y: 13.84, w: 10, h: 1.5, fontSize: 10, align: 'center' },
   { id: 'gender', label: 'Płeć', x: 47.65, y: 13.99, w: 15.5, h: 1.5, fontSize: 10 },
   { id: 'residence', label: 'Miejsce zamieszkania', x: 39.59, y: 16.17, w: 24.37, h: 1.5, fontSize: 9 },
   { id: 'birthplace', label: 'Miejsce urodzenia', x: 37.30, y: 18.63, w: 26.39, h: 1.60, fontSize: 9 },
@@ -60,7 +60,7 @@ export const FRONT_FIELDS: FieldBox[] = [
 
   // ── Cechy — wartości główne ── (top-right 3×3 grid)
   { id: 'char_str', label: 'SIŁ', x: 64.91, y: 7.36, w: 6.06, h: 3.69, fontSize: 13, align: 'center', bold: true },
-  { id: 'char_dex', label: 'ZRĘ', x: 74.80, y: 7.17, w: 7, h: 4.07, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_dex', label: 'ZRĘ', x: 74.80, y: 7.23, w: 7, h: 4.07, fontSize: 13, align: 'center', bold: true },
   { id: 'char_pow', label: 'MOC', x: 85.03, y: 7.36, w: 6.33, h: 4.17, fontSize: 13, align: 'center', bold: true },
   { id: 'char_con', label: 'KON', x: 65.05, y: 13.79, w: 6.06, h: 3.60, fontSize: 13, align: 'center', bold: true },
   { id: 'char_app', label: 'WYG', x: 75.20, y: 13.32, w: 6.19, h: 4.26, fontSize: 13, align: 'center', bold: true },
@@ -119,59 +119,59 @@ export const FRONT_FIELDS: FieldBox[] = [
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
   // Broń 1
-  { id: 'weap1_name', label: 'Broń 1 nazwa', x: 3.5, y: 85.71, w: 12, h: 1.3, fontSize: 7 },
-  { id: 'weap1_skill', label: 'B1 %', x: 16, y: 86, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_half', label: 'B1 ½', x: 22, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_fifth', label: 'B1 ⅕', x: 27, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_dmg', label: 'B1 obraż', x: 32, y: 86, w: 9, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_range', label: 'B1 zasięg', x: 41.5, y: 86, w: 7, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_attacks', label: 'B1 ataki', x: 49, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_ammo', label: 'B1 amu', x: 54.5, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap1_malf', label: 'B1 kaw', x: 60, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_name', label: 'Broń 1 nazwa', x: 5.92, y: 87.42, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap1_skill', label: 'B1 %', x: 21.08, y: 87.37, w: 4.61, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap1_half', label: 'B1 ½', x: 26.94, y: 87.43, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_fifth', label: 'B1 ⅕', x: 32.0, y: 87.43, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_dmg', label: 'B1 obraż', x: 37.52, y: 87.4, w: 7.39, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap1_range', label: 'B1 zasięg', x: 45.78, y: 87.31, w: 4.9, h: 1.47, fontSize: 7, align: 'center' },
+  { id: 'weap1_attacks', label: 'B1 ataki', x: 51.48, y: 87.43, w: 4.11, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap1_ammo', label: 'B1 amu', x: 56.11, y: 87.48, w: 3.79, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_malf', label: 'B1 kaw', x: 60.56, y: 87.43, w: 3.23, h: 1.3, fontSize: 7, align: 'center' },
 
   // Broń 2
-  { id: 'weap2_name', label: 'Broń 2 nazwa', x: 3.5, y: 87.5, w: 12, h: 1.3, fontSize: 7 },
-  { id: 'weap2_skill', label: 'B2 %', x: 16, y: 87.5, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_half', label: 'B2 ½', x: 22, y: 87.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_fifth', label: 'B2 ⅕', x: 27, y: 87.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_dmg', label: 'B2 obraż', x: 32, y: 87.5, w: 9, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_range', label: 'B2 zasięg', x: 41.5, y: 87.5, w: 7, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_attacks', label: 'B2 ataki', x: 49, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_ammo', label: 'B2 amu', x: 54.5, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap2_malf', label: 'B2 kaw', x: 60, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_name', label: 'Broń 2 nazwa', x: 5.82, y: 89.31, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap2_skill', label: 'B2 %', x: 21.08, y: 89.27, w: 4.61, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap2_half', label: 'B2 ½', x: 26.84, y: 89.21, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_fifth', label: 'B2 ⅕', x: 32.0, y: 89.33, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_dmg', label: 'B2 obraż', x: 37.52, y: 89.2, w: 7.39, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap2_range', label: 'B2 zasięg', x: 45.86, y: 89.21, w: 4.82, h: 1.41, fontSize: 7, align: 'center' },
+  { id: 'weap2_attacks', label: 'B2 ataki', x: 51.54, y: 89.17, w: 3.87, h: 1.41, fontSize: 7, align: 'center' },
+  { id: 'weap2_ammo', label: 'B2 amu', x: 56.19, y: 89.21, w: 3.63, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_malf', label: 'B2 kaw', x: 60.4, y: 89.21, w: 3.71, h: 1.3, fontSize: 7, align: 'center' },
 
   // Broń 3
-  { id: 'weap3_name', label: 'Broń 3 nazwa', x: 3.5, y: 89, w: 12, h: 1.3, fontSize: 7 },
-  { id: 'weap3_skill', label: 'B3 %', x: 16, y: 89, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_half', label: 'B3 ½', x: 22, y: 89, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_fifth', label: 'B3 ⅕', x: 27, y: 89, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_dmg', label: 'B3 obraż', x: 32, y: 89, w: 9, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_range', label: 'B3 zasięg', x: 41.5, y: 89, w: 7, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_attacks', label: 'B3 ataki', x: 49, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_ammo', label: 'B3 amu', x: 54.5, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap3_malf', label: 'B3 kaw', x: 60, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_name', label: 'Broń 3 nazwa', x: 5.82, y: 91.22, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap3_skill', label: 'B3 %', x: 21.08, y: 91.11, w: 4.61, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap3_half', label: 'B3 ½', x: 26.9, y: 91.11, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_fifth', label: 'B3 ⅕', x: 32.0, y: 91.23, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_dmg', label: 'B3 obraż', x: 37.52, y: 91.2, w: 7.39, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap3_range', label: 'B3 zasięg', x: 45.86, y: 91.11, w: 4.74, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_attacks', label: 'B3 ataki', x: 51.66, y: 91.17, w: 3.87, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap3_ammo', label: 'B3 amu', x: 56.19, y: 91.11, w: 3.55, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_malf', label: 'B3 kaw', x: 60.48, y: 91.11, w: 3.71, h: 1.3, fontSize: 7, align: 'center' },
 
   // Broń 4
-  { id: 'weap4_name', label: 'Broń 4 nazwa', x: 3.5, y: 90.5, w: 12, h: 1.3, fontSize: 7 },
-  { id: 'weap4_skill', label: 'B4 %', x: 16, y: 90.5, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_half', label: 'B4 ½', x: 22, y: 90.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_fifth', label: 'B4 ⅕', x: 27, y: 90.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_dmg', label: 'B4 obraż', x: 32, y: 90.5, w: 9, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_range', label: 'B4 zasięg', x: 41.5, y: 90.5, w: 7, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_attacks', label: 'B4 ataki', x: 49, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_ammo', label: 'B4 amu', x: 54.5, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap4_malf', label: 'B4 kaw', x: 60, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_name', label: 'Broń 4 nazwa', x: 5.82, y: 93.01, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap4_skill', label: 'B4 %', x: 21.16, y: 92.95, w: 4.61, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap4_half', label: 'B4 ½', x: 26.92, y: 92.95, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_fifth', label: 'B4 ⅕', x: 32.0, y: 93.03, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_dmg', label: 'B4 obraż', x: 37.52, y: 93.0, w: 7.39, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap4_range', label: 'B4 zasięg', x: 45.94, y: 93.01, w: 4.58, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap4_attacks', label: 'B4 ataki', x: 51.72, y: 93.07, w: 3.79, h: 1.24, fontSize: 7, align: 'center' },
+  { id: 'weap4_ammo', label: 'B4 amu', x: 56.27, y: 93.01, w: 3.63, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap4_malf', label: 'B4 kaw', x: 60.48, y: 92.89, w: 3.63, h: 1.36, fontSize: 7, align: 'center' },
 
   // Broń 5
-  { id: 'weap5_name', label: 'Broń 5 nazwa', x: 3.5, y: 92, w: 12, h: 1.3, fontSize: 7 },
-  { id: 'weap5_skill', label: 'B5 %', x: 16, y: 92, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_half', label: 'B5 ½', x: 22, y: 92, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_fifth', label: 'B5 ⅕', x: 27, y: 92, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_dmg', label: 'B5 obraż', x: 32, y: 92, w: 9, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_range', label: 'B5 zasięg', x: 41.5, y: 92, w: 7, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_attacks', label: 'B5 ataki', x: 49, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_ammo', label: 'B5 amu', x: 54.5, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
-  { id: 'weap5_malf', label: 'B5 kaw', x: 60, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_name', label: 'Broń 5 nazwa', x: 5.88, y: 94.91, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap5_skill', label: 'B5 %', x: 21.16, y: 94.85, w: 4.61, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap5_half', label: 'B5 ½', x: 26.92, y: 94.85, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_fifth', label: 'B5 ⅕', x: 32.04, y: 94.89, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_dmg', label: 'B5 obraż', x: 37.52, y: 94.8, w: 7.39, h: 1.36, fontSize: 7, align: 'center' },
+  { id: 'weap5_range', label: 'B5 zasięg', x: 45.94, y: 94.85, w: 4.58, h: 1.24, fontSize: 7, align: 'center' },
+  { id: 'weap5_attacks', label: 'B5 ataki', x: 51.74, y: 94.68, w: 3.55, h: 1.41, fontSize: 7, align: 'center' },
+  { id: 'weap5_ammo', label: 'B5 amu', x: 56.36, y: 94.86, w: 3.47, h: 1.24, fontSize: 7, align: 'center' },
+  { id: 'weap5_malf', label: 'B5 kaw', x: 60.48, y: 94.85, w: 3.47, h: 1.24, fontSize: 7, align: 'center' },
 
   // ── Walka (prawa dolna) ──
   { id: 'damage_bonus', label: 'Mod obrażeń', x: 69.19, y: 85.24, w: 4.89, h: 1.99, fontSize: 10, align: 'center', bold: true },
@@ -180,7 +180,7 @@ export const FRONT_FIELDS: FieldBox[] = [
 
   // ── Zasoby (prawa dolna) ──
   { id: 'spending_level', label: 'Poz. wydatków', x: 84.88, y: 85.24, w: 4.07, h: 2.18, fontSize: 9, align: 'center' },
-  { id: 'cash', label: 'Gotówka', x: 84.88, y: 88.84, w: 4.60, h: 2.18, fontSize: 9, align: 'center' },
+  { id: 'cash', label: 'Gotówka', x: 84.56, y: 88.67, w: 4.60, h: 2.18, fontSize: 9, align: 'center' },
 ]
 
 // ─── BACK CARD (Classic) ──────────────────────────────────────
@@ -273,7 +273,7 @@ export const SKILL_GRID_COL2: SkillColumnGrid = {
 
 export const SKILL_GRID_COL3: SkillColumnGrid = {
   id: 'skills_grid_col3', label: 'Umiejętności kol.3',
-  x: 73.72, y: 33.72, w: 20.95, h: 48.03,
+  x: 73.88, y: 33.78, w: 20.71, h: 48.14,
   valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
   rows: [
     { skillId: 'spostrzegawczosc', type: 'fixed' },
