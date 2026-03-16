@@ -125,7 +125,7 @@ export function StepEquipment() {
       cashOnHand,
       cash: formatCurrency(era, cashOnHand),
       assets: formatCurrency(era, wealthFormAmount),
-      spendingLevel: selectedLifestyle.label,
+      spendingLevel: formatCurrency(era, wealth.spending) + '/tydz.',
     })
     store.nextStep()
   }
