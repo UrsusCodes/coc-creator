@@ -611,11 +611,10 @@ export function CardEditorPage() {
             return (
               <div
                 key={f.id}
-                onClick={(e) => handleFieldClick(f.id, e)}
                 onMouseDown={(e) => {
+                  e.stopPropagation()
                   const multiKey = e.shiftKey || e.ctrlKey || e.metaKey
                   if (multiKey) {
-                    e.stopPropagation()
                     e.preventDefault()
                     setSelected((prev) => {
                       const next = new Set(prev)
@@ -682,11 +681,10 @@ export function CardEditorPage() {
             return (
               <div
                 key={g.id}
-                onClick={(e) => handleFieldClick(g.id, e)}
                 onMouseDown={(e) => {
+                  e.stopPropagation()
                   const multiKey = e.shiftKey || e.ctrlKey || e.metaKey
                   if (multiKey) {
-                    e.stopPropagation()
                     e.preventDefault()
                     setSelected((prev) => {
                       const next = new Set(prev)
