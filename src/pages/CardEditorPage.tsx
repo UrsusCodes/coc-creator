@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { CARD_LAYOUTS, type FieldBox } from '@/data/cardFieldLayouts'
+import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
 import { Button } from '@/components/ui/Button'
 import { Copy, Check, ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff } from 'lucide-react'
 
@@ -34,10 +34,37 @@ const SAMPLE_DATA: Record<string, string> = {
   // ── Pochodne ──
   san: '70', hp: '10', luck: '55', mp: '14',
 
-  // ── Umiejętności (kolumny — tekst demonstracyjny) ──
-  skills_col1: 'Antropologia 01%\nArcheologia 45%  22  9\nBroń Palna (Krótka) 50%  25  10\nCharakteryzacja 05%\nElektryka 10%\nGadanina 05%\nHistoria 55%  27  11\nJeździectwo 05%\nJęzyk Obcy (Łacina) 40%  20  8\nJęzyk Ojczysty 80%  40  16\nKorz. z Bibliotek 60%  30  12\nKsięgowość 05%\nMajętność 50%  25  10\nMechanika 10%',
-  skills_col2: 'Medycyna 01%\nMity Cthulhu 08%  4  1\nNasłuchiwanie 20%\nNauka (Archeologia) 65%  32  13\nNauka (Historia) 45%  22  9\nNawigacja 10%\nOkultyzm 35%  17  7\nPerswazja 40%  20  8\nPierwsza Pomoc 30%\nPływanie 20%\nPrawo 05%\nProwadz. Samochodu 20%\nPsychologia 10%\nRzucanie 20%',
-  skills_col3: 'Spostrzegawczość 55%  27  11\nSzt./Rzemiosło (Fotografia) 25%  12  5\nUkrywanie 20%\nUnik 30%  15  6\nUrok Osobisty 15%\nWalka Wręcz (Bijatyka) 25%\nWiedza o Naturze 10%\nWspinaczka 20%\nWycena 25%  12  5\nZastraszanie 15%\nZręczne Palce 10%',
+  // ── Umiejętności — per skill ID wartości (total%) ──
+  // Kolumna 1
+  'skill:antropologia': '1', 'skill:archeologia': '45',
+  'skill:bron_palna:karabin_strzelba': '25', 'skill:bron_palna:krotka': '50',
+  'skill:bron_palna:_open1': '15', 'spec:bron_palna:_open1': 'Pistolet Masz.',
+  'skill:charakteryzacja': '5', 'skill:elektryka': '10', 'skill:gadanina': '5',
+  'skill:historia': '55', 'skill:jezdziectwo': '5',
+  'skill:jezyk_obcy:_open1': '40', 'spec:jezyk_obcy:_open1': 'Łacina',
+  'skill:jezyk_obcy:_open2': '25', 'spec:jezyk_obcy:_open2': 'Angielski',
+  'skill:jezyk_ojczysty': '80',
+  'skill:korzystanie_z_bibliotek': '60', 'skill:ksiegowosc': '5',
+  'skill:majetnosc': '50', 'skill:mechanika': '10',
+  // Kolumna 2
+  'skill:medycyna': '1', 'skill:mity_cthulhu': '8', 'skill:nasluchiwanie': '20',
+  'skill:nauka:_open1': '65', 'spec:nauka:_open1': 'Archeologia',
+  'skill:nauka:_open2': '45', 'spec:nauka:_open2': 'Historia',
+  'skill:nawigacja': '10', 'skill:obsluga_ciezkiego_sprzetu': '1',
+  'skill:okultyzm': '35', 'skill:perswazja': '40', 'skill:pierwsza_pomoc': '30',
+  'skill:pilotowanie:_open1': '1', 'spec:pilotowanie:_open1': 'Samolot',
+  'skill:plywanie': '20', 'skill:prawo': '5',
+  'skill:prowadzenie_samochodu': '20', 'skill:psychoanaliza': '1',
+  'skill:psychologia': '10', 'skill:rzucanie': '20', 'skill:skakanie': '20',
+  // Kolumna 3
+  'skill:spostrzegawczosc': '55',
+  'skill:sztuka_rzemioslo:_open1': '25', 'spec:sztuka_rzemioslo:_open1': 'Fotografia',
+  'skill:sztuka_przetrwania': '10', 'skill:slusarstwo': '1',
+  'skill:tropienie': '10', 'skill:ukrywanie': '20', 'skill:unik': '30',
+  'skill:urok_osobisty': '15', 'skill:walka_wrecz:bijatyka': '25',
+  'skill:walka_wrecz:_open1': '20', 'spec:walka_wrecz:_open1': 'Miecz',
+  'skill:wiedza_o_naturze': '10', 'skill:wspinaczka': '20',
+  'skill:wycena': '25', 'skill:zastraszanie': '15', 'skill:zreczne_palce': '10',
 
   // ── Uzbrojenie (5 broni × kolumny) ──
   weap1_name: 'Rewolwer .32', weap1_skill: '50', weap1_half: '25', weap1_fifth: '10', weap1_dmg: '1D8', weap1_range: '15m', weap1_attacks: '1', weap1_ammo: '6', weap1_malf: '100',
@@ -86,6 +113,21 @@ function saveToDisk(layoutId: string, fields: FieldBox[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
+const GRIDS_STORAGE_KEY = 'coc-card-editor-grids'
+
+function loadSavedGrids(): Record<string, SkillColumnGrid[]> {
+  try {
+    const raw = localStorage.getItem(GRIDS_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
+}
+
+function saveGridsToDisk(layoutId: string, grids: SkillColumnGrid[]) {
+  const data = loadSavedGrids()
+  data[layoutId] = grids
+  localStorage.setItem(GRIDS_STORAGE_KEY, JSON.stringify(data))
+}
+
 type DragMode = 'move' | 'resize-br' | null
 
 interface DragState {
@@ -103,6 +145,10 @@ export function CardEditorPage() {
     const saved = loadSaved()
     return saved[layout.id] ?? layout.fields.map((f) => ({ ...f }))
   })
+  const [grids, setGrids] = useState<SkillColumnGrid[]>(() => {
+    const saved = loadSavedGrids()
+    return saved[layout.id] ?? (layout.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] }))
+  })
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [zoom, setZoom] = useState(0.3)
   const [copied, setCopied] = useState(false)
@@ -117,20 +163,38 @@ export function CardEditorPage() {
   // Switch layout
   const switchLayout = (idx: number) => {
     setLayoutIdx(idx)
-    const saved = loadSaved()
     const l = CARD_LAYOUTS[idx]
-    setFields(saved[l.id] ?? l.fields.map((f) => ({ ...f })))
+    const savedF = loadSaved()
+    setFields(savedF[l.id] ?? l.fields.map((f) => ({ ...f })))
+    const savedG = loadSavedGrids()
+    setGrids(savedG[l.id] ?? (l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
     setSelected(new Set())
   }
 
-  // Auto-save on field changes
-  useEffect(() => {
-    saveToDisk(layout.id, fields)
-  }, [fields, layout.id])
+  // Auto-save on field/grid changes
+  useEffect(() => { saveToDisk(layout.id, fields) }, [fields, layout.id])
+  useEffect(() => { if (grids.length > 0) saveGridsToDisk(layout.id, grids) }, [grids, layout.id])
 
   const resetToDefaults = () => {
     if (!confirm('Zresetować pozycje do domyślnych?')) return
-    setFields(layout.fields.map((f) => ({ ...f })))
+    const l = CARD_LAYOUTS[layoutIdx]
+    setFields(l.fields.map((f) => ({ ...f })))
+    setGrids((l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
+    const data = loadSaved()
+    delete data[layout.id]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    const gData = loadSavedGrids()
+    delete gData[layout.id]
+    localStorage.setItem(GRIDS_STORAGE_KEY, JSON.stringify(gData))
+  }
+
+  const resetAll = () => {
+    if (!confirm('Usunąć WSZYSTKIE zapisane pozycje dla wszystkich kart?')) return
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(GRIDS_STORAGE_KEY)
+    const l = CARD_LAYOUTS[layoutIdx]
+    setFields(l.fields.map((f) => ({ ...f })))
+    setGrids((l.skillGrids ?? []).map((g) => ({ ...g, rows: [...g.rows] })))
   }
 
   // --- Selection ---
@@ -166,7 +230,9 @@ export function CardEditorPage() {
     const originals = new Map<string, { x: number; y: number; w: number; h: number }>()
     for (const id of ids) {
       const f = fields.find((ff) => ff.id === id)
-      if (f) originals.set(id, { x: f.x, y: f.y, w: f.w, h: f.h })
+      if (f) { originals.set(id, { x: f.x, y: f.y, w: f.w, h: f.h }); continue }
+      const g = grids.find((gg) => gg.id === id)
+      if (g) originals.set(id, { x: g.x, y: g.y, w: g.w, h: g.h })
     }
     setDragState({ mode, startX: e.clientX, startY: e.clientY, originals })
   }
@@ -179,8 +245,8 @@ export function CardEditorPage() {
       const dy = e.clientY - dragState.startY
       const { dpx, dpy } = pxToPercent(dx, dy)
 
-      setFields((prev) =>
-        prev.map((f) => {
+      const applyDrag = <T extends { id: string; x: number; y: number; w: number; h: number }>(items: T[]): T[] =>
+        items.map((f) => {
           const orig = dragState.originals.get(f.id)
           if (!orig) return f
           if (dragState.mode === 'move') {
@@ -191,7 +257,8 @@ export function CardEditorPage() {
           }
           return f
         })
-      )
+      setFields((prev) => applyDrag(prev))
+      setGrids((prev) => applyDrag(prev))
     }
 
     const handleMouseUp = () => {
@@ -249,7 +316,7 @@ export function CardEditorPage() {
   // --- Export ---
   const exportJson = () => {
     const data = {
-      [layout.id]: fields,
+      [layout.id]: { fields, skillGrids: grids.length > 0 ? grids : undefined },
     }
     navigator.clipboard.writeText(JSON.stringify(data, null, 2))
     setCopied(true)
@@ -257,10 +324,13 @@ export function CardEditorPage() {
   }
 
   const exportAllJson = () => {
-    const allData: Record<string, FieldBox[]> = {}
-    // For current layout, use current fields; for others, use defaults
+    const allData: Record<string, { fields: FieldBox[]; skillGrids?: SkillColumnGrid[] }> = {}
+    const savedG = loadSavedGrids()
     CARD_LAYOUTS.forEach((l, i) => {
-      allData[l.id] = i === layoutIdx ? fields : l.fields
+      allData[l.id] = {
+        fields: i === layoutIdx ? fields : l.fields,
+        skillGrids: i === layoutIdx ? grids : (savedG[l.id] ?? l.skillGrids),
+      }
     })
     navigator.clipboard.writeText(JSON.stringify(allData, null, 2))
     setCopied(true)
@@ -268,6 +338,11 @@ export function CardEditorPage() {
   }
 
   const selectedFields = fields.filter((f) => selected.has(f.id))
+  const selectedGrid = grids.find((g) => selected.has(g.id) && selected.size === 1)
+
+  const updateGrid = (id: string, key: string, value: number) => {
+    setGrids((prev) => prev.map((g) => g.id === id ? { ...g, [key]: value } : g))
+  }
 
   return (
     <div className="flex h-screen bg-coc-bg text-coc-text overflow-hidden">
@@ -312,6 +387,9 @@ export function CardEditorPage() {
             <Button size="sm" variant="ghost" onClick={resetToDefaults}>
               <RotateCcw className="w-3 h-3" /> Reset
             </Button>
+            <Button size="sm" variant="ghost" onClick={resetAll}>
+              Reset ALL
+            </Button>
           </div>
           <div className="text-[10px] text-coc-text-muted">Auto-zapis do localStorage</div>
         </div>
@@ -327,6 +405,29 @@ export function CardEditorPage() {
               <button onClick={() => batchResize(0, -1)} className="text-xs px-2 py-0.5 bg-coc-surface-light rounded border border-coc-border cursor-pointer hover:bg-coc-border">H-1</button>
             </div>
             <div className="text-[10px] text-coc-text-muted">Strzałki = przesuń (Shift = szybciej)</div>
+          </div>
+        )}
+
+        {/* Skill grid list */}
+        {grids.length > 0 && (
+          <div className="p-2 border-b border-coc-border">
+            <div className="text-[10px] text-coc-text-muted font-medium uppercase mb-1">Siatki umiejętności</div>
+            {grids.map((g) => (
+              <button
+                key={g.id}
+                onClick={(e) => handleFieldClick(g.id, e)}
+                className={`w-full text-left text-xs px-2 py-1 rounded cursor-pointer transition-colors mb-0.5 ${
+                  selected.has(g.id)
+                    ? 'bg-coc-accent/20 text-coc-accent-light border border-coc-accent/40'
+                    : 'hover:bg-coc-surface-light text-coc-text-muted border border-transparent'
+                }`}
+              >
+                <div className="font-medium">{g.label} ({g.rows.length})</div>
+                <div className="font-mono text-[10px] opacity-60">
+                  {g.x.toFixed(1)}, {g.y.toFixed(1)} — {g.w.toFixed(1)}×{g.h.toFixed(1)}
+                </div>
+              </button>
+            ))}
           </div>
         )}
 
@@ -389,6 +490,41 @@ export function CardEditorPage() {
                   <option value="right">right</option>
                 </select>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Grid property editor */}
+        {selectedGrid && (
+          <div className="p-3 border-t border-coc-border space-y-2">
+            <div className="text-xs font-medium text-green-400">{selectedGrid.label}</div>
+            <div className="grid grid-cols-2 gap-1">
+              {(['x', 'y', 'w', 'h'] as const).map((key) => (
+                <div key={key}>
+                  <label className="text-[10px] text-coc-text-muted uppercase">{key}</label>
+                  <input type="number" step={0.1} value={selectedGrid[key]}
+                    onChange={(e) => updateGrid(selectedGrid.id, key, parseFloat(e.target.value) || 0)}
+                    className="w-full px-1.5 py-0.5 bg-coc-surface-light border border-coc-border rounded text-xs font-mono text-coc-text focus:outline-none focus:border-coc-accent-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                </div>
+              ))}
+            </div>
+            <div className="text-[10px] text-coc-text-muted uppercase mt-1">Sub-kolumny (% szer. kolumny)</div>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { key: 'valueX', label: 'Wart. X' },
+                { key: 'halfX', label: '½ X' },
+                { key: 'fifthX', label: '⅕ X' },
+                { key: 'cellW', label: 'Szer. kratki' },
+                { key: 'specNameX', label: 'Spec. X' },
+                { key: 'specNameW', label: 'Spec. W' },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className="text-[10px] text-coc-text-muted">{label}</label>
+                  <input type="number" step={0.5} value={(selectedGrid as unknown as Record<string, number>)[key]}
+                    onChange={(e) => updateGrid(selectedGrid.id, key, parseFloat(e.target.value) || 0)}
+                    className="w-full px-1.5 py-0.5 bg-coc-surface-light border border-coc-border rounded text-xs font-mono text-coc-text focus:outline-none focus:border-coc-accent-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -468,6 +604,141 @@ export function CardEditorPage() {
                 {isSelected && (
                   <div
                     className="absolute bottom-0 right-0 w-3 h-3 bg-blue-400 cursor-se-resize"
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      startDrag('resize-br', e)
+                    }}
+                  />
+                )}
+              </div>
+            )
+          })}
+          {/* Skill grid overlays */}
+          {grids.map((g) => {
+            const isSelected = selected.has(g.id)
+            return (
+              <div
+                key={g.id}
+                onClick={(e) => handleFieldClick(g.id, e)}
+                onMouseDown={(e) => {
+                  let activeIds: Set<string>
+                  if (!selected.has(g.id)) {
+                    activeIds = e.shiftKey ? new Set([...selected, g.id]) : new Set([g.id])
+                    setSelected(activeIds)
+                  } else {
+                    activeIds = selected
+                  }
+                  startDrag('move', e, activeIds)
+                }}
+                className={`absolute cursor-move ${
+                  isSelected
+                    ? 'ring-2 ring-green-400 bg-green-400/10'
+                    : 'ring-1 ring-green-400/40 bg-green-400/5'
+                }`}
+                style={{
+                  left: `${g.x}%`,
+                  top: `${g.y}%`,
+                  width: `${g.w}%`,
+                  height: `${g.h}%`,
+                }}
+              >
+                {/* Row lines + preview values */}
+                {g.rows.map((row, ri) => {
+                  const val = SAMPLE_DATA[`skill:${row.skillId}`]
+                  const spec = SAMPLE_DATA[`spec:${row.skillId}`]
+                  const numVal = val ? parseInt(val) : 0
+                  const half = Math.floor(numVal / 2)
+                  const fifth = Math.floor(numVal / 5)
+                  const fontSize = Math.max(5, 7 * zoom * 2.5)
+                  return (
+                    <div
+                      key={row.skillId}
+                      className="absolute w-full border-b border-green-400/20"
+                      style={{
+                        top: `${(ri / g.rows.length) * 100}%`,
+                        height: `${(1 / g.rows.length) * 100}%`,
+                      }}
+                    >
+                      {preview && (
+                        <>
+                          {/* Spec name for open slots */}
+                          {spec && (
+                            <span
+                              className="absolute text-neutral-800 truncate"
+                              style={{
+                                left: `${g.specNameX}%`,
+                                width: `${g.specNameW}%`,
+                                top: '10%', height: '80%',
+                                fontSize, fontFamily: 'Georgia, serif', lineHeight: 1,
+                                display: 'flex', alignItems: 'center',
+                              }}
+                            >{spec}</span>
+                          )}
+                          {/* Value */}
+                          {val && (
+                            <span
+                              className="absolute text-neutral-800"
+                              style={{
+                                left: `${g.valueX}%`, width: `${g.cellW}%`,
+                                top: '10%', height: '80%',
+                                fontSize, fontFamily: 'Georgia, serif', fontWeight: 700,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >{val}</span>
+                          )}
+                          {/* Half */}
+                          {val && numVal > 0 && (
+                            <span
+                              className="absolute text-neutral-800"
+                              style={{
+                                left: `${g.halfX}%`, width: `${g.cellW}%`,
+                                top: '10%', height: '80%',
+                                fontSize, fontFamily: 'Georgia, serif',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >{half}</span>
+                          )}
+                          {/* Fifth */}
+                          {val && numVal > 0 && (
+                            <span
+                              className="absolute text-neutral-800"
+                              style={{
+                                left: `${g.fifthX}%`, width: `${g.cellW}%`,
+                                top: '10%', height: '80%',
+                                fontSize, fontFamily: 'Georgia, serif',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >{fifth}</span>
+                          )}
+                        </>
+                      )}
+                      {!preview && (
+                        <span
+                          className="absolute text-green-300/70 truncate px-0.5"
+                          style={{
+                            fontSize: Math.max(5, 6 * zoom * 2.5),
+                            top: '10%', height: '80%',
+                            display: 'flex', alignItems: 'center',
+                          }}
+                        >{row.skillId.replace(/:_open\d/, ':(…)')}</span>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Sub-column markers (visible when selected) */}
+                {isSelected && (
+                  <>
+                    <div className="absolute top-0 bottom-0 w-px bg-blue-400/60" style={{ left: `${g.valueX}%` }} />
+                    <div className="absolute top-0 bottom-0 w-px bg-blue-400/60" style={{ left: `${g.halfX}%` }} />
+                    <div className="absolute top-0 bottom-0 w-px bg-blue-400/60" style={{ left: `${g.fifthX}%` }} />
+                  </>
+                )}
+
+                {/* Resize handle */}
+                {isSelected && (
+                  <div
+                    className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 cursor-se-resize"
                     onMouseDown={(e) => {
                       e.stopPropagation()
                       startDrag('resize-br', e)

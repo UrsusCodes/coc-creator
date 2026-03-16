@@ -16,11 +16,33 @@ export interface FieldBox {
   maxLines?: number
 }
 
+export interface SkillRow {
+  skillId: string
+  type: 'fixed' | 'open_spec' | 'open_combat' | 'custom'
+  parentSkill?: string
+}
+
+export interface SkillColumnGrid {
+  id: string
+  label: string
+  x: number; y: number; w: number; h: number
+  // Sub-column offsets (% of column width) for value boxes
+  valueX: number
+  halfX: number
+  fifthX: number
+  cellW: number
+  // Where to write specialization name in open slots
+  specNameX: number
+  specNameW: number
+  rows: SkillRow[]
+}
+
 export interface CardLayout {
   id: string
   name: string
   image: string
   fields: FieldBox[]
+  skillGrids?: SkillColumnGrid[]
 }
 
 // ─── FRONT CARD (2479×3508) ───────────────────────────────────
@@ -76,10 +98,7 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'luck', label: 'Szczęście', x: 55, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
   { id: 'mp', label: 'PM', x: 77, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
 
-  // ── Umiejętności — 3 kolumny (obszary, generator wypełnia) ──
-  { id: 'skills_col1', label: 'Umiejętności kol.1', x: 3, y: 21, w: 30, h: 62, fontSize: 7 },
-  { id: 'skills_col2', label: 'Umiejętności kol.2', x: 35, y: 21, w: 30, h: 62, fontSize: 7 },
-  { id: 'skills_col3', label: 'Umiejętności kol.3', x: 67, y: 21, w: 27, h: 62, fontSize: 7 },
+  // Umiejętności — handled by skillGrids, not regular fields
 
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
@@ -178,8 +197,99 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'cash', label: 'Gotówka', x: 77, y: 95, w: 16, h: 2, fontSize: 8, align: 'center' },
 ]
 
+// ─── SKILL GRIDS (front card only) ────────────────────────────
+
+export const SKILL_GRID_COL1: SkillColumnGrid = {
+  id: 'skills_grid_col1', label: 'Umiejętności kol.1',
+  x: 3, y: 21, w: 30, h: 62,
+  valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
+  specNameX: 32, specNameW: 34,
+  rows: [
+    { skillId: 'antropologia', type: 'fixed' },
+    { skillId: 'archeologia', type: 'fixed' },
+    { skillId: 'bron_palna:karabin_strzelba', type: 'fixed' },
+    { skillId: 'bron_palna:krotka', type: 'fixed' },
+    { skillId: 'bron_palna:_open1', type: 'open_combat', parentSkill: 'bron_palna' },
+    { skillId: 'bron_palna:_open2', type: 'open_combat', parentSkill: 'bron_palna' },
+    { skillId: 'bron_palna:_open3', type: 'open_combat', parentSkill: 'bron_palna' },
+    { skillId: 'charakteryzacja', type: 'fixed' },
+    { skillId: 'elektryka', type: 'fixed' },
+    { skillId: 'gadanina', type: 'fixed' },
+    { skillId: 'historia', type: 'fixed' },
+    { skillId: 'jezdziectwo', type: 'fixed' },
+    { skillId: 'jezyk_obcy:_open1', type: 'open_spec', parentSkill: 'jezyk_obcy' },
+    { skillId: 'jezyk_obcy:_open2', type: 'open_spec', parentSkill: 'jezyk_obcy' },
+    { skillId: 'jezyk_obcy:_open3', type: 'open_spec', parentSkill: 'jezyk_obcy' },
+    { skillId: 'jezyk_ojczysty', type: 'fixed' },
+    { skillId: 'korzystanie_z_bibliotek', type: 'fixed' },
+    { skillId: 'ksiegowosc', type: 'fixed' },
+    { skillId: 'majetnosc', type: 'fixed' },
+    { skillId: 'mechanika', type: 'fixed' },
+  ],
+}
+
+export const SKILL_GRID_COL2: SkillColumnGrid = {
+  id: 'skills_grid_col2', label: 'Umiejętności kol.2',
+  x: 35, y: 21, w: 30, h: 62,
+  valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
+  specNameX: 22, specNameW: 44,
+  rows: [
+    { skillId: 'medycyna', type: 'fixed' },
+    { skillId: 'mity_cthulhu', type: 'fixed' },
+    { skillId: 'nasluchiwanie', type: 'fixed' },
+    { skillId: 'nauka:_open1', type: 'open_spec', parentSkill: 'nauka' },
+    { skillId: 'nauka:_open2', type: 'open_spec', parentSkill: 'nauka' },
+    { skillId: 'nauka:_open3', type: 'open_spec', parentSkill: 'nauka' },
+    { skillId: 'nawigacja', type: 'fixed' },
+    { skillId: 'obsluga_ciezkiego_sprzetu', type: 'fixed' },
+    { skillId: 'okultyzm', type: 'fixed' },
+    { skillId: 'perswazja', type: 'fixed' },
+    { skillId: 'pierwsza_pomoc', type: 'fixed' },
+    { skillId: 'pilotowanie:_open1', type: 'open_spec', parentSkill: 'pilotowanie' },
+    { skillId: 'pilotowanie:_open2', type: 'open_spec', parentSkill: 'pilotowanie' },
+    { skillId: 'plywanie', type: 'fixed' },
+    { skillId: 'prawo', type: 'fixed' },
+    { skillId: 'prowadzenie_samochodu', type: 'fixed' },
+    { skillId: 'psychoanaliza', type: 'fixed' },
+    { skillId: 'psychologia', type: 'fixed' },
+    { skillId: 'rzucanie', type: 'fixed' },
+    { skillId: 'skakanie', type: 'fixed' },
+  ],
+}
+
+export const SKILL_GRID_COL3: SkillColumnGrid = {
+  id: 'skills_grid_col3', label: 'Umiejętności kol.3',
+  x: 67, y: 21, w: 27, h: 62,
+  valueX: 68, halfX: 80, fifthX: 90, cellW: 9,
+  specNameX: 30, specNameW: 36,
+  rows: [
+    { skillId: 'spostrzegawczosc', type: 'fixed' },
+    { skillId: 'sztuka_rzemioslo:_open1', type: 'open_spec', parentSkill: 'sztuka_rzemioslo' },
+    { skillId: 'sztuka_rzemioslo:_open2', type: 'open_spec', parentSkill: 'sztuka_rzemioslo' },
+    { skillId: 'sztuka_rzemioslo:_open3', type: 'open_spec', parentSkill: 'sztuka_rzemioslo' },
+    { skillId: 'sztuka_przetrwania', type: 'fixed' },
+    { skillId: 'slusarstwo', type: 'fixed' },
+    { skillId: 'tropienie', type: 'fixed' },
+    { skillId: 'ukrywanie', type: 'fixed' },
+    { skillId: 'unik', type: 'fixed' },
+    { skillId: 'urok_osobisty', type: 'fixed' },
+    { skillId: 'walka_wrecz:bijatyka', type: 'fixed' },
+    { skillId: 'walka_wrecz:_open1', type: 'open_combat', parentSkill: 'walka_wrecz' },
+    { skillId: 'walka_wrecz:_open2', type: 'open_combat', parentSkill: 'walka_wrecz' },
+    { skillId: 'wiedza_o_naturze', type: 'fixed' },
+    { skillId: 'wspinaczka', type: 'fixed' },
+    { skillId: 'wycena', type: 'fixed' },
+    { skillId: 'zastraszanie', type: 'fixed' },
+    { skillId: 'zreczne_palce', type: 'fixed' },
+    { skillId: '_custom1', type: 'custom' },
+    { skillId: '_custom2', type: 'custom' },
+  ],
+}
+
+export const FRONT_SKILL_GRIDS: SkillColumnGrid[] = [SKILL_GRID_COL1, SKILL_GRID_COL2, SKILL_GRID_COL3]
+
 export const CARD_LAYOUTS: CardLayout[] = [
-  { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS },
+  { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
   { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS },
   { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS },
 ]
