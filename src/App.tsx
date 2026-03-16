@@ -9,6 +9,7 @@ import { SharedCharacterPage } from '@/pages/SharedCharacterPage'
 
 const TestPdfPage = lazy(() => import('@/pages/TestPdfPage').then(m => ({ default: m.TestPdfPage })))
 const TestRollPage = lazy(() => import('@/pages/TestRollPage').then(m => ({ default: m.TestRollPage })))
+const CardEditorPage = lazy(() => import('@/pages/CardEditorPage').then(m => ({ default: m.CardEditorPage })))
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/c/:token" element={<SharedCharacterPage />} />
         <Route path="/test-pdf" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestPdfPage /></Suspense>} />
         <Route path="/test-roll" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestRollPage /></Suspense>} />
+        <Route path="/card-editor" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><CardEditorPage /></Suspense>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
