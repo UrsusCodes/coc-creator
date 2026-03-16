@@ -186,13 +186,13 @@ export const FRONT_FIELDS: FieldBox[] = [
 // ─── BACK CARD (Classic) ──────────────────────────────────────
 
 export const BACK_CLASSIC_FIELDS: FieldBox[] = [
-  { id: 'appearance_description', label: 'Opis postaci', x: 4, y: 5.5, w: 38, h: 9, fontSize: 9, maxLines: 7 },
-  { id: 'ideology', label: 'Ideologia i przekonania', x: 4, y: 16.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
-  { id: 'significant_people', label: 'Ważne osoby', x: 4, y: 26.5, w: 38, h: 10, fontSize: 9, maxLines: 8 },
-  { id: 'meaningful_locations', label: 'Znaczące miejsca', x: 4, y: 38.5, w: 38, h: 7, fontSize: 9, maxLines: 5 },
-  { id: 'traits', label: 'Inne przymioty', x: 4, y: 47.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
+  { id: 'appearance_description', label: 'Opis postaci', x: 5.94, y: 10.06, w: 32.27, h: 9.40, fontSize: 9, maxLines: 7 },
+  { id: 'ideology', label: 'Ideologia i przekonania', x: 5.69, y: 21.52, w: 32.43, h: 5.66, fontSize: 9, maxLines: 6 },
+  { id: 'significant_people', label: 'Ważne osoby', x: 5.37, y: 29.86, w: 33.08, h: 6.07, fontSize: 9, maxLines: 8 },
+  { id: 'meaningful_locations', label: 'Znaczące miejsca', x: 5.61, y: 37.99, w: 32.68, h: 6.26, fontSize: 9, maxLines: 5 },
+  { id: 'traits', label: 'Inne przymioty', x: 5.53, y: 46.42, w: 32.19, h: 9.08, fontSize: 9, maxLines: 6 },
 
-  { id: 'equipment', label: 'Ekwipunek', x: 4, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
+  { id: 'equipment', label: 'Ekwipunek', x: 4.81, y: 72.12, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'spending_level', label: 'Pozycja', x: 52, y: 82, w: 20, h: 6, fontSize: 8 },
   { id: 'cash', label: 'Gotówka', x: 77, y: 95, w: 16, h: 2, fontSize: 8, align: 'center' },
@@ -201,11 +201,11 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
 // ─── BACK CARD (ToC / Drive+Pillars) ─────────────────────────
 
 export const BACK_TOC_FIELDS: FieldBox[] = [
-  { id: 'appearance_description', label: 'Opis postaci', x: 4, y: 5.5, w: 38, h: 9, fontSize: 9, maxLines: 7 },
-  { id: 'pillars', label: 'Filary Poczytalności', x: 4, y: 16.5, w: 38, h: 9, fontSize: 9, maxLines: 7 },
-  { id: 'sources', label: 'Źródła Stabilności', x: 4, y: 27.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
-  { id: 'drive', label: 'Motywacja', x: 4, y: 37.5, w: 38, h: 7, fontSize: 9, maxLines: 5 },
-  { id: 'other_traits', label: 'Inne przymioty', x: 4, y: 46.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
+  { id: 'appearance_description', label: 'Opis postaci', x: 5.69, y: 10.06, w: 32.43, h: 8.26, fontSize: 9, maxLines: 7 },
+  { id: 'pillars', label: 'Filary Poczytalności', x: 6.18, y: 21.63, w: 32.35, h: 9.40, fontSize: 9, maxLines: 7 },
+  { id: 'sources', label: 'Źródła Stabilności', x: 5.53, y: 29.95, w: 32.03, h: 5.66, fontSize: 9, maxLines: 6 },
+  { id: 'drive', label: 'Motywacja', x: 5.77, y: 38.18, w: 32.27, h: 5.86, fontSize: 9, maxLines: 5 },
+  { id: 'other_traits', label: 'Inne przymioty', x: 5.86, y: 46.44, w: 32.35, h: 9.31, fontSize: 9, maxLines: 6 },
 
   { id: 'equipment', label: 'Ekwipunek', x: 4, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
