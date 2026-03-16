@@ -202,13 +202,42 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
   { id: 'traits', label: 'Inne przymioty', x: 5.53, y: 46.42, w: 32.19, h: 9.08, fontSize: 9, maxLines: 6 },
 ]
 
-export const BACK_CLASSIC_LIST_GRIDS: ListGrid[] = [
-  { id: 'equipment_grid_l', label: 'Ekwipunek L (12)', x: 4, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
-  { id: 'equipment_grid_r', label: 'Ekwipunek R (12)', x: 16, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
-  { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
-  { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
-  { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
-]
+// Ekwipunek: 2 kolumny × 12 wierszy = 24 pola
+const equipRows = (col: 'l' | 'r', baseX: number, baseY: number, w: number): FieldBox[] =>
+  Array.from({ length: 12 }, (_, i) => ({
+    id: `equip_${col}_${i + 1}`, label: `Ekwip.${col.toUpperCase()}${i + 1}`,
+    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
+  }))
+
+// Dobytek: 1 kolumna × 12 wierszy
+const assetRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
+  Array.from({ length: 12 }, (_, i) => ({
+    id: `asset_${i + 1}`, label: `Dobytek ${i + 1}`,
+    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
+  }))
+
+// Pozycja: 6 wierszy
+const positionRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
+  Array.from({ length: 6 }, (_, i) => ({
+    id: `position_${i + 1}`, label: `Pozycja ${i + 1}`,
+    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
+  }))
+
+// Kontakty: 6 wierszy
+const contactRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
+  Array.from({ length: 6 }, (_, i) => ({
+    id: `contact_${i + 1}`, label: `Kontakt ${i + 1}`,
+    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
+  }))
+
+// Append bottom fields to classic back
+BACK_CLASSIC_FIELDS.push(
+  ...equipRows('l', 4, 72, 10),
+  ...equipRows('r', 16, 72, 10),
+  ...assetRows(30, 72, 18),
+  ...positionRows(55, 72, 18),
+  ...contactRows(55, 82, 18),
+)
 
 // ─── BACK CARD (ToC / Drive+Pillars) ─────────────────────────
 
@@ -220,14 +249,14 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'other_traits', label: 'Inne przymioty', x: 5.86, y: 46.44, w: 32.35, h: 9.31, fontSize: 9, maxLines: 6 },
 ]
 
-// ToC uses same bottom grids as classic — positions copied after user sets classic
-export const BACK_TOC_LIST_GRIDS: ListGrid[] = [
-  { id: 'equipment_grid_l', label: 'Ekwipunek L (12)', x: 4, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
-  { id: 'equipment_grid_r', label: 'Ekwipunek R (12)', x: 16, y: 72, w: 11, h: 22, rowCount: 12, fontSize: 7 },
-  { id: 'assets_grid', label: 'Dobytek (12)', x: 28, y: 72, w: 22, h: 12, rowCount: 12, fontSize: 7 },
-  { id: 'position_grid', label: 'Pozycja (6)', x: 52, y: 72, w: 20, h: 6, rowCount: 6, fontSize: 7 },
-  { id: 'contacts_grid', label: 'Kontakty (6)', x: 52, y: 80, w: 20, h: 6, rowCount: 6, fontSize: 7 },
-]
+// Append same bottom fields to ToC back
+BACK_TOC_FIELDS.push(
+  ...equipRows('l', 4, 72, 10),
+  ...equipRows('r', 16, 72, 10),
+  ...assetRows(30, 72, 18),
+  ...positionRows(55, 72, 18),
+  ...contactRows(55, 82, 18),
+)
 
 // ─── SKILL GRIDS (front card only) ────────────────────────────
 
@@ -319,6 +348,6 @@ export const FRONT_SKILL_GRIDS: SkillColumnGrid[] = [SKILL_GRID_COL1, SKILL_GRID
 
 export const CARD_LAYOUTS: CardLayout[] = [
   { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
-  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS, listGrids: BACK_CLASSIC_LIST_GRIDS },
-  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS, listGrids: BACK_TOC_LIST_GRIDS },
+  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS },
+  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS },
 ]

@@ -104,9 +104,12 @@ const SAMPLE_DATA: Record<string, string> = {
   drive: 'Ciekawość — Kiedy napotykam tajemnicę, nie mogę się powstrzymać. Do diabła z ryzykiem — muszę się dowiedzieć.',
   other_traits: 'Kompulsywne notowanie. Mówi po łacinie gdy zdenerwowany. Kolekcjonuje stare mapy.',
 
-  // ── Bottom shared ──
-  equipment: '• Skórzana teczka\n• Rewolwer .32 (6 naboi)\n• Latarka elektryczna\n• Zestaw do rysowania\n• Lupa\n• Apteczka polowa',
-  assets: '• Mieszkanie w Arkham\n• Stary Ford Model A\n• Kolekcja artefaktów',
+  // ── Bottom: individual rows ──
+  equip_l_1: 'Skórzana teczka', equip_l_2: 'Rewolwer .32', equip_l_3: 'Latarka', equip_l_4: 'Lupa', equip_l_5: 'Apteczka', equip_l_6: 'Kompas',
+  equip_r_1: 'Nóż kieszonkowy', equip_r_2: 'Aparat foto', equip_r_3: 'Lina 15m', equip_r_4: 'Zapałki', equip_r_5: 'Notatnik',
+  asset_1: 'Mieszkanie w Arkham', asset_2: 'Ford Model A', asset_3: 'Konto bankowe', asset_4: 'Kolekcja artefaktów',
+  position_1: 'Środowisko akademickie MU', position_2: 'Tow. Archeologiczne',
+  contact_1: 'Dr Henry Armitage', contact_2: 'Sierż. O\'Brien', contact_3: 'Maria (siostra)',
 }
 
 const LIST_GRID_SAMPLES: Record<string, string[]> = {
