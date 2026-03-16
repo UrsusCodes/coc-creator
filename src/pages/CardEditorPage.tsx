@@ -217,7 +217,7 @@ export function CardEditorPage() {
   // --- Selection ---
   const handleFieldClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (e.shiftKey) {
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
       setSelected((prev) => {
         const next = new Set(prev)
         if (next.has(id)) next.delete(id)
@@ -620,8 +620,10 @@ export function CardEditorPage() {
                 key={f.id}
                 onClick={(e) => handleFieldClick(f.id, e)}
                 onMouseDown={(e) => {
-                  if (e.shiftKey) {
+                  const multiKey = e.shiftKey || e.ctrlKey || e.metaKey
+                  if (multiKey) {
                     e.stopPropagation()
+                    e.preventDefault()
                     setSelected((prev) => {
                       const next = new Set(prev)
                       if (next.has(f.id)) next.delete(f.id)
@@ -689,8 +691,10 @@ export function CardEditorPage() {
                 key={g.id}
                 onClick={(e) => handleFieldClick(g.id, e)}
                 onMouseDown={(e) => {
-                  if (e.shiftKey) {
+                  const multiKey = e.shiftKey || e.ctrlKey || e.metaKey
+                  if (multiKey) {
                     e.stopPropagation()
+                    e.preventDefault()
                     setSelected((prev) => {
                       const next = new Set(prev)
                       if (next.has(g.id)) next.delete(g.id)
