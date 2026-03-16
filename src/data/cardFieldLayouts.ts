@@ -1,7 +1,6 @@
 /**
  * Card field layout definitions.
  * Coordinates are in percentage (0-100) of the card image dimensions (2479x3508).
- * This allows the layout to scale to any rendering size.
  */
 
 export interface FieldBox {
@@ -25,46 +24,131 @@ export interface CardLayout {
 }
 
 // ─── FRONT CARD (2479×3508) ───────────────────────────────────
-// Dane Badacza top-left, Cechy top-right, skills middle, weapons bottom
 
 export const FRONT_FIELDS: FieldBox[] = [
-  // Dane badacza (left column)
-  { id: 'name', label: 'Imię Badacza', x: 13.5, y: 3.2, w: 28, h: 1.6, fontSize: 11, bold: true },
-  { id: 'player_name', label: 'Gracz', x: 13.5, y: 4.9, w: 28, h: 1.6, fontSize: 10 },
-  { id: 'occupation', label: 'Zawód', x: 13.5, y: 6.6, w: 28, h: 1.6, fontSize: 10 },
-  { id: 'age', label: 'Wiek', x: 13.5, y: 8.3, w: 10, h: 1.6, fontSize: 10, align: 'center' },
-  { id: 'gender', label: 'Płeć', x: 26, y: 8.3, w: 15.5, h: 1.6, fontSize: 10 },
-  { id: 'residence', label: 'Miejsce zamieszkania', x: 13.5, y: 10.0, w: 28, h: 1.6, fontSize: 9 },
-  { id: 'birthplace', label: 'Miejsce urodzenia', x: 13.5, y: 11.7, w: 28, h: 1.6, fontSize: 9 },
+  // ── Zdjęcie ──
+  { id: 'photo', label: 'Zdjęcie', x: 3.5, y: 2.5, w: 8.5, h: 10, fontSize: 8, align: 'center' },
 
-  // Cechy — top-right grid (3 columns × 3 rows)
-  { id: 'char_str', label: 'SIŁ', x: 55, y: 2.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_dex', label: 'ZRĘ', x: 67, y: 2.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_pow', label: 'MOC', x: 80, y: 2.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_con', label: 'KON', x: 55, y: 5.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_app', label: 'WYG', x: 67, y: 5.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_edu', label: 'WYK', x: 80, y: 5.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_siz', label: 'BUD', x: 55, y: 8.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_int', label: 'INT', x: 67, y: 8.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
-  { id: 'char_move', label: 'RUCH', x: 80, y: 8.8, w: 10, h: 2.2, fontSize: 14, align: 'center', bold: true },
+  // ── Dane Badacza ──
+  { id: 'name', label: 'Imię Badacza', x: 13.5, y: 3.0, w: 28, h: 1.5, fontSize: 11, bold: true },
+  { id: 'player_name', label: 'Gracz', x: 13.5, y: 4.7, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'occupation', label: 'Zawód', x: 13.5, y: 6.4, w: 28, h: 1.5, fontSize: 10 },
+  { id: 'age', label: 'Wiek', x: 13.5, y: 8.1, w: 10, h: 1.5, fontSize: 10, align: 'center' },
+  { id: 'gender', label: 'Płeć', x: 26, y: 8.1, w: 15.5, h: 1.5, fontSize: 10 },
+  { id: 'residence', label: 'Miejsce zamieszkania', x: 13.5, y: 9.8, w: 28, h: 1.5, fontSize: 9 },
+  { id: 'birthplace', label: 'Miejsce urodzenia', x: 13.5, y: 11.5, w: 28, h: 1.5, fontSize: 9 },
+  { id: 'death_place', label: 'Miejsce śmierci', x: 13.5, y: 13.2, w: 28, h: 1.5, fontSize: 9 },
 
-  // Derived stats row (below dane + cechy)
-  { id: 'san', label: 'Poczytalność', x: 5, y: 15.0, w: 12, h: 2.0, fontSize: 12, align: 'center', bold: true },
-  { id: 'hp', label: 'PW', x: 27, y: 15.0, w: 12, h: 2.0, fontSize: 12, align: 'center', bold: true },
-  { id: 'luck', label: 'Szczęście', x: 55, y: 15.0, w: 12, h: 2.0, fontSize: 12, align: 'center', bold: true },
-  { id: 'mp', label: 'PM', x: 77, y: 15.0, w: 12, h: 2.0, fontSize: 12, align: 'center', bold: true },
-  { id: 'db_build', label: 'PO/Krzepa', x: 88, y: 12.0, w: 8, h: 1.5, fontSize: 9, align: 'center' },
+  // ── Cechy — wartości główne ── (top-right 3×3 grid)
+  { id: 'char_str', label: 'SIŁ', x: 55.5, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_dex', label: 'ZRĘ', x: 67, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_pow', label: 'MOC', x: 81, y: 2.8, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_con', label: 'KON', x: 55.5, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_app', label: 'WYG', x: 67, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_edu', label: 'WYK', x: 81, y: 6.0, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_siz', label: 'BUD', x: 55.5, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_int', label: 'INT', x: 67, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
+  { id: 'char_move', label: 'RUCH', x: 81, y: 9.2, w: 7, h: 1.6, fontSize: 13, align: 'center', bold: true },
 
-  // Uzbrojenie (bottom area ~88%)
-  { id: 'weapon_1', label: 'Broń 1', x: 4, y: 89.0, w: 75, h: 1.3, fontSize: 8 },
-  { id: 'weapon_2', label: 'Broń 2', x: 4, y: 90.5, w: 75, h: 1.3, fontSize: 8 },
-  { id: 'dodge', label: 'Unik', x: 84, y: 93.0, w: 10, h: 1.5, fontSize: 10, align: 'center' },
-  { id: 'cash', label: 'Gotówka', x: 84, y: 95.5, w: 10, h: 1.5, fontSize: 9, align: 'center' },
+  // ── Cechy — połówki ──
+  { id: 'char_str_half', label: 'SIŁ ½', x: 55.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_dex_half', label: 'ZRĘ ½', x: 67, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_pow_half', label: 'MOC ½', x: 81, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_con_half', label: 'KON ½', x: 55.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_app_half', label: 'WYG ½', x: 67, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_edu_half', label: 'WYK ½', x: 81, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_siz_half', label: 'BUD ½', x: 55.5, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_int_half', label: 'INT ½', x: 67, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+
+  // ── Cechy — piątki ──
+  { id: 'char_str_fifth', label: 'SIŁ ⅕', x: 59, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_dex_fifth', label: 'ZRĘ ⅕', x: 70.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_pow_fifth', label: 'MOC ⅕', x: 84.5, y: 4.5, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_con_fifth', label: 'KON ⅕', x: 59, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_app_fifth', label: 'WYG ⅕', x: 70.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_edu_fifth', label: 'WYK ⅕', x: 84.5, y: 7.7, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_siz_fifth', label: 'BUD ⅕', x: 59, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+  { id: 'char_int_fifth', label: 'INT ⅕', x: 70.5, y: 10.9, w: 3.3, h: 1.2, fontSize: 9, align: 'center' },
+
+  // ── Atrybuty pochodne ──
+  { id: 'san', label: 'Poczytalność', x: 5, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'hp', label: 'PW', x: 27, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'luck', label: 'Szczęście', x: 55, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+  { id: 'mp', label: 'PM', x: 77, y: 15.0, w: 10, h: 1.8, fontSize: 12, align: 'center', bold: true },
+
+  // ── Umiejętności — 3 kolumny (obszary, generator wypełnia) ──
+  { id: 'skills_col1', label: 'Umiejętności kol.1', x: 3, y: 21, w: 30, h: 62, fontSize: 7 },
+  { id: 'skills_col2', label: 'Umiejętności kol.2', x: 35, y: 21, w: 30, h: 62, fontSize: 7 },
+  { id: 'skills_col3', label: 'Umiejętności kol.3', x: 67, y: 21, w: 27, h: 62, fontSize: 7 },
+
+  // ── Uzbrojenie — 5 rzędów × kolumny ──
+  // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
+  // Broń 1
+  { id: 'weap1_name', label: 'Broń 1 nazwa', x: 3.5, y: 86, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap1_skill', label: 'B1 %', x: 16, y: 86, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_half', label: 'B1 ½', x: 22, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_fifth', label: 'B1 ⅕', x: 27, y: 86, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_dmg', label: 'B1 obraż', x: 32, y: 86, w: 9, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_range', label: 'B1 zasięg', x: 41.5, y: 86, w: 7, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_attacks', label: 'B1 ataki', x: 49, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_ammo', label: 'B1 amu', x: 54.5, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap1_malf', label: 'B1 kaw', x: 60, y: 86, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+
+  // Broń 2
+  { id: 'weap2_name', label: 'Broń 2 nazwa', x: 3.5, y: 87.5, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap2_skill', label: 'B2 %', x: 16, y: 87.5, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_half', label: 'B2 ½', x: 22, y: 87.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_fifth', label: 'B2 ⅕', x: 27, y: 87.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_dmg', label: 'B2 obraż', x: 32, y: 87.5, w: 9, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_range', label: 'B2 zasięg', x: 41.5, y: 87.5, w: 7, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_attacks', label: 'B2 ataki', x: 49, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_ammo', label: 'B2 amu', x: 54.5, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap2_malf', label: 'B2 kaw', x: 60, y: 87.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+
+  // Broń 3
+  { id: 'weap3_name', label: 'Broń 3 nazwa', x: 3.5, y: 89, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap3_skill', label: 'B3 %', x: 16, y: 89, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_half', label: 'B3 ½', x: 22, y: 89, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_fifth', label: 'B3 ⅕', x: 27, y: 89, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_dmg', label: 'B3 obraż', x: 32, y: 89, w: 9, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_range', label: 'B3 zasięg', x: 41.5, y: 89, w: 7, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_attacks', label: 'B3 ataki', x: 49, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_ammo', label: 'B3 amu', x: 54.5, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap3_malf', label: 'B3 kaw', x: 60, y: 89, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+
+  // Broń 4
+  { id: 'weap4_name', label: 'Broń 4 nazwa', x: 3.5, y: 90.5, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap4_skill', label: 'B4 %', x: 16, y: 90.5, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_half', label: 'B4 ½', x: 22, y: 90.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_fifth', label: 'B4 ⅕', x: 27, y: 90.5, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_dmg', label: 'B4 obraż', x: 32, y: 90.5, w: 9, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_range', label: 'B4 zasięg', x: 41.5, y: 90.5, w: 7, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_attacks', label: 'B4 ataki', x: 49, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_ammo', label: 'B4 amu', x: 54.5, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap4_malf', label: 'B4 kaw', x: 60, y: 90.5, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+
+  // Broń 5
+  { id: 'weap5_name', label: 'Broń 5 nazwa', x: 3.5, y: 92, w: 12, h: 1.3, fontSize: 7 },
+  { id: 'weap5_skill', label: 'B5 %', x: 16, y: 92, w: 5.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_half', label: 'B5 ½', x: 22, y: 92, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_fifth', label: 'B5 ⅕', x: 27, y: 92, w: 4.5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_dmg', label: 'B5 obraż', x: 32, y: 92, w: 9, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_range', label: 'B5 zasięg', x: 41.5, y: 92, w: 7, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_attacks', label: 'B5 ataki', x: 49, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_ammo', label: 'B5 amu', x: 54.5, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+  { id: 'weap5_malf', label: 'B5 kaw', x: 60, y: 92, w: 5, h: 1.3, fontSize: 7, align: 'center' },
+
+  // ── Walka (prawa dolna) ──
+  { id: 'damage_bonus', label: 'Mod obrażeń', x: 70, y: 86, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
+  { id: 'build', label: 'Krzepa', x: 70, y: 88.5, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
+  { id: 'dodge', label: 'Unik', x: 70, y: 93.5, w: 10, h: 1.8, fontSize: 10, align: 'center', bold: true },
+
+  // ── Zasoby (prawa dolna) ──
+  { id: 'spending_level', label: 'Poz. wydatków', x: 83, y: 86, w: 12, h: 1.8, fontSize: 9, align: 'center' },
+  { id: 'cash', label: 'Gotówka', x: 83, y: 93.5, w: 12, h: 1.8, fontSize: 9, align: 'center' },
 ]
 
 // ─── BACK CARD (Classic) ──────────────────────────────────────
-// Left: opis postaci, ideologia, ważne osoby, znaczące miejsca, inne przymioty
-// Right: dziennik spraw (not editable), bottom: ekwipunek etc.
 
 export const BACK_CLASSIC_FIELDS: FieldBox[] = [
   { id: 'appearance_description', label: 'Opis postaci', x: 4, y: 5.5, w: 38, h: 9, fontSize: 9, maxLines: 7 },
@@ -73,7 +157,6 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
   { id: 'meaningful_locations', label: 'Znaczące miejsca', x: 4, y: 38.5, w: 38, h: 7, fontSize: 9, maxLines: 5 },
   { id: 'traits', label: 'Inne przymioty', x: 4, y: 47.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
 
-  // Bottom sections
   { id: 'equipment', label: 'Ekwipunek', x: 4, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'spending_level', label: 'Pozycja', x: 52, y: 82, w: 20, h: 6, fontSize: 8 },
@@ -81,7 +164,6 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
 ]
 
 // ─── BACK CARD (ToC / Drive+Pillars) ─────────────────────────
-// Left: opis, filary, źródła, motywacja, inne przymioty
 
 export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'appearance_description', label: 'Opis postaci', x: 4, y: 5.5, w: 38, h: 9, fontSize: 9, maxLines: 7 },
@@ -90,7 +172,6 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
   { id: 'drive', label: 'Motywacja', x: 4, y: 37.5, w: 38, h: 7, fontSize: 9, maxLines: 5 },
   { id: 'other_traits', label: 'Inne przymioty', x: 4, y: 46.5, w: 38, h: 8, fontSize: 9, maxLines: 6 },
 
-  // Same bottom sections as classic
   { id: 'equipment', label: 'Ekwipunek', x: 4, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'assets', label: 'Dobytek', x: 28, y: 82, w: 20, h: 12, fontSize: 8, maxLines: 10 },
   { id: 'spending_level', label: 'Pozycja', x: 52, y: 82, w: 20, h: 6, fontSize: 8 },

@@ -9,7 +9,8 @@ const STORAGE_KEY = 'coc-card-editor-layouts'
 // ── Sample data to preview how real content looks in boxes ──
 
 const SAMPLE_DATA: Record<string, string> = {
-  // Front
+  // ── Front: Dane Badacza ──
+  photo: '[foto]',
   name: 'Władysław Kowalski',
   player_name: 'Paweł',
   occupation: 'Profesor Archeologii',
@@ -17,42 +18,59 @@ const SAMPLE_DATA: Record<string, string> = {
   gender: 'Mężczyzna',
   residence: 'Arkham, Massachusetts',
   birthplace: 'Kraków, Polska',
-  char_str: '55',
-  char_dex: '60',
-  char_pow: '70',
-  char_con: '45',
-  char_app: '65',
-  char_edu: '80',
-  char_siz: '50',
-  char_int: '75',
-  char_move: '7',
-  san: '70',
-  hp: '10',
-  luck: '55',
-  mp: '14',
-  db_build: '0 / 0',
-  dodge: '30',
-  cash: '$42',
-  weapon_1: 'Rewolwer .32  50%  25%  10%  1D8  15m  6',
-  weapon_2: 'Sztylet        45%  22%   9%  1D4+PO  —  —',
+  death_place: '',
 
-  // Back classic
+  // ── Cechy + połówki + piątki ──
+  char_str: '55', char_str_half: '27', char_str_fifth: '11',
+  char_dex: '60', char_dex_half: '30', char_dex_fifth: '12',
+  char_pow: '70', char_pow_half: '35', char_pow_fifth: '14',
+  char_con: '45', char_con_half: '22', char_con_fifth: '9',
+  char_app: '65', char_app_half: '32', char_app_fifth: '13',
+  char_edu: '80', char_edu_half: '40', char_edu_fifth: '16',
+  char_siz: '50', char_siz_half: '25', char_siz_fifth: '10',
+  char_int: '75', char_int_half: '37', char_int_fifth: '15',
+  char_move: '7',
+
+  // ── Pochodne ──
+  san: '70', hp: '10', luck: '55', mp: '14',
+
+  // ── Umiejętności (kolumny — tekst demonstracyjny) ──
+  skills_col1: 'Antropologia 01%\nArcheologia 45%  22  9\nBroń Palna (Krótka) 50%  25  10\nCharakteryzacja 05%\nElektryka 10%\nGadanina 05%\nHistoria 55%  27  11\nJeździectwo 05%\nJęzyk Obcy (Łacina) 40%  20  8\nJęzyk Ojczysty 80%  40  16\nKorz. z Bibliotek 60%  30  12\nKsięgowość 05%\nMajętność 50%  25  10\nMechanika 10%',
+  skills_col2: 'Medycyna 01%\nMity Cthulhu 08%  4  1\nNasłuchiwanie 20%\nNauka (Archeologia) 65%  32  13\nNauka (Historia) 45%  22  9\nNawigacja 10%\nOkultyzm 35%  17  7\nPerswazja 40%  20  8\nPierwsza Pomoc 30%\nPływanie 20%\nPrawo 05%\nProwadz. Samochodu 20%\nPsychologia 10%\nRzucanie 20%',
+  skills_col3: 'Spostrzegawczość 55%  27  11\nSzt./Rzemiosło (Fotografia) 25%  12  5\nUkrywanie 20%\nUnik 30%  15  6\nUrok Osobisty 15%\nWalka Wręcz (Bijatyka) 25%\nWiedza o Naturze 10%\nWspinaczka 20%\nWycena 25%  12  5\nZastraszanie 15%\nZręczne Palce 10%',
+
+  // ── Uzbrojenie (5 broni × kolumny) ──
+  weap1_name: 'Rewolwer .32', weap1_skill: '50', weap1_half: '25', weap1_fifth: '10', weap1_dmg: '1D8', weap1_range: '15m', weap1_attacks: '1', weap1_ammo: '6', weap1_malf: '100',
+  weap2_name: 'Sztylet', weap2_skill: '45', weap2_half: '22', weap2_fifth: '9', weap2_dmg: '1D4+MO', weap2_range: 'dost.', weap2_attacks: '1', weap2_ammo: '—', weap2_malf: '—',
+  weap3_name: 'Nieuzbrojony', weap3_skill: '25', weap3_half: '12', weap3_fifth: '5', weap3_dmg: '1D3+MO', weap3_range: 'dost.', weap3_attacks: '1', weap3_ammo: '—', weap3_malf: '—',
+  weap4_name: '', weap4_skill: '', weap4_half: '', weap4_fifth: '', weap4_dmg: '', weap4_range: '', weap4_attacks: '', weap4_ammo: '', weap4_malf: '',
+  weap5_name: '', weap5_skill: '', weap5_half: '', weap5_fifth: '', weap5_dmg: '', weap5_range: '', weap5_attacks: '', weap5_ammo: '', weap5_malf: '',
+
+  // ── Walka ──
+  damage_bonus: '0',
+  build: '0',
+  dodge: '30',
+
+  // ── Zasoby ──
+  spending_level: 'Średni',
+  cash: '$142',
+
+  // ── Back classic ──
   appearance_description: 'Wysoki, szczupły mężczyzna o przenikliwym spojrzeniu zza okrągłych okularów. Nosi tweedową marynarkę z łatami na łokciach i zawsze ma przy sobie skórzaną teczkę pełną notatek.',
   ideology: 'Wiedza naukowa jest kluczem do zrozumienia wszechświata. Wszystko można wyjaśnić, jeśli się wystarczająco głęboko kopie — nawet jeśli odpowiedzi nie są takie, jakich byśmy sobie życzyli.',
-  significant_people: 'Prof. Helena Nowak — mentorka z czasów studiów w Krakowie, jedyna która wierzy w moje odkrycia dotyczące przedludzkich cywilizacji. Brat Stanisław — mieszka w Warszawie, martwi się o moje zdrowie psychiczne.',
+  significant_people: 'Prof. Helena Nowak — mentorka z czasów studiów w Krakowie, jedyna która wierzy w moje odkrycia. Brat Stanisław — mieszka w Warszawie, martwi się o moje zdrowie psychiczne.',
   meaningful_locations: 'Biblioteka Uniwersytetu Jagiellońskiego — tu wszystko się zaczęło. Ruiny w dolinie Miskatonic — miejsce mojego największego odkrycia i największego koszmaru.',
   traits: 'Kompulsywne notowanie obserwacji. Nie śpi dobrze od wyprawy do Innsmouth. Mówi do siebie po łacinie gdy jest zdenerwowany. Kolekcjonuje stare mapy.',
 
-  // Back ToC
+  // ── Back ToC ──
   pillars: '• Postęp naukowy — rozum wyjaśni wszystko\n• Godność człowieka — ludzie mają wartość\n• Prawa fizyki — świat działa wg stałych reguł',
-  sources: '• Prof. Helena Nowak (Osoba) — mentorka, jedyna która wierzy\n• Biblioteka UJ (Miejsce) — tu świat ma sens\n• Tow. Archeologiczne (Organizacja) — koledzy po fachu',
+  sources: '• Prof. Helena Nowak (Osoba) — mentorka\n• Biblioteka UJ (Miejsce) — tu świat ma sens\n• Tow. Archeologiczne (Org.) — koledzy po fachu',
   drive: 'Ciekawość — Kiedy napotykam tajemnicę, nie mogę się powstrzymać. Do diabła z ryzykiem — muszę się dowiedzieć.',
-  other_traits: 'Kompulsywne notowanie. Mówi po łacinie gdy zdenerwowany. Kolekcjonuje stare mapy i nie rozstaje się z zegarkiem po dziadku.',
+  other_traits: 'Kompulsywne notowanie. Mówi po łacinie gdy zdenerwowany. Kolekcjonuje stare mapy.',
 
-  // Shared bottom
-  equipment: '• Skórzana teczka z notatkami\n• Rewolwer .32 (6 naboi)\n• Latarka elektryczna\n• Zestaw do rysowania\n• Lupa\n• Apteczka polowa',
-  assets: '• Mieszkanie w Arkham\n• Stary Ford Model A\n• Kolekcja artefaktów (wątpliwej proweniencji)',
-  spending_level: 'Średni',
+  // ── Bottom shared ──
+  equipment: '• Skórzana teczka\n• Rewolwer .32 (6 naboi)\n• Latarka elektryczna\n• Zestaw do rysowania\n• Lupa\n• Apteczka polowa',
+  assets: '• Mieszkanie w Arkham\n• Stary Ford Model A\n• Kolekcja artefaktów',
 }
 
 function loadSaved(): Record<string, FieldBox[]> {
