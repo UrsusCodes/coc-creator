@@ -202,42 +202,65 @@ export const BACK_CLASSIC_FIELDS: FieldBox[] = [
   { id: 'traits', label: 'Inne przymioty', x: 5.53, y: 46.42, w: 32.19, h: 9.08, fontSize: 9, maxLines: 6 },
 ]
 
-// Ekwipunek: 2 kolumny × 12 wierszy = 24 pola
-const equipRows = (col: 'l' | 'r', baseX: number, baseY: number, w: number): FieldBox[] =>
-  Array.from({ length: 12 }, (_, i) => ({
-    id: `equip_${col}_${i + 1}`, label: `Ekwip.${col.toUpperCase()}${i + 1}`,
-    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
-  }))
-
-// Dobytek: 1 kolumna × 12 wierszy
-const assetRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
-  Array.from({ length: 12 }, (_, i) => ({
-    id: `asset_${i + 1}`, label: `Dobytek ${i + 1}`,
-    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
-  }))
-
-// Pozycja: 6 wierszy
-const positionRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
-  Array.from({ length: 6 }, (_, i) => ({
-    id: `position_${i + 1}`, label: `Pozycja ${i + 1}`,
-    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
-  }))
-
-// Kontakty: 6 wierszy
-const contactRows = (baseX: number, baseY: number, w: number): FieldBox[] =>
-  Array.from({ length: 6 }, (_, i) => ({
-    id: `contact_${i + 1}`, label: `Kontakt ${i + 1}`,
-    x: baseX, y: baseY + i * 1.7, w, h: 1.5, fontSize: 7,
-  }))
+// ── Bottom section fields shared by both back cards (hardcoded positions) ──
+const BACK_BOTTOM_FIELDS: FieldBox[] = [
+  // Ekwipunek lewa kolumna (12 wierszy)
+  { id: 'equip_l_1',  label: 'Ekwip.L1',  x: 5.748,  y: 72.475, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_2',  label: 'Ekwip.L2',  x: 5.748,  y: 74.675, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_3',  label: 'Ekwip.L3',  x: 5.748,  y: 76.575, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_4',  label: 'Ekwip.L4',  x: 5.748,  y: 78.675, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_5',  label: 'Ekwip.L5',  x: 5.748,  y: 80.575, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_6',  label: 'Ekwip.L6',  x: 5.748,  y: 82.675, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_7',  label: 'Ekwip.L7',  x: 5.748,  y: 84.575, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_8',  label: 'Ekwip.L8',  x: 5.748,  y: 86.575, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_9',  label: 'Ekwip.L9',  x: 5.748,  y: 88.775, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_10', label: 'Ekwip.L10', x: 5.748,  y: 90.675, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_11', label: 'Ekwip.L11', x: 5.748,  y: 92.775, w: 18.875, h: 1.405, fontSize: 7 },
+  { id: 'equip_l_12', label: 'Ekwip.L12', x: 5.748,  y: 94.705, w: 18.875, h: 1.405, fontSize: 7 },
+  // Ekwipunek prawa kolumna (12 wierszy)
+  { id: 'equip_r_1',  label: 'Ekwip.R1',  x: 27.833, y: 72.475, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_2',  label: 'Ekwip.R2',  x: 27.833, y: 74.575, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_3',  label: 'Ekwip.R3',  x: 27.833, y: 76.575, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_4',  label: 'Ekwip.R4',  x: 27.833, y: 78.575, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_5',  label: 'Ekwip.R5',  x: 27.833, y: 80.575, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_6',  label: 'Ekwip.R6',  x: 27.833, y: 82.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_7',  label: 'Ekwip.R7',  x: 27.833, y: 84.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_8',  label: 'Ekwip.R8',  x: 27.833, y: 86.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_9',  label: 'Ekwip.R9',  x: 27.833, y: 88.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_10', label: 'Ekwip.R10', x: 27.833, y: 90.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_11', label: 'Ekwip.R11', x: 27.833, y: 92.675, w: 18.337, h: 1.5, fontSize: 7 },
+  { id: 'equip_r_12', label: 'Ekwip.R12', x: 27.833, y: 94.675, w: 18.337, h: 1.5, fontSize: 7 },
+  // Dobytek (12 wierszy)
+  { id: 'asset_1',  label: 'Dobytek 1',  x: 50.304, y: 72.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_2',  label: 'Dobytek 2',  x: 50.304, y: 74.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_3',  label: 'Dobytek 3',  x: 50.304, y: 76.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_4',  label: 'Dobytek 4',  x: 50.304, y: 78.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_5',  label: 'Dobytek 5',  x: 50.304, y: 80.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_6',  label: 'Dobytek 6',  x: 50.304, y: 82.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_7',  label: 'Dobytek 7',  x: 50.304, y: 84.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_8',  label: 'Dobytek 8',  x: 50.304, y: 86.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_9',  label: 'Dobytek 9',  x: 50.304, y: 88.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_10', label: 'Dobytek 10', x: 50.304, y: 90.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_11', label: 'Dobytek 11', x: 50.304, y: 92.57, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'asset_12', label: 'Dobytek 12', x: 50.304, y: 94.57, w: 18, h: 1.5, fontSize: 7 },
+  // Pozycja (6 wierszy)
+  { id: 'position_1', label: 'Pozycja 1', x: 73.321, y: 72.19, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'position_2', label: 'Pozycja 2', x: 73.152, y: 74.29, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'position_3', label: 'Pozycja 3', x: 73.152, y: 76.19, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'position_4', label: 'Pozycja 4', x: 73.152, y: 78.09, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'position_5', label: 'Pozycja 5', x: 73.152, y: 79.99, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'position_6', label: 'Pozycja 6', x: 73.152, y: 81.89, w: 18, h: 1.5, fontSize: 7 },
+  // Kontakty (6 wierszy)
+  { id: 'contact_1', label: 'Kontakt 1', x: 72.749, y: 85.241, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'contact_2', label: 'Kontakt 2', x: 72.749, y: 87.041, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'contact_3', label: 'Kontakt 3', x: 72.749, y: 89.041, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'contact_4', label: 'Kontakt 4', x: 72.749, y: 90.841, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'contact_5', label: 'Kontakt 5', x: 72.749, y: 92.741, w: 18, h: 1.5, fontSize: 7 },
+  { id: 'contact_6', label: 'Kontakt 6', x: 72.749, y: 94.641, w: 18, h: 1.5, fontSize: 7 },
+]
 
 // Append bottom fields to classic back
-BACK_CLASSIC_FIELDS.push(
-  ...equipRows('l', 4, 72, 10),
-  ...equipRows('r', 16, 72, 10),
-  ...assetRows(30, 72, 18),
-  ...positionRows(55, 72, 18),
-  ...contactRows(55, 82, 18),
-)
+BACK_CLASSIC_FIELDS.push(...BACK_BOTTOM_FIELDS)
 
 // ─── BACK CARD (ToC / Drive+Pillars) ─────────────────────────
 
@@ -250,13 +273,7 @@ export const BACK_TOC_FIELDS: FieldBox[] = [
 ]
 
 // Append same bottom fields to ToC back
-BACK_TOC_FIELDS.push(
-  ...equipRows('l', 4, 72, 10),
-  ...equipRows('r', 16, 72, 10),
-  ...assetRows(30, 72, 18),
-  ...positionRows(55, 72, 18),
-  ...contactRows(55, 82, 18),
-)
+BACK_TOC_FIELDS.push(...BACK_BOTTOM_FIELDS)
 
 // ─── SKILL GRIDS (front card only) ────────────────────────────
 
