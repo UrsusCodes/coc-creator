@@ -310,12 +310,12 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   // Map layout fontSize → actual PDF pt size
   const PDF_FONT_SIZE: Record<number, number> = {
     7: 5.5,    // skills, equip, weapons, specs
-    8: 6,    // photo placeholder
-    9: 7,    // backstory text, residence, spending
-    10: 8,   // basic info (player, occupation, age, gender)
-    11: 9,   // name
-    12: 9,   // derived (san, hp, luck, mp)
-    13: 11,   // characteristics main values
+    8: 6,      // photo placeholder
+    9: 8,      // backstory text, residence, spending
+    10: 9,     // basic info (player, occupation, age, gender)
+    11: 10,    // name
+    12: 10,    // derived (san, hp, luck, mp)
+    13: 12,    // characteristics main values
   }
 
   // Merged skill points
@@ -357,15 +357,18 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         // Multi-line text wrapping
         renderWrappedText(page, value, fieldX, fieldY, fieldW, fieldH, font, fontSize, INK, f.align)
       } else {
-        // Single line
+        // Single line — centered vertically in the field box
         let textX = fieldX
         const textWidth = font.widthOfTextAtSize(value, fontSize)
         if (f.align === 'center') textX = fieldX + (fieldW - textWidth) / 2
         else if (f.align === 'right') textX = fieldX + fieldW - textWidth
 
+        // Vertical center: top of field minus half the field height, offset by half font size
+        const textY = fieldY - fieldH / 2 - fontSize / 3
+
         page.drawText(value, {
           x: textX,
-          y: fieldY - fontSize,
+          y: textY,
           size: fontSize,
           font,
           color: INK,
