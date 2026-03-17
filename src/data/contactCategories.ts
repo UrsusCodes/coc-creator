@@ -141,6 +141,12 @@ export const CONTACT_CATEGORIES_NEW: ContactCategoryData[] = [
         category_id: 'AKADEMIA',
         flavor: 'Specjaliści od dowodów: analiza balistyczna, grafologiczna, toksykologiczna.',
       },
+      {
+        id: 'antykwariusze_bibliofile',
+        name: 'Antykwariusze i bibliofile',
+        category_id: 'AKADEMIA',
+        flavor: 'Prywatne zbiory, rzadkie egzemplarze, sieci wymiany których nie ma w katalogach.',
+      },
     ],
   },
 

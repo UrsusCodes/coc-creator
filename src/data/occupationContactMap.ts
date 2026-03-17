@@ -159,15 +159,15 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   },
   antykwariusz: {
     type: 'przeciętny',
-    natural_subcategories: ['muzea_kolekcjonerzy', 'kolekcjonerzy_ant', 'handlarze_ksiag'],
+    natural_subcategories: ['muzea_kolekcjonerzy', 'antykwariusze_bibliofile', 'kolekcjonerzy_ant', 'handlarze_ksiag'],
   },
   bibliotekarz: {
     type: 'izolowany',
-    natural_subcategories: ['archiwisci', 'profesorowie', 'handlarze_ksiag'],
+    natural_subcategories: ['archiwisci', 'antykwariusze_bibliofile', 'profesorowie', 'handlarze_ksiag'],
   },
   kustosz: {
     type: 'przeciętny',
-    natural_subcategories: ['muzea_kolekcjonerzy', 'archiwisci', 'kolekcjonerzy_ant'],
+    natural_subcategories: ['muzea_kolekcjonerzy', 'archiwisci', 'antykwariusze_bibliofile', 'kolekcjonerzy_ant'],
   },
   laborant: {
     type: 'izolowany',
@@ -187,7 +187,7 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   },
   pisarz: {
     type: 'przeciętny',
-    natural_subcategories: ['wydawcy', 'towarzystwa_lit', 'dziennikarze'],
+    natural_subcategories: ['wydawcy', 'towarzystwa_lit', 'dziennikarze', 'antykwariusze_bibliofile'],
   },
 
   // ── Sztuka i rozrywka ───────────────────────────────────────

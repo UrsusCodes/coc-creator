@@ -1101,6 +1101,138 @@ const SPECJALNE_CECHY_80: AdditionalPositionOption[] = [
 // EXPORT
 // ═══════════════════════════════════════════════════════════════
 
+// ── ROZSZERZENIA (v4) ──────────────────────────────────────────────
+
+const ROZSZERZENIA: AdditionalPositionOption[] = [
+  {
+    id: 'towarzystwo_etnograficzne',
+    title: 'Towarzystwo etnograficzne / misjonarze naukowi',
+    category: 'AKADEMICKIE: ROZSZERZENIA',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'antropologia', threshold: 40, weight: 2.5 },
+      { type: 'skill', key: 'archeologia', threshold: 50, weight: 1.5 },
+      { type: 'skill', key: 'historia', threshold: 50, weight: 1.2 },
+    ],
+    flavor: 'Ludzkie kultury są starsze i dziwniejsze niż ktokolwiek chce przyznać.',
+    placeholder: 'np. Towarzystwo etnograficzne przy muzeum lub akademii. Wyprawy terenowe, wywiady z rdzennymi społecznościami, katalogowanie tradycji. Część zebranych materiałów nie trafia do publikacji.',
+  },
+  {
+    id: 'klub_jezdziecki',
+    title: 'Klub jeździecki / polo / hodowcy koni',
+    category: 'BOJOWE I FIZYCZNE',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'jezdziectwo', threshold: 40, weight: 2.5 },
+    ],
+    flavor: 'Koń to przepustka do towarzystwa którego pieniądze nie otwierają.',
+    placeholder: 'np. Prywatny klub jeździecki za miastem lub stowarzyszenie hodowców. Zawody, pokazy, aukcje koni. Starsze rody i nowe fortuny przy tej samej przeszkodzie.',
+  },
+  {
+    id: 'towarzystwo_bibliofili',
+    title: 'Towarzystwo bibliofilów / czytelnia prywatna',
+    category: 'AKADEMICKIE: ROZSZERZENIA',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'korzystanie_z_bibliotek', threshold: 50, weight: 2.5 },
+      { type: 'skill', key: 'jezyk_obcy', threshold: 40, weight: 1.2 },
+      { type: 'skill', key: 'historia', threshold: 40, weight: 1.0 },
+    ],
+    flavor: 'Niektóre książki istnieją w trzech egzemplarzach na świecie.',
+    placeholder: 'np. Prywatne towarzystwo kolekcjonerów ksiąg lub zamknięta czytelnia z dostępem tylko dla członków. Aukcje, wymiana, dyskusje. I kwestia które tytuły naprawdę krążą w obiegu.',
+  },
+  {
+    id: 'towarzystwo_antykwaryczne',
+    title: 'Towarzystwo antykwaryczne',
+    category: 'AKADEMICKIE: ROZSZERZENIA',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'korzystanie_z_bibliotek', threshold: 50, weight: 2.0 },
+      { type: 'skill', key: 'wycena', threshold: 50, weight: 2.0 },
+      { type: 'skill', key: 'historia', threshold: 50, weight: 1.5 },
+      { type: 'skill', key: 'archeologia', threshold: 40, weight: 1.5 },
+    ],
+    flavor: 'Stare rzeczy mają pamięć. Antykwariusze też.',
+    placeholder: 'np. Towarzystwo miłośników antyków i rzadkich przedmiotów. Spotkania, aukcje, prywatne przeglądy zbiorów. Kilka eksponatów zmienia właścicieli bez publicznego śladu.',
+  },
+  {
+    id: 'ogrod_botaniczny_towarzystwo',
+    title: 'Ogród botaniczny / towarzystwo zielarskie',
+    category: 'NAUKOWE I BADAWCZE',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'nauka:Botanika', threshold: 40, weight: 2.5 },
+      { type: 'skill', key: 'wiedza_o_naturze', threshold: 60, weight: 1.5 },
+    ],
+    flavor: 'Rośliny leczą, trują i przywołują. Często ta sama roślina.',
+    placeholder: 'np. Towarzystwo botaniczne przy ogrodzie lub instytucie. Hodowla rzadkich gatunków, katalogi, ekspedycje. Zielarze ludowi i farmaceuci mają tu wspólne zainteresowania.',
+  },
+  {
+    id: 'towarzystwo_zoologiczne',
+    title: 'Towarzystwo zoologiczne / safari i hodowcy',
+    category: 'NAUKOWE I BADAWCZE',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'nauka:Zoologia', threshold: 40, weight: 2.5 },
+      { type: 'skill', key: 'tresura_zwierzat', threshold: 50, weight: 1.8 },
+    ],
+    flavor: 'Dzikie zwierzęta wiedzą o świecie rzeczy których nauka nie skatalogowała.',
+    placeholder: 'np. Towarzystwo zoologiczne przy zoo lub muzeum przyrodniczym. Badania, ekspedycje, hodowla. Kolekcjonerzy egzotycznych zwierząt bywają tu gośćmi i zleceniodawcami.',
+  },
+  {
+    id: 'krag_kryptologow',
+    title: 'Krąg kryptologów / amatorzy szyfrów',
+    category: 'NAUKOWE I BADAWCZE',
+    organization_size: 'Mikro',
+    unlock: [
+      { type: 'skill', key: 'nauka:Kryptografia', threshold: 40, weight: 2.5 },
+      { type: 'attribute', key: 'INT', threshold: 75, weight: 1.8 },
+    ],
+    flavor: 'Każda wiadomość ma dwie warstwy. Większość ludzi czyta tylko pierwszą.',
+    placeholder: 'np. Nieformalna grupa miłośników szyfrów i kodów. Rozwiązujecie historyczne szyfry, tworzycie własne. Kilku członków trafiło tu z wojska lub wywiadu. I nie mówią dlaczego odeszli.',
+  },
+  {
+    id: 'krag_psychoanalityczny',
+    title: 'Krąg psychoanalityczny / klub freudystów',
+    category: 'NAUKOWE I BADAWCZE',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'psychoanaliza', threshold: 40, weight: 2.5 },
+      { type: 'skill', key: 'psychologia', threshold: 50, weight: 2.0 },
+    ],
+    flavor: 'Nieświadomość jest głębsza niż ktokolwiek chce zbadać.',
+    placeholder: 'np. Nieformalne koło praktyków i entuzjastów psychoanalizy. Wykłady, studia przypadków, dyskusje o Freudzie i jego następcach. Kilku członków stosuje metody których Freud by nie podpisał.',
+  },
+  {
+    id: 'izba_handlowa',
+    title: 'Izba handlowa / stowarzyszenie finansowe',
+    category: 'TOWARZYSKIE I PRESTIŻOWE',
+    organization_size: 'Średnia',
+    unlock: [
+      { type: 'skill', key: 'ksiegowosc', threshold: 50, weight: 2.5 },
+      { type: 'wealth', key: 'majetnosc', threshold: 40, weight: 1.5 },
+    ],
+    flavor: 'Pieniądze lubią towarzystwo innych pieniędzy.',
+    placeholder: 'np. Lokalna izba handlowa lub stowarzyszenie kupieckie. Cotygodniowe spotkania, lobbing, kontrakty. Rozmowy przy kolacji więcej kosztują niż kolacja.',
+  },
+  {
+    id: 'cyrk_tresura',
+    title: 'Środowisko cyrku / tresury i hodowców',
+    category: 'BOJOWE I FIZYCZNE',
+    organization_size: 'Mała',
+    unlock: [
+      { type: 'skill', key: 'tresura_zwierzat', threshold: 50, weight: 2.5 },
+      { type: 'skill', key: 'jezdziectwo', threshold: 50, weight: 1.8 },
+    ],
+    flavor: 'Cyrk przyjmuje każdego i pamięta wszystkich których przyjął.',
+    placeholder: 'np. Trupa cyrkowa lub środowisko tresurystów i hodowców egzotycznych zwierząt. Trasy po Stanach, kontakty w każdym mieście, lojalność która zastępuje rodzinę.',
+  },
+]
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════
+
 export const ADDITIONAL_POSITIONS: AdditionalPositionOption[] = [
   ...BOJOWE_I_FIZYCZNE,
   ...INTELEKTUALNE_I_AKADEMICKIE,
@@ -1113,4 +1245,5 @@ export const ADDITIONAL_POSITIONS: AdditionalPositionOption[] = [
   ...MARGINES_I_POLSWIATEK,
   ...EKSPLORATORZY_I_PRZYGODNICY,
   ...SPECJALNE_CECHY_80,
+  ...ROZSZERZENIA,
 ]
