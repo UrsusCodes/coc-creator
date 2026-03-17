@@ -5,8 +5,9 @@ import { useCharacterStore } from '@/stores/characterStore'
 import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
-import { getSkillById, getSkillDisplayName, getSkillBase } from '@/data/skills'
-import { getWealthBracket, WEALTH_FORMS } from '@/data/eras'
+import { getSkillDisplayName, getSkillBase } from '@/data/skills'
+import { LOKUM_OPTIONS, TRANSPORT_STYLES, LIFESTYLE_LEVELS, ASSET_FORMS } from '@/data/wealthV2'
+import { weightStars, strengthDiamonds } from '@/data/positionsContacts'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import type { Characteristics } from '@/types/character'
 import { halfValue, fifthValue } from '@/lib/utils'
@@ -126,8 +127,8 @@ export function StepReview() {
           if (typeof value !== 'string') return null
           const labels: Record<string, string> = {
             ideology: 'Ideologia / Przekonania',
-            significant_people_who: 'Ważne osoby — Kto',
-            significant_people_why: 'Ważne osoby — Dlaczego',
+            significant_people_who: 'Ważne osoby:Kto',
+            significant_people_why: 'Ważne osoby:Dlaczego',
             meaningful_locations: 'Znaczące miejsca',
             treasured_possessions: 'Rzeczy osobiste',
             traits: 'Przymioty',
@@ -156,35 +157,55 @@ export function StepReview() {
           <div className="mb-2">
             <div className="text-xs text-coc-text-muted">Źródła Stabilności</div>
             {store.backstory.sources.map((s, i) => (
-              <div key={i} className="text-sm">{s.name} ({s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}){s.description ? ` — ${s.description}` : ''}</div>
+              <div key={i} className="text-sm">{s.name} ({s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}){s.description ? `: ${s.description}` : ''}</div>
             ))}
           </div>
         )}
       </Section>
 
+      {/* Positions & Contacts */}
+      {(store.positions.length > 0 || store.contacts.length > 0) && (
+        <Section title="Pozycje i kontakty">
+          {store.positions.length > 0 && (
+            <div className="mb-2">
+              <div className="text-xs text-coc-text-muted mb-1">Pozycje</div>
+              {store.positions.map((p, i) => (
+                <div key={i} className="text-sm py-0.5">
+                  {p.weightDisplay} {p.description} [{p.rollValue}%]{p.pendingSt ? ' [ST]' : ''}
+                </div>
+              ))}
+            </div>
+          )}
+          {store.contacts.length > 0 && (
+            <div>
+              <div className="text-xs text-coc-text-muted mb-1">Kontakty</div>
+              {store.contacts.map((c, i) => (
+                <div key={i} className="text-sm py-0.5">
+                  {c.strengthDisplay} {c.subcategory} [{c.rollValue}%]{c.synergyBonus > 0 ? ' ✨' : ''}{c.pendingSt ? ' [ST]' : ''}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
+
       {/* Lifestyle & Equipment */}
       <Section title="Dobytek i ekwipunek">
         {(() => {
-          const era = store.era
-          const creditRating = (store.occupationSkillPoints['majetnosc'] ?? 0) +
-            (typeof getSkillById('majetnosc')?.base === 'number' ? (getSkillById('majetnosc')?.base as number) : 0)
-          const bracket = era ? getWealthBracket(era, creditRating) : null
-          const housing = bracket?.housingOptions.find((h) => h.id === store.housingId)
-          const transport = bracket?.transportOptions.find((t) => t.id === store.transportId)
-          const lifestyle = bracket?.lifestyleOptions.find((l) => l.id === store.lifestyleId)
-          const selectedForms = era
-            ? WEALTH_FORMS[era].filter((f) => store.wealthFormIds.includes(f.id))
-            : []
+          const lokumOption = LOKUM_OPTIONS.find((l) => l.id === store.housingId)
+          const transportOption = TRANSPORT_STYLES.find((t) => t.id === store.transportStyleId)
+          const lifestyleOption = LIFESTYLE_LEVELS.find((l) => l.id === store.lifestyleId)
+          const selectedForms = ASSET_FORMS.filter((f) => store.wealthFormIds.includes(f.id))
           return (
             <>
               <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                <Field label="Mieszkanie" value={housing?.label ?? '—'} />
-                <Field label="Transport" value={transport?.label ?? '—'} />
-                <Field label="Styl życia" value={lifestyle?.label ?? '—'} />
-                <Field label="Poziom życia" value={store.spendingLevel} />
+                <Field label="Miejsce zamieszkania" value={lokumOption?.label ?? '-'} />
+                <Field label="Transport" value={transportOption?.label ?? '-'} />
+                <Field label="Styl życia" value={lifestyleOption?.label ?? '-'} />
+                <Field label="Poz. wydatków" value={store.spendingLevel} />
               </div>
               <div className="flex flex-wrap gap-2 mb-2">
-                <Badge>Gotówka: {store.cash}</Badge>
+                <Badge>{store.cash}</Badge>
                 {selectedForms.length > 0 && (
                   <Badge>Dobytek: {selectedForms.map((f) => f.label).join(', ')}</Badge>
                 )}

@@ -16,14 +16,14 @@ export interface Weapon {
 
 export const WEAPONS: Weapon[] = [
   // === Broń biała (melee) ===
-  { id: 'noz_bojowy', name: 'Nóż / sztylet', skill_id: 'walka_wrecz:bijatyka', damage: '1K4+PO', range: 'dotyk', attacks_per_round: '1', price: '1 $', category: 'melee' },
-  { id: 'pałka', name: 'Pałka / kij', skill_id: 'walka_wrecz:bijatyka', damage: '1K6+PO', range: 'dotyk', attacks_per_round: '1', price: '1 $', category: 'melee' },
-  { id: 'topor_maly', name: 'Mały topór', skill_id: 'walka_wrecz:topor', damage: '1K6+PO', range: 'dotyk', attacks_per_round: '1', price: '3 $', category: 'melee' },
-  { id: 'topor_duzy', name: 'Duży topór', skill_id: 'walka_wrecz:topor', damage: '1K8+2+PO', range: 'dotyk', attacks_per_round: '1', price: '5 $', category: 'melee' },
-  { id: 'miecz_szeroki', name: 'Miecz szeroki', skill_id: 'walka_wrecz:miecz', damage: '1K8+1+PO', range: 'dotyk', attacks_per_round: '1', price: '15 $', category: 'melee' },
-  { id: 'wlocznia', name: 'Włócznia', skill_id: 'walka_wrecz:wlocznia', damage: '1K8+1+PO', range: 'dotyk/rzut', attacks_per_round: '1', price: '5 $', category: 'melee' },
-  { id: 'bicz', name: 'Bicz', skill_id: 'walka_wrecz:bicz', damage: '1K3+PO', range: '3 m', attacks_per_round: '1', price: '5 $', category: 'melee' },
-  { id: 'kastet', name: 'Kastet', skill_id: 'walka_wrecz:bijatyka', damage: '1K3+1+PO', range: 'dotyk', attacks_per_round: '1', price: '2 $', category: 'melee' },
+  { id: 'noz_bojowy', name: 'Nóż / sztylet', skill_id: 'walka_wrecz:bijatyka', damage: '1K4+MO', range: 'dotyk', attacks_per_round: '1', price: '1 $', category: 'melee' },
+  { id: 'pałka', name: 'Pałka / kij', skill_id: 'walka_wrecz:bijatyka', damage: '1K6+MO', range: 'dotyk', attacks_per_round: '1', price: '1 $', category: 'melee' },
+  { id: 'topor_maly', name: 'Mały topór', skill_id: 'walka_wrecz:topor', damage: '1K6+MO', range: 'dotyk', attacks_per_round: '1', price: '3 $', category: 'melee' },
+  { id: 'topor_duzy', name: 'Duży topór', skill_id: 'walka_wrecz:topor', damage: '1K8+2+MO', range: 'dotyk', attacks_per_round: '1', price: '5 $', category: 'melee' },
+  { id: 'miecz_szeroki', name: 'Miecz szeroki', skill_id: 'walka_wrecz:miecz', damage: '1K8+1+MO', range: 'dotyk', attacks_per_round: '1', price: '15 $', category: 'melee' },
+  { id: 'wlocznia', name: 'Włócznia', skill_id: 'walka_wrecz:wlocznia', damage: '1K8+1+MO', range: 'dotyk/rzut', attacks_per_round: '1', price: '5 $', category: 'melee' },
+  { id: 'bicz', name: 'Bicz', skill_id: 'walka_wrecz:bicz', damage: '1K3+MO', range: '3 m', attacks_per_round: '1', price: '5 $', category: 'melee' },
+  { id: 'kastet', name: 'Kastet', skill_id: 'walka_wrecz:bijatyka', damage: '1K3+1+MO', range: 'dotyk', attacks_per_round: '1', price: '2 $', category: 'melee' },
 
   // === Broń Krótka (handguns) ===
   { id: 'rewolwer_maly', name: 'Rewolwer .32', skill_id: 'bron_palna:krotka', damage: '1K8', range: '15 m', attacks_per_round: '1 (3)', ammo: 6, malfunction: 100, price: '15 $', category: 'handgun' },
@@ -43,8 +43,8 @@ export const WEAPONS: Weapon[] = [
   { id: 'tommy_gun', name: 'Thompson SMG', skill_id: 'bron_palna:pistolet_maszynowy', damage: '1K10+2', range: '30 m', attacks_per_round: 'rafał', ammo: 30, malfunction: 96, price: '200 $', category: 'smg', era: ['classic_1920s'] },
 
   // === Łuk ===
-  { id: 'luk_krotki', name: 'Łuk krótki', skill_id: 'luk', damage: '1K6+½PO', range: '30 m', attacks_per_round: '1', price: '5 $', category: 'other' },
-  { id: 'luk_dlugi', name: 'Łuk długi', skill_id: 'luk', damage: '1K8+½PO', range: '60 m', attacks_per_round: '1', price: '10 $', category: 'other' },
+  { id: 'luk_krotki', name: 'Łuk krótki', skill_id: 'luk', damage: '1K6+½MO', range: '30 m', attacks_per_round: '1', price: '5 $', category: 'other' },
+  { id: 'luk_dlugi', name: 'Łuk długi', skill_id: 'luk', damage: '1K8+½MO', range: '60 m', attacks_per_round: '1', price: '10 $', category: 'other' },
 ]
 
 export function getWeaponsForEra(era: Era): Weapon[] {

@@ -71,6 +71,8 @@ export interface CharacterData {
   age: number
   gender: string
   appearance: string
+  residence?: string
+  birthplace?: string
   characteristics: Characteristics
   luck: number
   derived: DerivedAttributes

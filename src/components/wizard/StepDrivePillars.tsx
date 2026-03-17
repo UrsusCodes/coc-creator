@@ -88,7 +88,7 @@ export function StepDrivePillars() {
         <section>
           <h4 className="text-sm font-medium uppercase tracking-wider text-coc-text-muted mb-1">Motywacja</h4>
           <p className="text-xs text-coc-text-muted mb-3">
-            Motywacja to główny powód, dla którego twój Badacz angażuje się w sprawy Mitów — coś ważniejszego niż życie czy zdrowie psychiczne. Wybierz jedną motywację z listy.
+            Motywacja to główny powód, dla którego twój Badacz angażuje się w sprawy Mitów: coś ważniejszego niż życie czy zdrowie psychiczne. Wybierz jedną motywację z listy.
           </p>
           <Select
             value={backstory.drive ?? ''}
@@ -145,7 +145,7 @@ export function StepDrivePillars() {
                 </summary>
                 <div className="mt-1 space-y-0.5">
                   {PILLAR_EXAMPLES.map((example) => {
-                    const name = example.split(' — ')[0]
+                    const name = example.split(':')[0]
                     return (
                       <button
                         key={example}
@@ -227,7 +227,7 @@ export function StepDrivePillars() {
         {/* 5. Other traits */}
         <section>
           <h4 className="text-sm font-medium uppercase tracking-wider text-coc-text-muted mb-1">Inne przymioty</h4>
-          <p className="text-xs text-coc-text-muted mb-2">Dodatkowe cechy charakteru, nawyki, dziwactwa — wszystko co nie zmieściło się powyżej.</p>
+          <p className="text-xs text-coc-text-muted mb-2">Dodatkowe cechy charakteru, nawyki, dziwactwa: wszystko co nie zmieściło się powyżej.</p>
           <textarea
             value={backstory.other_traits ?? ''}
             onChange={(e) => setBackstory((prev) => ({ ...prev, other_traits: e.target.value }))}

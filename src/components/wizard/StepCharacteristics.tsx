@@ -233,7 +233,7 @@ export function StepCharacteristics() {
           <p className="text-xs text-coc-text-muted mt-1">
             {canAbandon
               ? `Zostało Ci ${remainingTries} ${remainingTries === 1 ? 'podejście' : remainingTries < 5 ? 'podejścia' : 'podejść'}`
-              : 'Brak pozostałych podejść — to Twoja ostatnia szansa'}
+              : 'Brak pozostałych podejść: to Twoja ostatnia szansa'}
           </p>
         </div>
       )}

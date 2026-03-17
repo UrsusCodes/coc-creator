@@ -171,7 +171,7 @@ export function StepAgeModifiers() {
       {mods.physicalDeductionTotal > 0 && (
         <div className="border-t border-coc-border pt-4 mb-4">
           <h4 className="font-medium mb-2">
-            Odliczenia fizyczne — rozdziel {mods.physicalDeductionTotal} punktów
+            Odliczenia fizyczne: rozdziel {mods.physicalDeductionTotal} punktów
           </h4>
           <p className="text-xs text-coc-text-muted mb-3">
             Odejmij punkty od: {mods.deductibleStats.map((s) => CHARACTERISTIC_MAP[s].abbreviation).join(', ')}
@@ -278,7 +278,7 @@ export function StepAgeModifiers() {
         <p className="text-xs text-coc-text-muted mt-1">
           {canAbandon
             ? `Zostało Ci ${remainingTries} ${remainingTries === 1 ? 'podejście' : remainingTries < 5 ? 'podejścia' : 'podejść'}`
-            : 'Brak pozostałych podejść — to Twoja ostatnia szansa'}
+            : 'Brak pozostałych podejść: to Twoja ostatnia szansa'}
         </p>
       </div>
 

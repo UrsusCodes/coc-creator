@@ -8,7 +8,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'adventure',
     name: 'Żądza przygód',
-    description: 'Adrenalina i akcja — nowe doświadczenia to sens życia. Odmowa przygody to przyznanie, że życie nie ma znaczenia.',
+    description: 'Adrenalina i akcja:nowe doświadczenia to sens życia. Odmowa przygody to przyznanie, że życie nie ma znaczenia.',
   },
   {
     id: 'antiquarianism',
@@ -23,7 +23,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'artistic_sensitivity',
     name: 'Wrażliwość artystyczna',
-    description: 'Wyczuwasz nadprzyrodzoną jakość świata i musisz ją uchwycić w sztuce. Muza prowadzi, ty podążasz — bez względu na koszty.',
+    description: 'Wyczuwasz nadprzyrodzoną jakość świata i musisz ją uchwycić w sztuce. Muza prowadzi, ty podążasz:bez względu na koszty.',
   },
   {
     id: 'bad_luck',
@@ -33,7 +33,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'curiosity',
     name: 'Ciekawość',
-    description: 'Kiedy napotykasz tajemnicę, nie możesz się powstrzymać. Do diabła z ryzykiem — musisz się dowiedzieć, bo inaczej zwariujesz.',
+    description: 'Kiedy napotykasz tajemnicę, nie możesz się powstrzymać. Do diabła z ryzykiem:musisz się dowiedzieć, bo inaczej zwariujesz.',
   },
   {
     id: 'duty',
@@ -43,7 +43,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'ennui',
     name: 'Znudzenie',
-    description: 'Próbowałeś już wszystkiego i nic nie ma znaczenia. Nawet jeśli to może cię zabić — przynajmniej to będzie coś innego.',
+    description: 'Próbowałeś już wszystkiego i nic nie ma znaczenia. Nawet jeśli to może cię zabić:przynajmniej to będzie coś innego.',
   },
   {
     id: 'follower',
@@ -58,7 +58,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'revenge',
     name: 'Zemsta',
-    description: 'Coś cię skrzywdziło albo kogoś bliskiego. Musi zostać zniszczone — cokolwiek trzeba, za każdą cenę.',
+    description: 'Coś cię skrzywdziło albo kogoś bliskiego. Musi zostać zniszczone:cokolwiek trzeba, za każdą cenę.',
   },
   {
     id: 'scholarship',
@@ -68,7 +68,7 @@ export const DRIVES: DriveOption[] = [
   {
     id: 'sudden_shock',
     name: 'Nagły wstrząs',
-    description: 'Coś zdarło zasłonę ze świata. Równie dobrze możesz iść dalej w głąb — wracać nie ma dokąd.',
+    description: 'Coś zdarło zasłonę ze świata. Równie dobrze możesz iść dalej w głąb:wracać nie ma dokąd.',
   },
   {
     id: 'thirst_for_knowledge',
@@ -78,22 +78,22 @@ export const DRIVES: DriveOption[] = [
 ]
 
 export const PILLAR_EXAMPLES = [
-  'Wiara religijna — zaufanie do Boga, konkretne wyznanie lub ogólna wiara w życzliwy porządek',
-  'Rodzina — honor rodziny, czystość rodowodu, więzy krwi',
-  'Godność i wartość człowieka — ludzie mają znaczenie i zasługują na szacunek',
-  'Postęp naukowy / wartość intelektu — rozum i nauka mogą wyjaśnić wszystko',
-  'Prawa fizyki i realność wiedzy naukowej — świat działa według znanych, stałych reguł',
-  'Dobroć i piękno Natury — przyroda jest harmonijna i dobra',
-  'Wrodzona dobroć ludzkości — ludzie z natury nie są źli',
-  'Zasady moralne — istnieje obiektywne dobro i zło',
-  'Estetyka / wyższe ideały sztuki — piękno i sztuka mają sens i wartość',
-  'Epikureizm — życie pełnią — życie jest warte przeżycia dla samej przyjemności istnienia',
-  'Patriotyzm i cnoty narodowe — twój kraj jest szlachetny i wart obrony',
-  'Miłość do rodzinnego miasta — twoje miasto jest bezpieczne, dobre, twoje',
+  'Wiara religijna:zaufanie do Boga, konkretne wyznanie lub ogólna wiara w życzliwy porządek',
+  'Rodzina:honor rodziny, czystość rodowodu, więzy krwi',
+  'Godność i wartość człowieka:ludzie mają znaczenie i zasługują na szacunek',
+  'Postęp naukowy / wartość intelektu:rozum i nauka mogą wyjaśnić wszystko',
+  'Prawa fizyki i realność wiedzy naukowej:świat działa według znanych, stałych reguł',
+  'Dobroć i piękno Natury:przyroda jest harmonijna i dobra',
+  'Wrodzona dobroć ludzkości:ludzie z natury nie są źli',
+  'Zasady moralne:istnieje obiektywne dobro i zło',
+  'Estetyka / wyższe ideały sztuki:piękno i sztuka mają sens i wartość',
+  'Epikureizm:życie pełnią:życie jest warte przeżycia dla samej przyjemności istnienia',
+  'Patriotyzm i cnoty narodowe:twój kraj jest szlachetny i wart obrony',
+  'Miłość do rodzinnego miasta:twoje miasto jest bezpieczne, dobre, twoje',
 ]
 
 export const SOURCE_CATEGORIES = [
-  { value: 'person' as const, label: 'Osoba', description: 'Konkretny NPC — nie inny Badacz' },
+  { value: 'person' as const, label: 'Osoba', description: 'Konkretny NPC:nie inny Badacz' },
   { value: 'place' as const, label: 'Miejsce', description: 'Lokacja dająca poczucie bezpieczeństwa' },
   { value: 'organization' as const, label: 'Organizacja', description: 'Grupa ludzi, do której należysz' },
 ]

@@ -150,6 +150,8 @@ export const CONTACT_SUBCATEGORIES: ContactSubcategory[] = [
   { id: 'weterani', label: 'Weterani', categoryId: 'WOJSKO_I_WETERANI' },
   { id: 'jednostki_rezerwowe', label: 'Jednostki rezerwowe', categoryId: 'WOJSKO_I_WETERANI' },
   { id: 'dostawcy_wojskowi', label: 'Dostawcy wojskowi', categoryId: 'WOJSKO_I_WETERANI' },
+  { id: 'marynarze', label: 'Marynarze', categoryId: 'WOJSKO_I_WETERANI' },
+  { id: 'lotnictwo_wojskowe', label: 'Lotnictwo wojskowe', categoryId: 'WOJSKO_I_WETERANI' },
 
   // OKULTYZM_I_TAJNE
   { id: 'spirytysci', label: 'Spirytyści', categoryId: 'OKULTYZM_I_TAJNE' },
@@ -595,10 +597,24 @@ export function generateContactOptions(
       const str = calcContactStrength(sub.label, sub.categoryId, jobId, character)
       options.push({ subcategory: sub.label, categoryId: sub.categoryId, strength: str })
     } else {
-      // All subcategories used — repeat with base strength
       const sub = CONTACT_SUBCATEGORIES[options.length % CONTACT_SUBCATEGORIES.length]
       options.push({ subcategory: sub.label, categoryId: sub.categoryId, strength: 1 })
     }
+  }
+
+  // Deduplicate: replace duplicate subcategories with next available
+  const seen = new Set<string>()
+  for (let i = 0; i < options.length; i++) {
+    if (seen.has(options[i].subcategory)) {
+      const replacement = available.find(
+        (s) => !seen.has(s.label) && !options.some((o) => o.subcategory === s.label),
+      )
+      if (replacement) {
+        const str = calcContactStrength(replacement.label, replacement.categoryId, jobId, character)
+        options[i] = { subcategory: replacement.label, categoryId: replacement.categoryId, strength: str }
+      }
+    }
+    seen.add(options[i].subcategory)
   }
 
   return options.slice(0, 3)

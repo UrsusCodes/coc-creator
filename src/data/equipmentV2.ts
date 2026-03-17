@@ -20,6 +20,7 @@ export const EQUIPMENT_CATEGORIES_V2 = [
   'travel',
   'tools',
   'medical',
+  'explosives',
   'misc',
 ] as const
 
@@ -32,6 +33,7 @@ export const EQUIPMENT_CATEGORY_LABELS: Record<string, string> = {
   travel: 'Podróż',
   tools: 'Narzędzia',
   medical: 'Medyczne',
+  explosives: 'Materiały wybuchowe',
   misc: 'Rozmaitości',
 }
 
@@ -82,11 +84,7 @@ export const EQUIPMENT_CATALOG_V2: EquipmentItemV2[] = [
   { id: 'spadochron', name: 'Spadochron', price: 100, category: 'photo' },
 
   // === Komunikacja ===
-  { id: 'pocztowka', name: 'Pocztówka ze znaczkiem', price: 0.05, category: 'communication' },
   { id: 'gazeta', name: 'Gazeta', price: 0.05, category: 'communication' },
-  { id: 'telegraf_wiadomosc', name: 'Telegraf (wiadomość)', price: 0.50, category: 'communication' },
-  { id: 'telefon_polaczenie_lokalne', name: 'Telefon — połączenie lokalne', price: 0.10, category: 'communication' },
-  { id: 'telefon_polaczenie_miedzymiast', name: 'Telefon — połączenie międzymiastowe', price: 1, category: 'communication' },
   { id: 'telefon_aparat', name: 'Aparat telefoniczny', price: 15, category: 'communication' },
   { id: 'radio_odbiornik', name: 'Radio (odbiornik)', price: 25, category: 'communication' },
   { id: 'radio_nadawczo_odbiorcze', name: 'Radio nadawczo-odbiorcze', price: 75, category: 'communication' },
@@ -134,6 +132,12 @@ export const EQUIPMENT_CATALOG_V2: EquipmentItemV2[] = [
   { id: 'szyna_unaczyniajaca', name: 'Szyna unieruchamiająca', price: 1, category: 'medical' },
   { id: 'nosze', name: 'Nosze', price: 5, category: 'medical' },
   { id: 'narzedzia_chirurgiczne', name: 'Narzędzia chirurgiczne', price: 30, category: 'medical' },
+
+  // === Materiały wybuchowe ===
+  { id: 'dynamit_laseczka', name: 'Dynamit (laseczka)', price: 10, category: 'explosives' },
+  { id: 'lont_metr', name: 'Lont (metr)', price: 0.50, category: 'explosives' },
+  { id: 'zapalnik', name: 'Zapalnik', price: 2, category: 'explosives' },
+  { id: 'detonator_elektryczny', name: 'Detonator elektryczny', price: 15, category: 'explosives' },
 
   // === Rozmaitości ===
   { id: 'papierosy_paczka', name: 'Papierosy (paczka)', price: 0.15, category: 'misc' },

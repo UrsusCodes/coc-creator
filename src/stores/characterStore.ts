@@ -52,6 +52,10 @@ export interface WizardState {
   // Step 6: Occupation
   occupationId: string | null
 
+  // Step 11: Basic info extras
+  residence: string
+  birthplace: string
+
   // Step 7-8: Skill points
   occupationSkillPoints: Record<string, number>
   personalSkillPoints: Record<string, number>
@@ -95,7 +99,7 @@ export interface WizardState {
   setInviteCode: (data: { id: string; code: string; methods: CreationMethod[]; method: CreationMethod | null; era: Era; perks: string[]; maxTries: number; timesUsed: number; maxSkillValue: number }) => void
   setMethod: (method: CreationMethod) => void
   setAge: (age: number) => void
-  setBasicInfo: (data: { playerName: string; name: string; gender: string; appearance: string }) => void
+  setBasicInfo: (data: { playerName: string; name: string; gender: string; appearance: string; residence?: string; birthplace?: string }) => void
   setCharacteristics: (chars: Partial<Characteristics>) => void
   setLuck: (luck: number) => void
   setAgeDeductions: (deductions: Partial<Record<CharacteristicKey, number>>) => void
@@ -133,6 +137,8 @@ const characterDataDefaults = {
   age: null,
   gender: '',
   appearance: '',
+  residence: '',
+  birthplace: '',
   characteristics: {},
   luck: null,
   characteristicsLocked: false,
@@ -227,6 +233,8 @@ export const useCharacterStore = create<WizardState>()(
           name: data.name,
           gender: data.gender,
           appearance: data.appearance,
+          ...(data.residence !== undefined && { residence: data.residence }),
+          ...(data.birthplace !== undefined && { birthplace: data.birthplace }),
         }),
 
       setCharacteristics: (chars) => set({ characteristics: chars }),

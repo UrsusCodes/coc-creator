@@ -116,12 +116,12 @@ export interface LifestyleLevel {
 }
 
 export const LIFESTYLE_LEVELS: LifestyleLevel[] = [
-  { id: 'destitute',   label: 'Nędzny',      tierId: 'A', description: 'Przeżycie, łachmany, głód',                                  starPoints: 0.0 },
-  { id: 'frugal',      label: 'Skromny',      tierId: 'B', description: 'Czysto, skromnie, żadnych przyjemności',                     starPoints: 0.5 },
-  { id: 'average',     label: 'Przeciętny',   tierId: 'C', description: 'Porządne ubranie, kino, bar, tani urlop',                    starPoints: 1.0 },
-  { id: 'comfortable', label: 'Komfortowy',   tierId: 'D', description: 'Restauracje, modna garderoba, służący, 3★ hotele',           starPoints: 1.5 },
-  { id: 'elegant',     label: 'Elegancki',    tierId: 'E', description: 'Stała służba, opera, przyjęcia, 4★ hotele, regularne urlopy', starPoints: 2.0 },
-  { id: 'luxury',      label: 'Luksusowy',    tierId: 'F', description: 'Wszystko najlepsze, 5★ hotele, suite, bez patrzenia na ceny', starPoints: 2.5 },
+  { id: 'destitute',   label: 'Nędzny',      tierId: 'A', description: 'Życie na ulicy. Łachmany, jedzenie z odpadków, noce pod mostem. Ziemia pod paznokciami, wieczny głód i zimno. Ludzie odwracają wzrok.',                                  starPoints: 0.0 },
+  { id: 'frugal',      label: 'Skromny',      tierId: 'B', description: 'Czyste, ale skromne życie. Jedno ubranie na zmianę, prosty posiłek, żadnych rozrywek. Woda z pompy zamiast kranu, świeca zamiast żarówki.',                     starPoints: 0.5 },
+  { id: 'average',     label: 'Przeciętny',   tierId: 'C', description: 'Porządne ubranie, wizyta w kinie w sobotę, piwo w barze po pracy. Gazeta co rano, tani urlop nad jeziorem. Zwykłe, uczciwe życie.',                    starPoints: 1.0 },
+  { id: 'comfortable', label: 'Komfortowy',   tierId: 'D', description: 'Restauracje co weekend, modna garderoba, lokaj lub służąca. Wakacje w 3-gwiazdkowych hotelach, regularne wyjścia do teatru i opery.',           starPoints: 1.5 },
+  { id: 'elegant',     label: 'Elegancki',    tierId: 'E', description: 'Stała służba domowa, loża w operze, przyjęcia i bale. Urlopy na Riwierze, hotele 4-gwiazdkowe, szampan na kolację. Życie salonowe.', starPoints: 2.0 },
+  { id: 'luxury',      label: 'Luksusowy',    tierId: 'F', description: 'Wszystko co najlepsze: bez mrugnięcia okiem. Apartamenty w najlepszych hotelach, prywatne wagony kolejowe, wykwintna kuchnia codziennie.', starPoints: 2.5 },
 ]
 
 // ── Star Rating ────────────────────────────────────────────────
@@ -233,7 +233,6 @@ export interface AssetForm {
 }
 
 export const ASSET_FORMS: AssetForm[] = [
-  { id: 'safe_cash',       label: 'Gotówka w sejfie',     minAssets: 0,    naturalTiers: ['A','B','C','D','E','F'] },
   { id: 'bank_account',    label: 'Konto bankowe',        minAssets: 50,   naturalTiers: ['C','D','E','F'] },
   { id: 'bonds',           label: 'Obligacje rządowe',    minAssets: 200,  naturalTiers: ['C','D','E','F'] },
   { id: 'stocks',          label: 'Akcje',                minAssets: 500,  naturalTiers: ['D','E','F'] },

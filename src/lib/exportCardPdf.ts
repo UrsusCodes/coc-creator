@@ -4,9 +4,12 @@ import { CARD_LAYOUTS, FRONT_SKILL_GRIDS, type FieldBox, type SkillColumnGrid } 
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillBase, getSkillDisplayName, getBaseSkillId, getSpecialization } from '@/data/skills'
 import { WEAPONS } from '@/data/weapons'
+import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
+import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { DRIVES } from '@/data/drivePillars'
 import { halfValue, fifthValue } from '@/lib/utils'
 import type { CharacteristicKey } from '@/types/common'
+import type { CharacterPosition, CharacterContact } from '@/types/character'
 
 const BASE = import.meta.env.BASE_URL ?? '/'
 
@@ -15,6 +18,8 @@ interface ExportCharacter {
   age: number
   gender: string
   appearance: string
+  residence?: string
+  birthplace?: string
   characteristics: Record<string, number>
   luck: number
   derived: Record<string, unknown>
@@ -30,9 +35,14 @@ interface ExportCharacter {
   method: string
   player_name?: string
   invite_code?: string
+  positions?: CharacterPosition[]
+  contacts?: CharacterContact[]
 }
 
 type Derived = { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
+
+// Fields that should render bold text before the colon
+const BOLD_BEFORE_COLON_FIELDS = new Set(['drive', 'sources'])
 
 // ── Mapping field IDs → character values ──
 
@@ -58,9 +68,11 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'occupation') return OCCUPATIONS.find((o) => o.id === char.occupation_id)?.name ?? ''
   if (id === 'age') return `${char.age} lat`
   if (id === 'gender') return char.gender === 'M' ? 'Mężczyzna' : char.gender === 'F' ? 'Kobieta' : char.gender
-  if (id === 'photo' || id === 'residence' || id === 'birthplace' || id === 'death_place') return ''
+  if (id === 'residence') return char.residence ?? ''
+  if (id === 'birthplace') return char.birthplace ?? ''
+  if (id === 'photo' || id === 'death_place') return ''
 
-  // Characteristics — main values
+  // Characteristics
   if (id === 'char_move') return String(derived.move_rate)
   const charBase = id.replace(/_half$/, '').replace(/_fifth$/, '')
   const charKey = CHAR_KEY_MAP[charBase]
@@ -83,13 +95,13 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'spending_level') return char.spending_level
   if (id === 'cash') return char.cash
 
-  // Weapon fields — filled by parseEquipment()
+  // Weapon fields
   if (id.startsWith('weap')) return ''
 
-  // Spec name fields — filled by matchSpecializations
+  // Spec name fields
   if (id.startsWith('spec_')) return ''
 
-  // Back card — classic backstory
+  // Back card: classic backstory
   if (id === 'appearance_description') return String(char.backstory.appearance_description ?? '')
   if (id === 'ideology') return String(char.backstory.ideology ?? '')
   if (id === 'significant_people') {
@@ -100,7 +112,7 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'meaningful_locations') return String(char.backstory.meaningful_locations ?? '')
   if (id === 'traits') return String(char.backstory.traits ?? '')
 
-  // Back card — ToC
+  // Back card: ToC
   if (id === 'drive') {
     const driveId = char.backstory.drive as string | undefined
     const detail = char.backstory.drive_detail as string | undefined
@@ -123,9 +135,8 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   // Positions (from positions array)
   if (id.startsWith('position_')) {
     const idx = parseInt(id.split('_').pop()!) - 1
-    const positions = (char as unknown as Record<string, unknown>).positions as { description: string; weightDisplay: string; rollValue: number; pendingSt: boolean }[] | undefined
-    if (positions && positions[idx]) {
-      const p = positions[idx]
+    if (char.positions && char.positions[idx]) {
+      const p = char.positions[idx]
       return `${p.weightDisplay} ${p.description} [${p.rollValue}%]${p.pendingSt ? ' [ST]' : ''}`
     }
     return ''
@@ -134,15 +145,14 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   // Contacts (from contacts array)
   if (id.startsWith('contact_')) {
     const idx = parseInt(id.split('_').pop()!) - 1
-    const contacts = (char as unknown as Record<string, unknown>).contacts as { subcategory: string; strengthDisplay: string; rollValue: number; synergyBonus: number; pendingSt: boolean }[] | undefined
-    if (contacts && contacts[idx]) {
-      const c = contacts[idx]
+    if (char.contacts && char.contacts[idx]) {
+      const c = char.contacts[idx]
       return `${c.strengthDisplay} ${c.subcategory} [${c.rollValue}%]${c.synergyBonus > 0 ? ' ✨' : ''}${c.pendingSt ? ' [ST]' : ''}`
     }
     return ''
   }
 
-  // Bottom section — filled by parseEquipment()
+  // Bottom section
   if (id.startsWith('equip_') || id.startsWith('asset_')) return ''
 
   return ''
@@ -156,6 +166,27 @@ interface ParsedEquipment {
   equipRight: string[]
   assets: string[]
   positions: string[]
+}
+
+function buildWeaponEntry(
+  name: string, skillId: string, damage: string, range: string,
+  attacksPerRound: string, ammo: number | null | undefined, malfunction: number | undefined,
+  chars: Record<string, number>, allSkillPoints: Record<string, number>,
+): ParsedEquipment['weapons'][0] {
+  const skillBase = resolveBase(skillId, chars)
+  const skillPoints = allSkillPoints[skillId] ?? 0
+  const total = skillBase + skillPoints
+  return {
+    name,
+    skill: total > 0 ? String(total) : '',
+    half: total > 0 ? String(halfValue(total)) : '',
+    fifth: total > 0 ? String(fifthValue(total)) : '',
+    dmg: damage,
+    range,
+    attacks: attacksPerRound,
+    ammo: ammo ? String(ammo) : '—',
+    malf: malfunction ? String(malfunction) : '—',
+  }
 }
 
 function parseEquipment(char: ExportCharacter): Record<string, string> {
@@ -174,88 +205,76 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   for (const item of char.equipment) {
     const stripped = item.replace(/^\[.*?\]\s*/, '')
 
-    // New v2 tags
-    if (item.startsWith('[Lokum]')) {
-      assets.push(stripped)
-      continue
-    }
-    if (item.startsWith('[Transport]')) {
-      assets.push(stripped)
-      continue
-    }
-    if (item.startsWith('[Lifestyle]')) {
-      positions.push(stripped)
-      continue
-    }
+    // v2 tags
+    if (item.startsWith('[Lokum]')) { assets.push(stripped); continue }
+    if (item.startsWith('[Transport]')) { assets.push(stripped); continue }
+    if (item.startsWith('[Lifestyle]')) { positions.push(stripped); continue }
+    if (item.startsWith('[Dobytek]')) { assets.push(stripped); continue }
 
     // Legacy tags (v1 compat)
-    if (item.startsWith('[Mieszkanie]') || item.startsWith('[Transport]')) {
-      assets.push(stripped)
-      continue
-    }
-    if (item.startsWith('[Styl życia]')) {
-      positions.push(stripped)
-      continue
-    }
+    if (item.startsWith('[Mieszkanie]')) { assets.push(stripped); continue }
+    if (item.startsWith('[Styl życia]')) { positions.push(stripped); continue }
 
-    // Tagged weapons
+    // Tagged weapons (including black market and military)
     if (item.startsWith('[Broń]') || item.startsWith('[Czarny rynek]') || item.startsWith('[Wojsko]')) {
-      // Try to match weapon from both old and new catalogs
+      // 1. Try old WEAPONS catalog
       const weapon = WEAPONS.find((w) => item.includes(w.name))
       if (weapon) {
-        const skillBase = resolveBase(weapon.skill_id, char.characteristics)
-        const skillPoints = allSkillPoints[weapon.skill_id] ?? 0
-        const total = skillBase + skillPoints
+        weapons.push(buildWeaponEntry(
+          weapon.name, weapon.skill_id, weapon.damage, weapon.range,
+          weapon.attacks_per_round, weapon.ammo, weapon.malfunction,
+          char.characteristics, allSkillPoints,
+        ))
+        continue
+      }
+
+      // 2. Try WEAPONS_CATALOG_V2
+      const weaponV2 = WEAPONS_CATALOG_V2.find((w) => item.includes(w.name))
+      if (weaponV2) {
+        weapons.push(buildWeaponEntry(
+          weaponV2.name, weaponV2.skillId, weaponV2.damage, weaponV2.range,
+          '1', weaponV2.ammo, weaponV2.malfunction,
+          char.characteristics, allSkillPoints,
+        ))
+        continue
+      }
+
+      // 3. Try BLACK_MARKET_CATALOG (weapons with skillId)
+      const bmItem = BLACK_MARKET_CATALOG.find((bm) => bm.skillId && item.includes(bm.name))
+      if (bmItem && bmItem.skillId) {
+        weapons.push(buildWeaponEntry(
+          bmItem.name, bmItem.skillId, bmItem.damage ?? '', bmItem.range ?? '',
+          '1', bmItem.ammo, bmItem.malfunction,
+          char.characteristics, allSkillPoints,
+        ))
+        continue
+      }
+
+      // 4. Fallback: parse from tag format "[Broń] Name (damage, range)"
+      const match = stripped.match(/^(.+?)\s*\(([^,]+),\s*(.+?)\)/)
+      if (match) {
         weapons.push({
-          name: weapon.name,
-          skill: total > 0 ? String(total) : '',
-          half: total > 0 ? String(halfValue(total)) : '',
-          fifth: total > 0 ? String(fifthValue(total)) : '',
-          dmg: weapon.damage,
-          range: weapon.range,
-          attacks: weapon.attacks_per_round,
-          ammo: weapon.ammo ? String(weapon.ammo) : '—',
-          malf: weapon.malfunction ? String(weapon.malfunction) : '—',
+          name: match[1], skill: '', half: '', fifth: '',
+          dmg: match[2], range: match[3],
+          attacks: '1', ammo: '—', malf: '—',
         })
       } else {
-        // Weapon not in old catalog — parse from tag format "[Broń] Name (damage, range)"
-        const match = stripped.match(/^(.+?)\s*\(([^,]+),\s*(.+?)\)/)
-        if (match) {
-          weapons.push({
-            name: match[1], skill: '', half: '', fifth: '',
-            dmg: match[2], range: match[3],
-            attacks: '1', ammo: '—', malf: '—',
-          })
-        } else {
-          equip.push(stripped)
-        }
+        equip.push(stripped)
       }
       continue
     }
 
     // Tagged equipment
-    if (item.startsWith('[Ekwipunek]')) {
-      equip.push(stripped)
-      continue
-    }
+    if (item.startsWith('[Ekwipunek]')) { equip.push(stripped); continue }
 
-    // Untagged — try weapon match (legacy), otherwise equipment
+    // Untagged: try weapon match (legacy), otherwise equipment
     const weapon = WEAPONS.find((w) => item.includes(w.name))
     if (weapon) {
-      const skillBase = resolveBase(weapon.skill_id, char.characteristics)
-      const skillPoints = allSkillPoints[weapon.skill_id] ?? 0
-      const total = skillBase + skillPoints
-      weapons.push({
-        name: weapon.name,
-        skill: total > 0 ? String(total) : '',
-        half: total > 0 ? String(halfValue(total)) : '',
-        fifth: total > 0 ? String(fifthValue(total)) : '',
-        dmg: weapon.damage,
-        range: weapon.range,
-        attacks: weapon.attacks_per_round,
-        ammo: weapon.ammo ? String(weapon.ammo) : '—',
-        malf: weapon.malfunction ? String(weapon.malfunction) : '—',
-      })
+      weapons.push(buildWeaponEntry(
+        weapon.name, weapon.skill_id, weapon.damage, weapon.range,
+        weapon.attacks_per_round, weapon.ammo, weapon.malfunction,
+        char.characteristics, allSkillPoints,
+      ))
     } else {
       equip.push(item)
     }
@@ -333,7 +352,6 @@ function matchSpecializations(char: ExportCharacter): Record<string, string> {
     const specs = (specsByParent[parent] ?? []).filter((k) => !fixedSpecs.has(k))
     for (let i = 0; i < slots.count && i < specs.length; i++) {
       const specName = getSpecialization(specs[i])
-      // For combat specs, look up display name
       const displayName = getSkillDisplayName(specs[i]).replace(/.*\(/, '').replace(/\)/, '')
       result[`${slots.prefix}${i + 1}`] = displayName || specName || ''
     }
@@ -373,16 +391,14 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const PW = 595
   const PH = 842
 
-  // PDF font sizes — layout fontSizes are design hints, we override for PDF
-  // Map layout fontSize → actual PDF pt size
   const PDF_FONT_SIZE: Record<number, number> = {
-    7: 5.5,    // skills, equip, weapons, specs
-    8: 6,      // photo placeholder
-    9: 8,      // backstory text, residence, spending
-    10: 9,     // basic info (player, occupation, age, gender)
-    11: 10,    // name
-    12: 10,    // derived (san, hp, luck, mp)
-    13: 12,    // characteristics main values
+    7: 5.5,
+    8: 6,
+    9: 8,
+    10: 9,
+    11: 10,
+    12: 10,
+    13: 12,
   }
 
   // Merged skill points
@@ -402,14 +418,11 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     fields: FieldBox[],
     skillGrids?: SkillColumnGrid[],
   ) {
-    // Draw card image as background
     page.drawImage(img, { x: 0, y: 0, width: PW, height: PH })
 
     const INK = rgb(0.05, 0.05, 0.05)
 
-    // Render regular fields
     for (const f of fields) {
-      // Get value — check spec names first, then regular mapping
       const value = equipData[f.id] ?? specNames[f.id] ?? getFieldValue(f.id, char)
       if (!value) continue
 
@@ -420,17 +433,16 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       const fieldW = (f.w / 100) * PW
       const fieldH = (f.h / 100) * PH
 
+      const useBoldColon = BOLD_BEFORE_COLON_FIELDS.has(f.id)
+
       if (f.maxLines && f.maxLines > 1) {
-        // Multi-line text wrapping
-        renderWrappedText(page, value, fieldX, fieldY, fieldW, fieldH, font, fontSize, INK, f.align)
+        renderWrappedText(page, value, fieldX, fieldY, fieldW, fieldH, font, fontSize, INK, f.align, useBoldColon)
       } else {
-        // Single line — centered vertically in the field box
         let textX = fieldX
         const textWidth = font.widthOfTextAtSize(value, fontSize)
         if (f.align === 'center') textX = fieldX + (fieldW - textWidth) / 2
         else if (f.align === 'right') textX = fieldX + fieldW - textWidth
 
-        // Vertical center: top of field minus half the field height, offset by half font size
         const textY = fieldY - fieldH / 2 - fontSize / 3
 
         page.drawText(value, {
@@ -457,7 +469,6 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
           const row = grid.rows[ri]
           const rowY = gridY - ri * rowH
 
-          // Find skill value
           let totalValue = 0
           let hasPoints = false
 
@@ -469,13 +480,11 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
               hasPoints = true
             }
           } else if (row.type === 'open_spec' || row.type === 'open_combat') {
-            // Find matching specialization in character data
             const parent = row.parentSkill ?? getBaseSkillId(row.skillId)
             const fixedSpecs = new Set(['bron_palna:karabin_strzelba', 'bron_palna:krotka', 'walka_wrecz:bijatyka'])
             const charSpecs = Object.keys(allSkillPoints)
               .filter((k) => getBaseSkillId(k) === parent && !fixedSpecs.has(k) && allSkillPoints[k] > 0)
 
-            // Get the open slot index (e.g., _open1 → 0)
             const slotIdx = parseInt(row.skillId.match(/_open(\d)$/)?.[1] ?? '0') - 1
             if (slotIdx >= 0 && slotIdx < charSpecs.length) {
               const specKey = charSpecs[slotIdx]
@@ -490,7 +499,6 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
           const half = halfValue(totalValue)
           const fifth = fifthValue(totalValue)
 
-          // Render value in sub-columns
           const renderCell = (offsetPct: number, text: string, bold = false) => {
             const cellFont = bold ? fontBold : fontRegular
             const cellX = gridX + (offsetPct / 100) * gridW
@@ -513,17 +521,18 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     }
   }
 
-  // ── Multi-line text wrapping ──
+  // ── Multi-line text wrapping with optional bold-before-colon ──
   function renderWrappedText(
     page: PDFPage, text: string,
     x: number, y: number, w: number, h: number,
     font: PDFFont, fontSize: number, color: ReturnType<typeof rgb>,
-    align?: string,
+    align?: string, boldBeforeColon?: boolean,
   ) {
     const lineHeight = fontSize * 1.3
     const lines: string[] = []
     const paragraphs = text.split('\n')
 
+    // Use regular font for measuring (bold is slightly wider but close enough)
     for (const para of paragraphs) {
       const words = para.split(/\s+/)
       let currentLine = ''
@@ -541,17 +550,32 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
 
     const maxLines = Math.floor(h / lineHeight)
     for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+      const lineY = y - (i + 1) * lineHeight
       let textX = x
       if (align === 'center') textX = x + (w - font.widthOfTextAtSize(lines[i], fontSize)) / 2
       else if (align === 'right') textX = x + w - font.widthOfTextAtSize(lines[i], fontSize)
 
-      page.drawText(lines[i], {
-        x: textX,
-        y: y - (i + 1) * lineHeight,
-        size: fontSize,
-        font,
-        color,
-      })
+      if (boldBeforeColon && lines[i].includes(':')) {
+        const colonIdx = lines[i].indexOf(':')
+        const beforeColon = lines[i].substring(0, colonIdx + 1)
+        const afterColon = lines[i].substring(colonIdx + 1)
+
+        // Draw bold part
+        page.drawText(beforeColon, {
+          x: textX, y: lineY, size: fontSize, font: fontBold, color,
+        })
+        // Draw regular part after colon
+        if (afterColon.trim()) {
+          const boldWidth = fontBold.widthOfTextAtSize(beforeColon, fontSize)
+          page.drawText(afterColon, {
+            x: textX + boldWidth, y: lineY, size: fontSize, font: fontRegular, color,
+          })
+        }
+      } else {
+        page.drawText(lines[i], {
+          x: textX, y: lineY, size: fontSize, font, color,
+        })
+      }
     }
   }
 

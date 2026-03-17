@@ -170,8 +170,8 @@ export function StepPersonalSkills() {
 
       {/* Show skills that already have personal points first */}
       {Object.keys(personalPoints).length > 0 && (
-        <div className="mb-3 border-b border-coc-border pb-3">
-          <h4 className="text-xs font-medium text-coc-text-muted mb-1">Przydzielone punkty</h4>
+        <div className="mb-3 border-b border-coc-border pb-3 min-h-[80px] max-h-[200px] overflow-y-auto">
+          <h4 className="text-xs font-medium text-coc-text-muted mb-1 sticky top-0 bg-coc-surface z-10">Przydzielone punkty</h4>
           {Object.entries(personalPoints)
             .filter(([, pts]) => pts > 0)
             .map(([skillId, pts]) => {

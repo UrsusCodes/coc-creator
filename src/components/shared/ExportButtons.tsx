@@ -8,6 +8,8 @@ interface ExportCharacter {
   age: number
   gender: string
   appearance: string
+  residence?: string
+  birthplace?: string
   characteristics: Record<string, number>
   luck: number
   derived: Record<string, unknown>
@@ -23,6 +25,8 @@ interface ExportCharacter {
   method: string
   player_name?: string
   invite_code?: string
+  positions?: unknown[]
+  contacts?: unknown[]
 }
 
 interface ExportButtonsProps {

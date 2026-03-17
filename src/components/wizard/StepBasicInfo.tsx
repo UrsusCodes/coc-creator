@@ -14,6 +14,8 @@ export function StepBasicInfo() {
   const [gender, setGender] = useState<Gender | null>((store.gender as Gender) || null)
   const [name, setName] = useState(store.name || '')
   const [appearance, setAppearance] = useState(store.appearance || '')
+  const [residence, setResidence] = useState(store.residence || '')
+  const [birthplace, setBirthplace] = useState(store.birthplace || '')
 
   const handleRandomName = () => {
     if (!gender) return
@@ -24,7 +26,7 @@ export function StepBasicInfo() {
 
   const handleNext = () => {
     if (!canContinue) return
-    store.setBasicInfo({ playerName: playerName.trim(), name: name.trim(), gender: gender!, appearance: appearance.trim() })
+    store.setBasicInfo({ playerName: playerName.trim(), name: name.trim(), gender: gender!, appearance: appearance.trim(), residence: residence.trim(), birthplace: birthplace.trim() })
     store.nextStep()
   }
 
@@ -98,6 +100,30 @@ export function StepBasicInfo() {
           {!gender && (
             <p className="text-xs text-coc-text-muted">Wybierz płeć, aby losować imię.</p>
           )}
+        </div>
+
+        {/* Residence */}
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-coc-text-muted">Miejsce zamieszkania (opcjonalnie)</label>
+          <input
+            type="text"
+            value={residence}
+            onChange={(e) => setResidence(e.target.value)}
+            placeholder="np. Arkham, Massachusetts"
+            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors"
+          />
+        </div>
+
+        {/* Birthplace */}
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-coc-text-muted">Miejsce urodzenia (opcjonalnie)</label>
+          <input
+            type="text"
+            value={birthplace}
+            onChange={(e) => setBirthplace(e.target.value)}
+            placeholder="np. Boston, Massachusetts"
+            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors"
+          />
         </div>
 
         {/* Appearance */}

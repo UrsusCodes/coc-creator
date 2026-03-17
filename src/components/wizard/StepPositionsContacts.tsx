@@ -134,7 +134,7 @@ export function StepPositionsContacts() {
         <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">Pozycje</h3>
         {weights.map((w, slotIdx) => (
           <div key={slotIdx} className="mb-4">
-            <div className="text-xs text-coc-text-muted mb-1">Slot {slotIdx + 1} — waga {weightStars(w)} ({w * 25}%)</div>
+            <div className="text-xs text-coc-text-muted mb-1">Slot {slotIdx + 1}: waga {weightStars(w)} ({w * 25}%)</div>
             <div className="grid grid-cols-2 gap-2">
               {positionOptions[slotIdx]?.map((opt, optIdx) => {
                 const isSelected = selectedPositions[slotIdx]?.description === opt.description

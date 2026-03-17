@@ -308,6 +308,7 @@ export const SKILLS: Skill[] = [
       'Literatura',
       'Malarstwo',
       'Maszynopisanie',
+      'Materiały Wybuchowe',
       'Rolnictwo i Hodowla',
       'Rysunek Techniczny',
       'Rzeźbiarstwo',

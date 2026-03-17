@@ -1,5 +1,5 @@
 /**
- * Black Market Catalog — Illegal items available through underworld contacts
+ * Black Market Catalog:Illegal items available through underworld contacts
  * Era: Klasyczna (lata 20. XX wieku)
  */
 
@@ -10,6 +10,11 @@ export interface BlackMarketItem {
   priceMax: number
   description: string
   tag: string
+  skillId?: string
+  damage?: string
+  range?: string
+  ammo?: number
+  malfunction?: number
 }
 
 export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
@@ -20,6 +25,11 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
     priceMax: 60,
     description: 'Rewolwer bez numeru seryjnego, nieśledzony. Kaliber zależy od dostępności.',
     tag: '[Czarny rynek]',
+    skillId: 'bron_palna:krotka',
+    damage: '1K10',
+    range: '15 m',
+    ammo: 6,
+    malfunction: 100,
   },
   {
     id: 'tlumik',
@@ -32,10 +42,15 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
   {
     id: 'thompson_smg',
     name: 'Thompson (pistolet maszynowy)',
-    priceMin: 200,
-    priceMax: 400,
+    priceMin: 1000,
+    priceMax: 1000,
     description: 'Pistolet maszynowy Thompson kal. .45. Potocznie „Tommy Gun". Nielegalny bez pozwolenia.',
     tag: '[Czarny rynek]',
+    skillId: 'bron_palna:pistolet_maszynowy',
+    damage: '1K10+2',
+    range: '30 m',
+    ammo: 30,
+    malfunction: 96,
   },
   {
     id: 'granat_reczny',
@@ -50,7 +65,7 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
     name: 'Granat dymny',
     priceMin: 10,
     priceMax: 25,
-    description: 'Granat dymny — tworzy gęstą zasłonę w promieniu 5 m na kilka minut.',
+    description: 'Granat dymny:tworzy gęstą zasłonę w promieniu 5 m na kilka minut.',
     tag: '[Czarny rynek]',
   },
   {
@@ -106,7 +121,7 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
     name: 'Alkohol (przemycany)',
     priceMin: 3,
     priceMax: 15,
-    description: 'Butelka przemycanego alkoholu — whiskey, gin lub bimber. Era prohibicji.',
+    description: 'Butelka przemycanego alkoholu:whiskey, gin lub bimber. Era prohibicji.',
     tag: '[Czarny rynek]',
   },
   {

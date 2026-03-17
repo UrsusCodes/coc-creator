@@ -109,6 +109,7 @@ export function StepEquipment() {
       `[Lifestyle] ${stars} ${ratingLabel(rating)}`,
       ...selectedItems,
       ...customItems.filter(Boolean).map((item) => `[Ekwipunek] ${item}`),
+      ...assetBreakdown.map((a) => `[Dobytek] ${a.type}: ${formatDollars(a.value)}`),
     ]
 
     const cashRemaining = Math.max(0, cash - Math.max(0, totalSpent - costs.assetsRemaining))
@@ -123,7 +124,7 @@ export function StepEquipment() {
       cashOnHand: cashRemaining,
       cash: formatDollars(cashRemaining),
       assets: formatDollars(costs.assetsRemaining),
-      spendingLevel: `${formatDollars(spending)} / dzień`,
+      spendingLevel: formatDollars(spending),
       lokumOwnership,
       lokum2Id: hasLokum2 ? lokum2Id : '',
       lokum2Ownership: hasLokum2 ? lokum2Ownership : '',
@@ -153,7 +154,7 @@ export function StepEquipment() {
         </div>
         <div className="bg-coc-surface-light rounded-lg p-2">
           <div className="text-[10px] text-coc-text-muted uppercase">Dobytek</div>
-          <div className="font-mono font-bold">{formatDollars(assets)}</div>
+          <div className="font-mono font-bold">{formatDollars(costs.assetsRemaining)}</div>
         </div>
         <div className="bg-coc-surface-light rounded-lg p-2">
           <div className="text-[10px] text-coc-text-muted uppercase">Gotówka</div>
@@ -184,8 +185,9 @@ export function StepEquipment() {
               </button>
             ))}
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setMode('custom')}>
-            Edytuj własny układ
+          <Button size="sm" onClick={() => setMode('custom')}
+            className="bg-green-600/20 text-green-400 border border-green-600/40 hover:bg-green-600/30">
+            Sam rozdziel majątek
           </Button>
         </div>
       )}
@@ -206,37 +208,90 @@ export function StepEquipment() {
 
           {/* Lokum */}
           <section>
-            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Lokum</h4>
+            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Miejsce zamieszkania</h4>
             <div className="space-y-1">
               {LOKUM_OPTIONS.filter((l) => {
                 const lt = TIERS.find((t) => t.id === l.tierId)!
-                return lt.min <= majetnosc + 20 // show options up to ~1 tier above
-              }).map((l) => (
-                <label key={l.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer hover:bg-coc-surface-light ${lokumId === l.id ? 'bg-coc-accent/10 border border-coc-accent/30' : 'border border-transparent'}`}>
-                  <input type="radio" name="lokum" value={l.id} checked={lokumId === l.id}
-                    onChange={() => setLokumId(l.id)} className="accent-coc-accent" />
-                  <span className="flex-1">{l.label}</span>
-                  {l.canRent && <span className="text-xs text-coc-text-muted">{formatDollars(l.rentalPerDay)}/dzień</span>}
-                </label>
-              ))}
+                return lt.min <= majetnosc + 20
+              }).map((l) => {
+                const purchaseCost = (l.purchaseMin + l.purchaseMax) / 2
+                const canAffordOwn = purchaseCost <= assets
+                return (
+                  <div key={l.id} className={`px-3 py-2 rounded-lg text-sm ${lokumId === l.id ? 'bg-coc-accent/10 border border-coc-accent/30' : 'border border-transparent hover:bg-coc-surface-light'}`}>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="lokum" value={l.id} checked={lokumId === l.id}
+                        onChange={() => { setLokumId(l.id); if (!l.canOwn) setLokumOwnership('rent'); if (!l.canRent && l.canOwn) setLokumOwnership('own') }}
+                        className="accent-coc-accent" />
+                      <span className="flex-1 font-medium">{l.label}</span>
+                    </label>
+                    {lokumId === l.id && (l.canRent || l.canOwn) && (
+                      <div className="flex gap-3 mt-1.5 ml-6">
+                        {l.canRent && (
+                          <label className={`text-xs cursor-pointer px-2 py-0.5 rounded ${lokumOwnership === 'rent' ? 'bg-coc-accent/20 text-coc-accent-light' : 'text-coc-text-muted'}`}>
+                            <input type="radio" checked={lokumOwnership === 'rent'} onChange={() => setLokumOwnership('rent')} className="hidden" />
+                            Wynajem ({formatDollars(l.rentalPerDay)}/dzień)
+                          </label>
+                        )}
+                        {l.canOwn && (
+                          <label className={`text-xs px-2 py-0.5 rounded ${!canAffordOwn ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${lokumOwnership === 'own' && canAffordOwn ? 'bg-coc-accent/20 text-coc-accent-light' : 'text-coc-text-muted'}`}>
+                            <input type="radio" checked={lokumOwnership === 'own'} onChange={() => canAffordOwn && setLokumOwnership('own')} disabled={!canAffordOwn} className="hidden" />
+                            Własność ({formatDollars(purchaseCost)} z dobytku)
+                            {!canAffordOwn && <span className="ml-1 text-red-400">(za drogo)</span>}
+                          </label>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
-            {lokum.canOwn && lokum.canRent && (
-              <div className="flex gap-2 mt-2 ml-6">
-                <label className="text-xs cursor-pointer">
-                  <input type="radio" checked={lokumOwnership === 'rent'} onChange={() => setLokumOwnership('rent')} className="accent-coc-accent mr-1" />
-                  Wynajem
-                </label>
-                <label className="text-xs cursor-pointer">
-                  <input type="radio" checked={lokumOwnership === 'own'} onChange={() => setLokumOwnership('own')} className="accent-coc-accent mr-1" />
-                  Własność ({formatDollars((lokum.purchaseMin + lokum.purchaseMax) / 2)} z dobytku)
-                </label>
-              </div>
-            )}
-            <label className="flex items-center gap-2 mt-2 text-xs text-coc-text-muted cursor-pointer">
-              <input type="checkbox" checked={hasLokum2} onChange={(e) => { setHasLokum2(e.target.checked); if (!e.target.checked) setLokum2Id('') }}
-                className="accent-coc-accent" />
-              Drugie lokum
-            </label>
+
+            {/* Drugie lokum */}
+            <div className={`mt-3 p-2 rounded-lg border ${hasLokum2 ? 'border-coc-accent/30 bg-coc-accent/5' : 'border-coc-border'}`}>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={hasLokum2} onChange={(e) => { setHasLokum2(e.target.checked); if (!e.target.checked) setLokum2Id('') }}
+                  className="accent-coc-accent" />
+                <span className="font-medium">Posiadam drugie lokum / miejsce</span>
+              </label>
+              {hasLokum2 && (
+                <div className="mt-2 space-y-1 ml-6">
+                  {LOKUM_OPTIONS.filter((l) => l.id !== 'homeless' && l.id !== lokumId).filter((l) => {
+                    const lt = TIERS.find((t) => t.id === l.tierId)!
+                    return lt.min <= majetnosc + 20
+                  }).map((l) => {
+                    const purchaseCost2 = (l.purchaseMin + l.purchaseMax) / 2
+                    const alreadySpent = lokumOwnership === 'own' ? (lokum.purchaseMin + lokum.purchaseMax) / 2 : 0
+                    const canAffordOwn2 = purchaseCost2 + alreadySpent <= assets
+                    return (
+                      <div key={l.id} className={`px-3 py-1.5 rounded text-sm ${lokum2Id === l.id ? 'bg-coc-accent/10 border border-coc-accent/30' : 'border border-transparent hover:bg-coc-surface-light'}`}>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="lokum2" value={l.id} checked={lokum2Id === l.id}
+                            onChange={() => { setLokum2Id(l.id); if (!l.canOwn) setLokum2Ownership('rent'); if (!l.canRent && l.canOwn) setLokum2Ownership('own') }}
+                            className="accent-coc-accent" />
+                          <span className="flex-1">{l.label}</span>
+                        </label>
+                        {lokum2Id === l.id && (l.canRent || l.canOwn) && (
+                          <div className="flex gap-3 mt-1 ml-6">
+                            {l.canRent && (
+                              <label className={`text-xs cursor-pointer px-2 py-0.5 rounded ${lokum2Ownership === 'rent' ? 'bg-coc-accent/20 text-coc-accent-light' : 'text-coc-text-muted'}`}>
+                                <input type="radio" checked={lokum2Ownership === 'rent'} onChange={() => setLokum2Ownership('rent')} className="hidden" />
+                                Wynajem
+                              </label>
+                            )}
+                            {l.canOwn && (
+                              <label className={`text-xs px-2 py-0.5 rounded ${!canAffordOwn2 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${lokum2Ownership === 'own' && canAffordOwn2 ? 'bg-coc-accent/20 text-coc-accent-light' : 'text-coc-text-muted'}`}>
+                                <input type="radio" checked={lokum2Ownership === 'own'} onChange={() => canAffordOwn2 && setLokum2Ownership('own')} disabled={!canAffordOwn2} className="hidden" />
+                                Własność ({formatDollars(purchaseCost2)})
+                              </label>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Transport style */}
@@ -520,7 +575,7 @@ export function StepEquipment() {
       {/* Navigation */}
       <div className="flex justify-between pt-4">
         <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
-        <Button onClick={handleNext} disabled={costs.spendingFree < 0 || overBudget || (mode === 'presets')}>
+        <Button onClick={handleNext} disabled={costs.spendingFree < 0 || overBudget || costs.assetsPurchase > assets || (mode === 'presets')}>
           Dalej
         </Button>
       </div>

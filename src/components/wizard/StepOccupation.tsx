@@ -19,7 +19,7 @@ export function StepOccupation() {
   const chars = store.characteristics as Characteristics
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(store.occupationId)
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set(OCCUPATION_CATEGORIES.map(c => c.id)))
 
   const eraOccs = useMemo(() => getOccupationsForEra(era), [era])
 
