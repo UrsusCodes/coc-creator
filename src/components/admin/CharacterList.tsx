@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { CharacterViewer } from './CharacterViewer'
+import { QuickCreateCharacter } from './QuickCreateCharacter'
 
 interface CharacterRow {
   id: string
@@ -40,6 +41,7 @@ export function CharacterList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewingId, setViewingId] = useState<string | null>(null)
+  const [autoEdit, setAutoEdit] = useState(false)
   const [search, setSearch] = useState('')
 
   const fetchCharacters = useCallback(async () => {
@@ -80,19 +82,29 @@ export function CharacterList() {
     )
   }, [characters, search])
 
+  const handleQuickCreated = (charData: { id: string } & Record<string, unknown>) => {
+    const newChar = charData as unknown as CharacterRow
+    setCharacters((prev) => [newChar, ...prev])
+    setViewingId(newChar.id)
+    setAutoEdit(true)
+  }
+
   const viewingCharacter = characters.find((c) => c.id === viewingId)
 
   if (viewingCharacter) {
     return (
       <CharacterViewer
         character={viewingCharacter}
-        onBack={() => setViewingId(null)}
+        onBack={() => { setViewingId(null); setAutoEdit(false) }}
         onUpdate={(updated) => setCharacters((prev) => prev.map((c) => c.id === updated.id ? { ...c, ...updated } : c))}
+        initialEditMode={autoEdit}
       />
     )
   }
 
   return (
+    <div className="space-y-4">
+    <QuickCreateCharacter onCreated={handleQuickCreated} />
     <Card>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-serif font-bold">Postacie ({characters.length})</h3>
@@ -161,5 +173,6 @@ export function CharacterList() {
         ))}
       </div>
     </Card>
+    </div>
   )
 }

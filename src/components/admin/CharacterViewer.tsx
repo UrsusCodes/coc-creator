@@ -21,13 +21,14 @@ interface CharacterViewerProps {
   character: CharacterSheetData
   onBack: () => void
   onUpdate?: (updated: Partial<CharacterSheetData> & { id: string }) => void
+  initialEditMode?: boolean
 }
 
-export function CharacterViewer({ character: char, onBack, onUpdate }: CharacterViewerProps) {
+export function CharacterViewer({ character: char, onBack, onUpdate, initialEditMode }: CharacterViewerProps) {
   const { password } = useAdminStore()
 
   // Edit mode
-  const [editMode, setEditMode] = useState(false)
+  const [editMode, setEditMode] = useState(initialEditMode ?? false)
   const [editData, setEditData] = useState<CharacterSheetData>(structuredClone(char))
   const [changeComment, setChangeComment] = useState('')
   const [saving, setSaving] = useState(false)
