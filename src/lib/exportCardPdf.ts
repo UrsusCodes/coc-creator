@@ -9,7 +9,7 @@ import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { DRIVES } from '@/data/drivePillars'
 import { halfValue, fifthValue } from '@/lib/utils'
 import type { CharacteristicKey } from '@/types/common'
-import type { CharacterPosition, CharacterContact } from '@/types/character'
+import type { CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 
 const BASE = import.meta.env.BASE_URL ?? '/'
 
@@ -37,6 +37,9 @@ interface ExportCharacter {
   invite_code?: string
   positions?: CharacterPosition[]
   contacts?: CharacterContact[]
+  main_position?: MainPosition
+  additional_positions?: AdditionalPosition[]
+  contacts_v2?: ContactV2[]
 }
 
 type Derived = { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
@@ -132,9 +135,22 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   }
   if (id === 'other_traits') return String(char.backstory.other_traits ?? '')
 
-  // Positions (from positions array)
+  // Main position
+  if (id === 'position_main') {
+    if (char.main_position) {
+      const mp = char.main_position
+      return `${mp.option_name} [${mp.organization_size}] ${mp.strength_percent}%`
+    }
+    return ''
+  }
+
+  // Positions (v2 first, fallback to v1)
   if (id.startsWith('position_')) {
     const idx = parseInt(id.split('_').pop()!) - 1
+    if (char.additional_positions && char.additional_positions[idx] && char.additional_positions[idx].option_name) {
+      const p = char.additional_positions[idx]
+      return `${'★'.repeat(p.weight)} ${p.option_name} [${p.roll_value}%]${p.pending_st_approval ? ' [ST]' : ''}`
+    }
     if (char.positions && char.positions[idx]) {
       const p = char.positions[idx]
       return `${p.weightDisplay} ${p.description} [${p.rollValue}%]${p.pendingSt ? ' [ST]' : ''}`
@@ -142,9 +158,14 @@ function getFieldValue(id: string, char: ExportCharacter): string {
     return ''
   }
 
-  // Contacts (from contacts array)
+  // Contacts (v2 first, fallback to v1)
   if (id.startsWith('contact_')) {
     const idx = parseInt(id.split('_').pop()!) - 1
+    if (char.contacts_v2 && char.contacts_v2[idx] && char.contacts_v2[idx].subcategory) {
+      const c = char.contacts_v2[idx]
+      const d = Math.max(1, Math.min(3, c.strength))
+      return `${'◆'.repeat(d)}${'░'.repeat(3 - d)} ${c.subcategory} [${c.roll_value}%]${c.synergy_bonus > 0 ? ' ✨' : ''}${c.pending_st_approval ? ' [ST]' : ''}`
+    }
     if (char.contacts && char.contacts[idx]) {
       const c = char.contacts[idx]
       return `${c.strengthDisplay} ${c.subcategory} [${c.rollValue}%]${c.synergyBonus > 0 ? ' ✨' : ''}${c.pendingSt ? ' [ST]' : ''}`

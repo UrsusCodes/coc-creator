@@ -57,6 +57,52 @@ export interface CharacterContact {
   pendingSt: boolean
 }
 
+// ── New Position & Contact system (v2) ──
+
+export interface PositionOption {
+  id: string
+  name: string
+  organization_size: 'Mikro' | 'Mała' | 'Średnia' | 'Duża' | 'Wielka'
+  size_modifier: number
+  unlock_condition: string
+  placeholder: string
+  category: string
+}
+
+export interface MainPosition {
+  option_id: string
+  option_name: string
+  organization_size: string
+  category: string
+  custom_description: string
+  strength_percent: number
+  unlock_condition: string
+}
+
+export interface AdditionalPosition {
+  slot_index: number
+  option_name: string
+  organization_size: string
+  category: string
+  custom_description: string
+  weight: 1 | 2 | 3
+  roll_value: number
+  is_custom: boolean
+  pending_st_approval: boolean
+}
+
+export interface ContactV2 {
+  slot_index: number
+  subcategory: string
+  category: string
+  custom_name: string
+  strength: 1 | 2 | 3
+  roll_value: number
+  synergy_bonus: number
+  is_custom: boolean
+  pending_st_approval: boolean
+}
+
 export interface AssetBreakdown {
   type: string
   percent: number
@@ -91,9 +137,13 @@ export interface CharacterData {
   admin_notes?: string
   created_at?: string
   updated_at?: string
-  // Positions & Contacts
+  // Positions & Contacts (legacy v1)
   positions?: CharacterPosition[]
   contacts?: CharacterContact[]
+  // Positions & Contacts (v2)
+  main_position?: MainPosition
+  additional_positions?: AdditionalPosition[]
+  contacts_v2?: ContactV2[]
   // Wealth v2 fields
   lifestyle_rating?: number
   lifestyle_stars?: string

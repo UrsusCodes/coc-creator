@@ -27,6 +27,9 @@ interface ExportCharacter {
   invite_code?: string
   positions?: unknown[]
   contacts?: unknown[]
+  main_position?: unknown
+  additional_positions?: unknown[]
+  contacts_v2?: unknown[]
 }
 
 interface ExportButtonsProps {

@@ -163,27 +163,43 @@ export function StepReview() {
         )}
       </Section>
 
-      {/* Positions & Contacts */}
-      {(store.positions.length > 0 || store.contacts.length > 0) && (
+      {/* Positions & Contacts (v2) */}
+      {(store.mainPosition || store.additionalPositions.length > 0 || store.contactsV2.length > 0) && (
         <Section title="Pozycje i kontakty">
-          {store.positions.length > 0 && (
+          {store.mainPosition && (
+            <div className="mb-3 bg-coc-surface-light rounded-lg p-2">
+              <div className="text-xs text-coc-text-muted mb-1">Pozycja główna</div>
+              <div className="text-sm font-medium">
+                {store.mainPosition.option_name}
+                <span className="text-xs text-coc-text-muted ml-2">{store.mainPosition.organization_size}</span>
+                <span className="text-sm font-mono font-bold text-coc-accent-light ml-2">{store.mainPosition.strength_percent}%</span>
+              </div>
+              {store.mainPosition.custom_description && (
+                <div className="text-xs text-coc-text-muted mt-0.5 italic">{store.mainPosition.custom_description}</div>
+              )}
+            </div>
+          )}
+          {store.additionalPositions.filter(p => p.option_name).length > 0 && (
             <div className="mb-2">
-              <div className="text-xs text-coc-text-muted mb-1">Pozycje</div>
-              {store.positions.map((p, i) => (
+              <div className="text-xs text-coc-text-muted mb-1">Dodatkowe pozycje</div>
+              {store.additionalPositions.filter(p => p.option_name).map((p, i) => (
                 <div key={i} className="text-sm py-0.5">
-                  {p.weightDisplay} {p.description} [{p.rollValue}%]{p.pendingSt ? ' [ST]' : ''}
+                  {'★'.repeat(p.weight)} {p.option_name} [{p.roll_value}%]{p.pending_st_approval ? ' [ST]' : ''}
                 </div>
               ))}
             </div>
           )}
-          {store.contacts.length > 0 && (
+          {store.contactsV2.filter(c => c.subcategory).length > 0 && (
             <div>
               <div className="text-xs text-coc-text-muted mb-1">Kontakty</div>
-              {store.contacts.map((c, i) => (
-                <div key={i} className="text-sm py-0.5">
-                  {c.strengthDisplay} {c.subcategory} [{c.rollValue}%]{c.synergyBonus > 0 ? ' ✨' : ''}{c.pendingSt ? ' [ST]' : ''}
-                </div>
-              ))}
+              {store.contactsV2.filter(c => c.subcategory).map((c, i) => {
+                const d = Math.max(1, Math.min(3, c.strength))
+                return (
+                  <div key={i} className="text-sm py-0.5">
+                    {'◆'.repeat(d)}{'░'.repeat(3 - d)} {c.subcategory} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
+                  </div>
+                )
+              })}
             </div>
           )}
         </Section>

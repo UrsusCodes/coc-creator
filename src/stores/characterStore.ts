@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact } from '@/types/character'
+import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 import type { Era, CreationMethod, CharacteristicKey } from '@/types/common'
 
 export interface WizardState {
@@ -60,9 +60,13 @@ export interface WizardState {
   occupationSkillPoints: Record<string, number>
   personalSkillPoints: Record<string, number>
 
-  // Step 9: Positions & Contacts
+  // Step 9: Positions & Contacts (legacy v1)
   positions: CharacterPosition[]
   contacts: CharacterContact[]
+  // Step 9: Positions & Contacts (v2)
+  mainPosition: MainPosition | null
+  additionalPositions: AdditionalPosition[]
+  contactsV2: ContactV2[]
 
   // Step 10: Backstory
   backstory: Partial<Backstory>
@@ -112,6 +116,8 @@ export interface WizardState {
   setOccupationSkillPoints: (points: Record<string, number>) => void
   setPersonalSkillPoints: (points: Record<string, number>) => void
   setPositionsAndContacts: (positions: CharacterPosition[], contacts: CharacterContact[]) => void
+  setMainPosition: (pos: MainPosition) => void
+  setPositionsAndContactsV2: (positions: AdditionalPosition[], contacts: ContactV2[]) => void
   setBackstory: (backstory: Partial<Backstory>) => void
   setEquipment: (equipment: string[]) => void
   setCustomItems: (items: string[]) => void
@@ -154,6 +160,9 @@ const characterDataDefaults = {
   personalSkillPoints: {},
   positions: [],
   contacts: [],
+  mainPosition: null,
+  additionalPositions: [],
+  contactsV2: [],
   backstory: {},
   equipment: [],
   customItems: [],
@@ -251,6 +260,8 @@ export const useCharacterStore = create<WizardState>()(
       setOccupationSkillPoints: (points) => set({ occupationSkillPoints: points }),
       setPersonalSkillPoints: (points) => set({ personalSkillPoints: points }),
       setPositionsAndContacts: (positions, contacts) => set({ positions, contacts }),
+      setMainPosition: (pos) => set({ mainPosition: pos }),
+      setPositionsAndContactsV2: (positions, contacts) => set({ additionalPositions: positions, contactsV2: contacts }),
       setBackstory: (backstory) => set((s) => ({ backstory: { ...s.backstory, ...backstory } })),
       setEquipment: (equipment) => set({ equipment }),
       setCustomItems: (items) => set({ customItems: items }),
