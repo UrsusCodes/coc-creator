@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { Loader2, AlertTriangle, Pencil, Check } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { LOKUM_OPTIONS, TRANSPORT_STYLES, LIFESTYLE_LEVELS, ASSET_FORMS } from '@/data/wealthV2'
-import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
+import { ERA_LABELS, type CharacteristicKey } from '@/types/common'
 import type { Characteristics } from '@/types/character'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -15,6 +15,57 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
+
+// ── Inline editable text field ──
+function EditableField({ label, value, onSave, multiline }: {
+  label: string
+  value: string
+  onSave: (val: string) => void
+  multiline?: boolean
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+
+  const handleSave = () => {
+    onSave(draft)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="mb-1">
+        <div className="text-xs text-coc-text-muted">{label}</div>
+        <div className="flex gap-1 items-start mt-0.5">
+          {multiline ? (
+            <textarea value={draft} onChange={(e) => setDraft(e.target.value)}
+              className="flex-1 px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light min-h-[50px] resize-y" />
+          ) : (
+            <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              className="flex-1 px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light" />
+          )}
+          <button type="button" onClick={handleSave}
+            className="p-1 text-green-400 hover:text-green-300 cursor-pointer">
+            <Check className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="group mb-1">
+      <div className="text-xs text-coc-text-muted">{label}</div>
+      <div className="flex items-start gap-1">
+        <span className="text-sm whitespace-pre-wrap flex-1">{value || <span className="italic text-coc-text-muted/50">puste</span>}</span>
+        <button type="button" onClick={() => { setDraft(value); setEditing(true) }}
+          className="p-0.5 text-coc-text-muted/30 hover:text-coc-accent-light cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+          <Pencil className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export function StepReview() {
   const store = useCharacterStore()
@@ -25,7 +76,6 @@ export function StepReview() {
   const chars = store.characteristics as Characteristics
   const occupation = OCCUPATIONS.find((o) => o.id === store.occupationId)
 
-  // Build full skill list with totals
   const allSkillPoints = { ...store.occupationSkillPoints }
   for (const [id, pts] of Object.entries(store.personalSkillPoints)) {
     allSkillPoints[id] = (allSkillPoints[id] ?? 0) + pts
@@ -47,24 +97,77 @@ export function StepReview() {
     }
   }
 
+  // ── Store update helpers ──
+  const updateBasicInfo = (field: string, value: string) => {
+    store.setBasicInfo({
+      playerName: field === 'playerName' ? value : store.playerName,
+      name: field === 'name' ? value : store.name,
+      gender: store.gender,
+      appearance: field === 'appearance' ? value : store.appearance,
+      residence: field === 'residence' ? value : store.residence,
+      birthplace: field === 'birthplace' ? value : store.birthplace,
+    })
+  }
+
+  const updateBackstory = (key: string, value: string) => {
+    store.setBackstory({ [key]: value })
+  }
+
+  const updatePillar = (index: number, value: string) => {
+    const pillars = [...(store.backstory.pillars ?? [])]
+    pillars[index] = value
+    store.setBackstory({ pillars })
+  }
+
+  const updateSource = (index: number, field: 'name' | 'description', value: string) => {
+    const sources = [...(store.backstory.sources ?? [])]
+    if (sources[index]) {
+      sources[index] = { ...sources[index], [field]: value }
+      store.setBackstory({ sources })
+    }
+  }
+
+  const updateMainPositionDesc = (value: string) => {
+    if (store.mainPosition) {
+      store.setMainPosition({ ...store.mainPosition, custom_description: value })
+    }
+  }
+
+  const updateAdditionalPositionDesc = (index: number, value: string) => {
+    const positions = [...store.additionalPositions]
+    if (positions[index]) {
+      positions[index] = { ...positions[index], custom_description: value }
+      store.setPositionsAndContactsV2(positions, store.contactsV2)
+    }
+  }
+
+  const updateContactDesc = (index: number, value: string) => {
+    const contacts = [...store.contactsV2]
+    if (contacts[index]) {
+      contacts[index] = { ...contacts[index], custom_description: value }
+      store.setPositionsAndContactsV2(store.additionalPositions, contacts)
+    }
+  }
+
   return (
     <Card title="Podsumowanie">
+      <p className="text-xs text-coc-text-muted mb-4">Najedź na dowolny tekst i kliknij ✏️ żeby edytować.</p>
+
       {/* Basic Info */}
       <Section title="Dane podstawowe">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <Field label="Gracz" value={store.playerName} />
-          <Field label="Imię" value={store.name} />
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+          <EditableField label="Gracz" value={store.playerName} onSave={(v) => updateBasicInfo('playerName', v)} />
+          <EditableField label="Imię" value={store.name} onSave={(v) => updateBasicInfo('name', v)} />
           <Field label="Wiek" value={String(store.age)} />
           <Field label="Płeć" value={store.gender} />
           <Field label="Era" value={store.era ? ERA_LABELS[store.era] : ''} />
-          <Field label="Metoda" value={store.method ? METHOD_LABELS[store.method] : ''} />
           <Field label="Zawód" value={occupation?.name ?? ''} />
+          <EditableField label="Miejsce zamieszkania" value={store.residence} onSave={(v) => updateBasicInfo('residence', v)} />
+          <EditableField label="Miejsce urodzenia" value={store.birthplace} onSave={(v) => updateBasicInfo('birthplace', v)} />
         </div>
-        {store.appearance && (
-          <div className="mt-2">
-            <Field label="Wygląd" value={store.appearance} />
-          </div>
-        )}
+        <div className="mt-2">
+          <EditableField label="Wygląd" value={store.appearance} onSave={(v) => updateBasicInfo('appearance', v)} multiline />
+        </div>
       </Section>
 
       {/* Characteristics */}
@@ -98,7 +201,7 @@ export function StepReview() {
         </Section>
       )}
 
-      {/* Skills with points */}
+      {/* Skills */}
       <Section title="Umiejętności">
         <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm max-h-[250px] overflow-y-auto">
           {Object.entries(allSkillPoints)
@@ -121,8 +224,8 @@ export function StepReview() {
       <Section title={store.backstory.drive ? 'Motywacja i Filary' : 'Historia postaci'}>
         {Object.entries(store.backstory).map(([key, value]) => {
           if (!value) return null
-          // Skip complex fields (handled separately)
           if (key === 'pillars' || key === 'sources') return null
+          if (key === 'drive') return null // drive is a select, not free text
           if (typeof value !== 'string') return null
           const labels: Record<string, string> = {
             ideology: 'Ideologia / Przekonania',
@@ -133,36 +236,48 @@ export function StepReview() {
             traits: 'Przymioty',
             appearance_description: 'Opis postaci',
             key_connection: 'Kluczowa więź',
-            drive: 'Motywacja',
             drive_detail: 'Szczegóły motywacji',
             other_traits: 'Inne przymioty',
           }
           return (
-            <div key={key} className="mb-2">
-              <div className="text-xs text-coc-text-muted">{labels[key] ?? key}</div>
-              <div className="text-sm whitespace-pre-wrap">{value}</div>
-            </div>
+            <EditableField key={key} label={labels[key] ?? key} value={value}
+              onSave={(v) => updateBackstory(key, v)} multiline />
           )
         })}
+        {store.backstory.drive && (
+          <div className="mb-2">
+            <div className="text-xs text-coc-text-muted">Motywacja</div>
+            <div className="text-sm">{store.backstory.drive}</div>
+          </div>
+        )}
         {store.backstory.pillars && store.backstory.pillars.length > 0 && (
           <div className="mb-2">
-            <div className="text-xs text-coc-text-muted">Filary Poczytalności</div>
-            <ul className="text-sm">
-              {store.backstory.pillars.map((p, i) => <li key={i}>• {p}</li>)}
-            </ul>
+            <div className="text-xs text-coc-text-muted mb-1">Filary Poczytalności</div>
+            {store.backstory.pillars.map((p, i) => (
+              <EditableField key={i} label={`Filar ${i + 1}`} value={p}
+                onSave={(v) => updatePillar(i, v)} />
+            ))}
           </div>
         )}
         {store.backstory.sources && store.backstory.sources.length > 0 && (
           <div className="mb-2">
-            <div className="text-xs text-coc-text-muted">Źródła Stabilności</div>
+            <div className="text-xs text-coc-text-muted mb-1">Źródła Stabilności</div>
             {store.backstory.sources.map((s, i) => (
-              <div key={i} className="text-sm">{s.name} ({s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}){s.description ? `: ${s.description}` : ''}</div>
+              <div key={i} className="mb-2 pl-2 border-l-2 border-coc-border">
+                <EditableField label={`Źródło ${i + 1}: nazwa`} value={s.name}
+                  onSave={(v) => updateSource(i, 'name', v)} />
+                <div className="text-xs text-coc-text-muted">
+                  {s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}
+                </div>
+                <EditableField label="Opis" value={s.description}
+                  onSave={(v) => updateSource(i, 'description', v)} />
+              </div>
             ))}
           </div>
         )}
       </Section>
 
-      {/* Positions & Contacts (v2) */}
+      {/* Positions & Contacts */}
       {(store.mainPosition || store.additionalPositions.length > 0 || store.contactsV2.length > 0) && (
         <Section title="Pozycje i kontakty">
           {store.mainPosition && (
@@ -173,17 +288,20 @@ export function StepReview() {
                 <span className="text-xs text-coc-text-muted ml-2">{store.mainPosition.organization_size}</span>
                 <span className="text-sm font-mono font-bold text-coc-accent-light ml-2">{store.mainPosition.strength_percent}%</span>
               </div>
-              {store.mainPosition.custom_description && (
-                <div className="text-xs text-coc-text-muted mt-0.5 italic">{store.mainPosition.custom_description}</div>
-              )}
+              <EditableField label="Opis pozycji" value={store.mainPosition.custom_description}
+                onSave={updateMainPositionDesc} multiline />
             </div>
           )}
           {store.additionalPositions.filter(p => p.option_name).length > 0 && (
             <div className="mb-2">
               <div className="text-xs text-coc-text-muted mb-1">Dodatkowe pozycje</div>
               {store.additionalPositions.filter(p => p.option_name).map((p, i) => (
-                <div key={i} className="text-sm py-0.5">
-                  {'★'.repeat(p.weight)} {p.option_name} [{p.roll_value}%]{p.pending_st_approval ? ' [ST]' : ''}
+                <div key={i} className="mb-2">
+                  <div className="text-sm py-0.5">
+                    {'★'.repeat(p.weight)} {p.option_name} [{p.roll_value}%]{p.pending_st_approval ? ' [ST]' : ''}
+                  </div>
+                  <EditableField label="Opis" value={p.custom_description}
+                    onSave={(v) => updateAdditionalPositionDesc(i, v)} multiline />
                 </div>
               ))}
             </div>
@@ -194,10 +312,14 @@ export function StepReview() {
               {store.contactsV2.filter(c => c.subcategory_name).map((c, i) => {
                 const d = Math.max(1, Math.min(3, c.strength))
                 return (
-                  <div key={i} className="text-sm py-0.5">
-                    {'◆'.repeat(d)}{'░'.repeat(3 - d)}{' '}
-                    <span className="text-coc-text-muted">{c.category_name}: </span>
-                    {c.subcategory_name} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
+                  <div key={i} className="mb-2">
+                    <div className="text-sm py-0.5">
+                      {'◆'.repeat(d)}{'░'.repeat(3 - d)}{' '}
+                      <span className="text-coc-text-muted">{c.category_name}: </span>
+                      {c.subcategory_name} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
+                    </div>
+                    <EditableField label="Opis kontaktu" value={c.custom_description}
+                      onSave={(v) => updateContactDesc(i, v)} multiline />
                   </div>
                 )
               })}
