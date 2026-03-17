@@ -161,10 +161,13 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   // Contacts (v2 first, fallback to v1)
   if (id.startsWith('contact_')) {
     const idx = parseInt(id.split('_').pop()!) - 1
-    if (char.contacts_v2 && char.contacts_v2[idx] && char.contacts_v2[idx].subcategory) {
+    if (char.contacts_v2 && char.contacts_v2[idx]) {
       const c = char.contacts_v2[idx]
+      const name = c.subcategory_name || c.subcategory || ''
+      if (!name) return ''
       const d = Math.max(1, Math.min(3, c.strength))
-      return `${'◆'.repeat(d)}${'░'.repeat(3 - d)} ${c.subcategory} [${c.roll_value}%]${c.synergy_bonus > 0 ? ' ✨' : ''}${c.pending_st_approval ? ' [ST]' : ''}`
+      const catLabel = c.category_name ? `${c.category_name}\n` : ''
+      return `${'◆'.repeat(d)}${'░'.repeat(3 - d)} ${name} [${c.roll_value}%]${c.synergy_bonus > 0 ? ' ✨' : ''}${c.pending_st_approval ? ' [ST]' : ''}`
     }
     if (char.contacts && char.contacts[idx]) {
       const c = char.contacts[idx]

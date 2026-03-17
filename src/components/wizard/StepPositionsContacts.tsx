@@ -2,16 +2,20 @@ import { useState, useMemo } from 'react'
 import { Unlock, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { getSkillBase } from '@/data/skills'
-import { CONTACT_SUBCATEGORIES_V2, CONTACT_CATEGORIES_V2 } from '@/data/contactSubcategories'
+import { CONTACT_CATEGORIES_NEW, findSubcategory as findSub } from '@/data/contactCategories'
 import {
   calculatePositionStrength,
   getAvailablePositionOptions,
 } from '@/utils/positionCalculator'
 import {
-  calculateContactStrength,
-  calculateContactRollValue,
-  applySynergies,
-  ISOLATED_OCCUPATIONS,
+  countOccupationContactSlots,
+  countAdditionalContactSlots,
+  calculateBaseStrength,
+  applyStrengthModifiers,
+  applySynergyContacts,
+  getSynergyPreview,
+  generateContactOptions as genContactOpts,
+  CUSTOM_CATEGORY_DEFAULT_STRENGTH,
 } from '@/utils/contactCalculator'
 import {
   countAdditionalSlots,
@@ -188,45 +192,44 @@ export function StepPositionsContacts() {
     setCustomPosInputs(inputs)
   }
 
-  // ── Section 3: Contacts ──
+  // ── Section 3: Contacts (new system) ──
+  const occContactSlots = countOccupationContactSlots(jobId)
+  const addContactSlots = countAdditionalContactSlots(characterMap)
+  const totalContactSlots = Math.min(5, occContactSlots + addContactSlots)
+
   const [contacts, setContacts] = useState<(ContactV2 | null)[]>(
-    store.contactsV2.length === 5 ? store.contactsV2 : [null, null, null, null, null],
+    store.contactsV2.length > 0 ? store.contactsV2.map(c => c.subcategory_id ? c : null) : Array(totalContactSlots).fill(null),
   )
   const [expandedConSection, setExpandedConSection] = useState(true)
-  const [customConInputs, setCustomConInputs] = useState<string[]>(['', '', '', '', ''])
-  const [customConCategories, setCustomConCategories] = useState<string[]>(['', '', '', '', ''])
+  const [customConInputs, setCustomConInputs] = useState<string[]>(Array(totalContactSlots).fill(''))
+  const [customConCategories, setCustomConCategories] = useState<string[]>(Array(totalContactSlots).fill(''))
+  const [customConDescs, setCustomConDescs] = useState<string[]>(Array(totalContactSlots).fill(''))
 
   const contactOptions = useMemo(() => {
-    const usedIds = new Set(contacts.filter(Boolean).map((c) => c!.subcategory))
-    return Array.from({ length: 5 }, (_, slotIdx) => {
-      const available = CONTACT_SUBCATEGORIES_V2.filter((s) => !usedIds.has(s.name))
-      const jobRelated = available.filter((s) => s.natural_for_occupations.includes(jobId))
-      const others = available.filter((s) => !s.natural_for_occupations.includes(jobId))
-      const options: typeof CONTACT_SUBCATEGORIES_V2 = []
-      if (jobRelated.length > 0) options.push(jobRelated[slotIdx % jobRelated.length])
-      const usedCats = new Set(options.map((o) => o.category))
-      const diffCat = others.find((s) => !usedCats.has(s.category))
-      if (diffCat) options.push(diffCat)
-      const remaining = available.filter((s) => !options.some((o) => o.id === s.id))
-      while (options.length < 3 && remaining.length > 0) {
-        options.push(remaining.splice((slotIdx * 7 + options.length) % remaining.length, 1)[0])
-      }
-      return options
-    })
-  }, [jobId, contacts])
+    const usedIds = contacts.filter(Boolean).map((c) => c!.subcategory_id)
+    return Array.from({ length: totalContactSlots }, (_, slotIdx) =>
+      genContactOpts(slotIdx, jobId, characterMap, usedIds),
+    )
+  }, [jobId, characterMap, contacts, totalContactSlots])
 
   const contactsWithSynergy = useMemo(() => {
     const filled = contacts.filter(Boolean) as ContactV2[]
     if (filled.length < 2) return filled
-    return applySynergies(filled)
+    return applySynergyContacts(filled)
   }, [contacts])
 
-  const selectContact = (slotIdx: number, sub: typeof CONTACT_SUBCATEGORIES_V2[0]) => {
-    const strength = calculateContactStrength({ subcategoryId: sub.id, occupationId: jobId, skillTotals, isIsolatedOccupation: isIsolated })
-    const rollValue = calculateContactRollValue(strength, skillTotals)
+  const selectContact = (slotIdx: number, sub: { id: string; name: string; category_id: string }) => {
+    const catData = CONTACT_CATEGORIES_NEW.find(c => c.id === sub.category_id)
+    const base = calculateBaseStrength(sub.id, jobId, characterMap)
+    const modified = applyStrengthModifiers(base, sub.id, jobId, characterMap)
+    const slotSource = slotIdx < occContactSlots ? 'occupation' : 'additional'
     const newContact: ContactV2 = {
-      slot_index: slotIdx, subcategory: sub.name, category: sub.category, custom_name: '',
-      strength, roll_value: rollValue, synergy_bonus: 0, is_custom: false, pending_st_approval: false,
+      slot_index: slotIdx, subcategory_id: sub.id, subcategory_name: sub.name,
+      category_id: sub.category_id, category_name: catData?.name ?? sub.category_id,
+      base_strength: modified, strength: modified,
+      roll_value: (modified * 30) as 30 | 60 | 90, synergy_bonus: 0,
+      custom_description: '', custom_name: '', is_custom: false, pending_st_approval: false,
+      slot_source,
     }
     const updated = [...contacts]
     updated[slotIdx] = newContact
@@ -236,10 +239,17 @@ export function StepPositionsContacts() {
   const addCustomContact = (slotIdx: number) => {
     const text = customConInputs[slotIdx]?.trim()
     if (!text) return
-    const category = customConCategories[slotIdx] || ''
+    const categoryId = customConCategories[slotIdx] || ''
+    const catData = CONTACT_CATEGORIES_NEW.find(c => c.id === categoryId)
+    const defaultStr = categoryId ? (CUSTOM_CATEGORY_DEFAULT_STRENGTH[categoryId] ?? 1) : 1
+    const slotSource = slotIdx < occContactSlots ? 'occupation' : 'additional'
     const newContact: ContactV2 = {
-      slot_index: slotIdx, subcategory: text, category, custom_name: text,
-      strength: 1, roll_value: 25, synergy_bonus: 0, is_custom: true, pending_st_approval: !category,
+      slot_index: slotIdx, subcategory_id: `custom_${slotIdx}`, subcategory_name: text,
+      category_id: categoryId, category_name: catData?.name ?? '',
+      base_strength: defaultStr as 1|2|3, strength: defaultStr as 1|2|3,
+      roll_value: (defaultStr * 30) as 30|60|90, synergy_bonus: 0,
+      custom_description: '', custom_name: text, is_custom: true,
+      pending_st_approval: !categoryId, slot_source,
     }
     const updated = [...contacts]
     updated[slotIdx] = newContact
@@ -264,15 +274,20 @@ export function StepPositionsContacts() {
     const filledPositions = additionalPositions.slice(0, numAdditionalSlots).map((p, i) =>
       p ?? { slot_index: i, option_id: '', option_name: '', organization_size: '', category: '', custom_description: '', weight: 1 as const, roll_value: 25, is_custom: false, pending_st_approval: false, unlocked_by: '', is_attribute_special: false },
     )
-    // Add descriptions
     filledPositions.forEach((p, i) => { if (p.option_name && additionalDescriptions[i]) p.custom_description = additionalDescriptions[i] })
 
-    const filledContacts = (contactsWithSynergy.length > 0 ? contactsWithSynergy : contacts.filter(Boolean) as ContactV2[]).map((c, i) => ({ ...c, slot_index: i }))
-    while (filledContacts.length < 5) {
-      filledContacts.push({ slot_index: filledContacts.length, subcategory: '', category: '', custom_name: '', strength: 1, roll_value: 25, synergy_bonus: 0, is_custom: false, pending_st_approval: false })
+    const synced = contactsWithSynergy.length > 0 ? contactsWithSynergy : contacts.filter(Boolean) as ContactV2[]
+    const filledContacts = synced.map((c, i) => ({ ...c, slot_index: i }))
+    while (filledContacts.length < totalContactSlots) {
+      filledContacts.push({
+        slot_index: filledContacts.length, subcategory_id: '', subcategory_name: '',
+        category_id: '', category_name: '', base_strength: 1, strength: 1,
+        roll_value: 30, synergy_bonus: 0, custom_description: '', custom_name: '',
+        is_custom: false, pending_st_approval: false, slot_source: 'additional',
+      } as ContactV2)
     }
 
-    store.setPositionsAndContactsV2(filledPositions, filledContacts as ContactV2[])
+    store.setPositionsAndContactsV2(filledPositions, filledContacts)
     store.nextStep()
   }
 
@@ -398,13 +413,18 @@ export function StepPositionsContacts() {
         )}
       </section>
 
-      {/* ── Section 3: Contacts (5 slots) ── */}
+      {/* ── Section 3: Contacts ── */}
       <section className="mb-6">
         <button type="button" onClick={() => setExpandedConSection(!expandedConSection)}
           className="flex items-center justify-between w-full mb-2 cursor-pointer">
-          <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">Kontakty (5 slotów)</h3>
+          <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">
+            Kontakty ({totalContactSlots} {totalContactSlots === 1 ? 'slot' : totalContactSlots < 5 ? 'sloty' : 'slotów'})
+          </h3>
           {expandedConSection ? <ChevronUp className="w-4 h-4 text-coc-text-muted" /> : <ChevronDown className="w-4 h-4 text-coc-text-muted" />}
         </button>
+        <p className="text-xs text-coc-text-muted mb-3">
+          Środowiska w których twój Badacz ma kontakty. Sloty 1-{occContactSlots}: zawodowe, reszta: dodatkowe.
+        </p>
 
         {expandedConSection && (
           <div className="space-y-3">
@@ -413,38 +433,56 @@ export function StepPositionsContacts() {
                 ✨ Synergia: kontakty w tej samej kategorii wzmacniają się nawzajem
               </div>
             )}
-            {Array.from({ length: 5 }, (_, slotIdx) => {
+            {Array.from({ length: totalContactSlots }, (_, slotIdx) => {
               const selected = contacts[slotIdx]
               const synContact = contactsWithSynergy.find((c) => c.slot_index === slotIdx)
               const options = contactOptions[slotIdx] ?? []
+              const isOccSlot = slotIdx < occContactSlots
+              const synergyPreview = (sub: { category_id: string }) =>
+                getSynergyPreview(sub.category_id, contacts.filter(Boolean) as ContactV2[])
+
               return (
-                <div key={slotIdx} className="bg-coc-surface-light/30 rounded-lg p-2">
-                  <div className="text-xs text-coc-text-muted mb-1">Slot {slotIdx + 1}</div>
+                <div key={slotIdx} className={`rounded-lg p-2 ${isOccSlot ? 'bg-coc-surface-light/30' : 'bg-coc-surface-light/15 border border-dashed border-coc-border'}`}>
+                  <div className="text-xs text-coc-text-muted mb-1">
+                    Slot {slotIdx + 1} <span className="text-coc-text-muted/60">({isOccSlot ? 'zawodowy' : 'dodatkowy'})</span>
+                  </div>
                   {selected ? (
-                    <div className="flex items-center justify-between px-2 py-1">
-                      <span className="text-sm">
-                        {strengthDiamonds(synContact?.strength ?? selected.strength)}{' '}
-                        {selected.subcategory}{' '}
-                        [{synContact?.roll_value ?? selected.roll_value}%]
-                        {(synContact?.synergy_bonus ?? 0) > 0 && <span className="ml-1">✨</span>}
-                        {selected.pending_st_approval && <span className="text-yellow-500 ml-1">[ST]</span>}
-                      </span>
-                      <button type="button" onClick={() => { const u = [...contacts]; u[slotIdx] = null; setContacts(u) }}
-                        className="text-xs text-coc-danger cursor-pointer">×</button>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <div>
+                          <span className="text-xs text-coc-text-muted">{synContact?.category_name ?? selected.category_name}</span>
+                          <div className="text-sm font-medium">
+                            {strengthDiamonds(synContact?.strength ?? selected.strength)}{' '}
+                            {selected.subcategory_name}{' '}
+                            <span className="font-mono">[{synContact?.roll_value ?? selected.roll_value}%]</span>
+                            {(synContact?.synergy_bonus ?? 0) > 0 && <span className="ml-1">✨</span>}
+                            {selected.pending_st_approval && <span className="text-yellow-500 ml-1">[ST]</span>}
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => { const u = [...contacts]; u[slotIdx] = null; setContacts(u) }}
+                          className="text-xs text-coc-danger cursor-pointer">×</button>
+                      </div>
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-1 gap-1">
                         {options.map((sub) => {
-                          const str = calculateContactStrength({ subcategoryId: sub.id, occupationId: jobId, skillTotals, isIsolatedOccupation: isIsolated })
-                          const roll = calculateContactRollValue(str, skillTotals)
+                          const base = calculateBaseStrength(sub.id, jobId, characterMap)
+                          const modified = applyStrengthModifiers(base, sub.id, jobId, characterMap)
+                          const roll = modified * 30
+                          const synPreview = synergyPreview(sub)
                           return (
                             <button key={sub.id} type="button" onClick={() => selectContact(slotIdx, sub)}
-                              className="text-left px-2 py-1.5 text-xs rounded border border-coc-border hover:border-coc-accent/30 hover:bg-coc-surface-light cursor-pointer">
-                              <div className="font-medium">{sub.name}</div>
-                              <div className="text-coc-text-muted">
-                                {strengthDiamonds(str)} {roll}%
-                                {sub.natural_for_occupations.includes(jobId) && <span className="ml-1 text-coc-accent-light">★</span>}
+                              className="text-left px-3 py-2 rounded-lg border border-coc-border hover:border-coc-accent/30 hover:bg-coc-surface-light cursor-pointer">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium">{sub.name}</div>
+                                  <div className="text-xs text-coc-text-muted">{sub.flavor}</div>
+                                </div>
+                                <div className="text-right ml-2">
+                                  <div className="text-xs font-mono">{strengthDiamonds(modified)} {roll}%</div>
+                                  {synPreview && <div className="text-xs text-coc-accent-light">✨</div>}
+                                </div>
                               </div>
                             </button>
                           )
@@ -453,11 +491,11 @@ export function StepPositionsContacts() {
                       <div className="mt-1 flex gap-1">
                         <input type="text" value={customConInputs[slotIdx]} onChange={(e) => { const i = [...customConInputs]; i[slotIdx] = e.target.value; setCustomConInputs(i) }}
                           onKeyDown={(e) => e.key === 'Enter' && addCustomContact(slotIdx)}
-                          placeholder="Własne..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
+                          placeholder="Własne środowisko..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
                         <select value={customConCategories[slotIdx]} onChange={(e) => { const c = [...customConCategories]; c[slotIdx] = e.target.value; setCustomConCategories(c) }}
                           className="px-1 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text">
                           <option value="">Kategoria (ST)</option>
-                          {CONTACT_CATEGORIES_V2.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                          {CONTACT_CATEGORIES_NEW.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                         </select>
                       </div>
                     </>

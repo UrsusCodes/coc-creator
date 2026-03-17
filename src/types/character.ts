@@ -96,14 +96,22 @@ export interface AdditionalPosition {
 
 export interface ContactV2 {
   slot_index: number
-  subcategory: string
-  category: string
-  custom_name: string
+  subcategory_id: string
+  subcategory_name: string
+  category_id: string
+  category_name: string
+  base_strength: 1 | 2 | 3
   strength: 1 | 2 | 3
-  roll_value: number
-  synergy_bonus: number
+  roll_value: 30 | 60 | 90
+  synergy_bonus: 0 | 1 | 2
+  custom_description: string
+  custom_name: string
   is_custom: boolean
   pending_st_approval: boolean
+  slot_source: 'occupation' | 'additional'
+  // Legacy compat fields
+  subcategory?: string
+  category?: string
 }
 
 export interface AssetBreakdown {

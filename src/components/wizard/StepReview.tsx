@@ -189,14 +189,16 @@ export function StepReview() {
               ))}
             </div>
           )}
-          {store.contactsV2.filter(c => c.subcategory).length > 0 && (
+          {store.contactsV2.filter(c => c.subcategory_name || c.subcategory).length > 0 && (
             <div>
               <div className="text-xs text-coc-text-muted mb-1">Kontakty</div>
-              {store.contactsV2.filter(c => c.subcategory).map((c, i) => {
+              {store.contactsV2.filter(c => c.subcategory_name || c.subcategory).map((c, i) => {
                 const d = Math.max(1, Math.min(3, c.strength))
+                const name = c.subcategory_name || c.subcategory || ''
+                const catName = c.category_name || c.category || ''
                 return (
                   <div key={i} className="text-sm py-0.5">
-                    {'◆'.repeat(d)}{'░'.repeat(3 - d)} {c.subcategory} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
+                    {'◆'.repeat(d)}{'░'.repeat(3 - d)} {catName ? `${catName}: ` : ''}{name} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
                   </div>
                 )
               })}
