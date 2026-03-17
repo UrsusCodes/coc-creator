@@ -81,6 +81,7 @@ export interface MainPosition {
 
 export interface AdditionalPosition {
   slot_index: number
+  option_id: string
   option_name: string
   organization_size: string
   category: string
@@ -89,6 +90,8 @@ export interface AdditionalPosition {
   roll_value: number
   is_custom: boolean
   pending_st_approval: boolean
+  unlocked_by: string
+  is_attribute_special: boolean
 }
 
 export interface ContactV2 {
