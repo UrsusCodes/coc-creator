@@ -25,11 +25,11 @@ interface ExportCharacter {
   method: string
   player_name?: string
   invite_code?: string
-  positions?: unknown[]
-  contacts?: unknown[]
-  main_position?: unknown
-  additional_positions?: unknown[]
-  contacts_v2?: unknown[]
+  positions?: Record<string, unknown>[]
+  contacts?: Record<string, unknown>[]
+  main_position?: Record<string, unknown>
+  additional_positions?: Record<string, unknown>[]
+  contacts_v2?: Record<string, unknown>[]
 }
 
 interface ExportButtonsProps {
@@ -71,7 +71,7 @@ export function ExportButtons({ character }: ExportButtonsProps) {
     setCardLoading(true)
     try {
       const { exportCharacterAsCardPdf } = await import('@/lib/exportCardPdf')
-      const bytes = await exportCharacterAsCardPdf(character)
+      const bytes = await exportCharacterAsCardPdf(character as Parameters<typeof exportCharacterAsCardPdf>[0])
       const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

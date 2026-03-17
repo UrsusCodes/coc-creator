@@ -24,7 +24,7 @@ import {
   describeUnlock,
 } from '@/utils/additionalPositionCalculator'
 import type { Characteristics } from '@/types/character'
-import type { MainPosition, AdditionalPosition, ContactV2, PositionOption } from '@/types/character'
+import type { MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 import type { AdditionalPositionOption } from '@/data/additionalPositions'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -202,7 +202,6 @@ export function StepPositionsContacts() {
   const [expandedConSection, setExpandedConSection] = useState(true)
   const [customConInputs, setCustomConInputs] = useState<string[]>(Array(totalContactSlots).fill(''))
   const [customConCategories, setCustomConCategories] = useState<string[]>(Array(totalContactSlots).fill(''))
-  const [customConDescs, setCustomConDescs] = useState<string[]>(Array(totalContactSlots).fill(''))
 
   const contactOptions = useMemo(() => {
     const selectedIds = contacts.filter(Boolean).map((c) => c!.subcategory_id)
@@ -232,14 +231,13 @@ export function StepPositionsContacts() {
     const catData = CONTACT_CATEGORIES_NEW.find(c => c.id === sub.category_id)
     const base = calculateBaseStrength(sub.id, jobId, characterMap)
     const modified = applyStrengthModifiers(base, sub.id, jobId, characterMap)
-    const slotSource = slotIdx < occContactSlots ? 'occupation' : 'additional'
     const newContact: ContactV2 = {
       slot_index: slotIdx, subcategory_id: sub.id, subcategory_name: sub.name,
       category_id: sub.category_id, category_name: catData?.name ?? sub.category_id,
       base_strength: modified, strength: modified,
       roll_value: (modified * 30) as 30 | 60 | 90, synergy_bonus: 0,
       custom_description: '', custom_name: '', is_custom: false, pending_st_approval: false,
-      slot_source,
+      slot_source: slotIdx < occContactSlots ? 'occupation' : 'additional',
     }
     const updated = [...contacts]
     updated[slotIdx] = newContact
@@ -252,14 +250,13 @@ export function StepPositionsContacts() {
     const categoryId = customConCategories[slotIdx] || ''
     const catData = CONTACT_CATEGORIES_NEW.find(c => c.id === categoryId)
     const defaultStr = categoryId ? (CUSTOM_CATEGORY_DEFAULT_STRENGTH[categoryId] ?? 1) : 1
-    const slotSource = slotIdx < occContactSlots ? 'occupation' : 'additional'
     const newContact: ContactV2 = {
       slot_index: slotIdx, subcategory_id: `custom_${slotIdx}`, subcategory_name: text,
       category_id: categoryId, category_name: catData?.name ?? '',
       base_strength: defaultStr as 1|2|3, strength: defaultStr as 1|2|3,
       roll_value: (defaultStr * 30) as 30|60|90, synergy_bonus: 0,
       custom_description: '', custom_name: text, is_custom: true,
-      pending_st_approval: !categoryId, slot_source,
+      pending_st_approval: !categoryId, slot_source: slotIdx < occContactSlots ? 'occupation' : 'additional',
     }
     const updated = [...contacts]
     updated[slotIdx] = newContact

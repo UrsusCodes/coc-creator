@@ -1,4 +1,4 @@
-import { CONTACT_CATEGORIES_NEW, findSubcategory, getAllSubcategories, type ContactSubcategoryData } from '@/data/contactCategories'
+import { findSubcategory, getAllSubcategories, type ContactSubcategoryData } from '@/data/contactCategories'
 import { OCCUPATION_CONTACT_MAP } from '@/data/occupationContactMap'
 import type { ContactV2 } from '@/types/character'
 
