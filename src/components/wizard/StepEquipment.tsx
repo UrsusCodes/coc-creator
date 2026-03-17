@@ -385,7 +385,7 @@ export function StepEquipment() {
               <span>Broń ({WEAPONS_CATALOG_V2.length})</span>
               {expandedCat === 'weapons' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {expandedCat === 'weapons' && (
+            {(expandedCat === 'weapons' || (searchQuery && WEAPONS_CATALOG_V2.some((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
               <div className="space-y-0.5 mt-1">
                 {WEAPONS_CATALOG_V2.filter((w) => !searchQuery || w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((w) => (
                   <div key={w.id} className="flex items-center justify-between px-3 py-1 text-sm hover:bg-coc-surface-light rounded">
@@ -410,7 +410,7 @@ export function StepEquipment() {
               <span>Amunicja ({AMMO_CATALOG.length})</span>
               {expandedCat === 'ammo' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {expandedCat === 'ammo' && (
+            {(expandedCat === 'ammo' || (searchQuery && AMMO_CATALOG.some((a) => a.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
               <div className="space-y-0.5 mt-1">
                 {AMMO_CATALOG.map((a) => (
                   <div key={a.id} className="flex items-center justify-between px-3 py-1 text-sm hover:bg-coc-surface-light rounded">
