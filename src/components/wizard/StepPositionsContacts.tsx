@@ -205,10 +205,21 @@ export function StepPositionsContacts() {
   const [customConDescs, setCustomConDescs] = useState<string[]>(Array(totalContactSlots).fill(''))
 
   const contactOptions = useMemo(() => {
-    const usedIds = contacts.filter(Boolean).map((c) => c!.subcategory_id)
-    return Array.from({ length: totalContactSlots }, (_, slotIdx) =>
-      genContactOpts(slotIdx, jobId, characterMap, usedIds),
-    )
+    const selectedIds = contacts.filter(Boolean).map((c) => c!.subcategory_id)
+    const allShownIds = [...selectedIds]
+    const result: ReturnType<typeof genContactOpts>[] = []
+    for (let slotIdx = 0; slotIdx < totalContactSlots; slotIdx++) {
+      // Skip slots that already have a selection
+      if (contacts[slotIdx]) {
+        result.push([])
+        continue
+      }
+      const opts = genContactOpts(slotIdx, jobId, characterMap, allShownIds)
+      result.push(opts)
+      // Track shown options so next slot won't repeat them
+      for (const o of opts) allShownIds.push(o.id)
+    }
+    return result
   }, [jobId, characterMap, contacts, totalContactSlots])
 
   const contactsWithSynergy = useMemo(() => {

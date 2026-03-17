@@ -305,7 +305,7 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => {
         // Version 0/1 → 2: combat skills restructured, wealth reworked
         if (version < 2) {
@@ -346,6 +346,21 @@ export const useCharacterStore = create<WizardState>()(
             spendingFree: '',
             catalogsAvailable: ['standard'],
             presetUsed: '',
+          }
+        }
+        // Version 4 → 5: positions v2, contacts v2, clean stale data
+        if (version < 5) {
+          const old = persisted as Record<string, unknown>
+          // Remove safe_cash from wealthFormIds if present
+          const wealthFormIds = (old.wealthFormIds as string[] ?? []).filter((id: string) => id !== 'safe_cash')
+          return {
+            ...old,
+            wealthFormIds,
+            mainPosition: null,
+            additionalPositions: [],
+            contactsV2: [],
+            residence: (old.residence as string) ?? '',
+            birthplace: (old.birthplace as string) ?? '',
           }
         }
         return persisted as WizardState

@@ -30,7 +30,7 @@ export const BACKSTORY_TABLES: BackstoryTable[] = [
   },
   {
     id: 'significant_people_who',
-    label: 'Ważne osoby:Kto?',
+    label: 'Ważne osoby: Kto?',
     description: 'Kto jest najważniejszą osobą w życiu twojego Badacza?',
     options: [
       { roll: 1, text: 'Rodzic (np. matka, ojciec, macocha).' },
@@ -47,7 +47,7 @@ export const BACKSTORY_TABLES: BackstoryTable[] = [
   },
   {
     id: 'significant_people_why',
-    label: 'Ważne osoby:Dlaczego?',
+    label: 'Ważne osoby: Dlaczego?',
     description: 'Dlaczego ta osoba jest dla ciebie ważna?',
     options: [
       { roll: 1, text: 'Masz dług u tej osoby. W jaki sposób ci pomogła? (np. finansowo, ochraniała cię w trudnych czasach, dzięki niej dostałeś pierwszą pracę).' },
@@ -90,7 +90,7 @@ export const BACKSTORY_TABLES: BackstoryTable[] = [
       { roll: 4, text: 'Pamiątka po zmarłej osobie (np. biżuteria, fotografia w portfelu, list).' },
       { roll: 5, text: 'Coś otrzymanego od ważnej osoby (np. pierścionek, dziennik, mapa).' },
       { roll: 6, text: 'Twoja kolekcja. Co zbierasz? (np. bilety autobusowe, wypchane zwierzęta, płyty z nagraniami).' },
-      { roll: 7, text: 'Coś, co znalazłeś, ale nie wiesz, czym tak naprawdę jest:szukasz odpowiedzi (np. list w nieznanym języku, ciekawa fajka o niewiadomym pochodzeniu, dziwna srebrna kula wykopana w ogrodzie).' },
+      { roll: 7, text: 'Coś, co znalazłeś, ale nie wiesz, czym tak naprawdę jest: szukasz odpowiedzi (np. list w nieznanym języku, ciekawa fajka o niewiadomym pochodzeniu, dziwna srebrna kula wykopana w ogrodzie).' },
       { roll: 8, text: 'Przedmiot związany ze sportem (np. kij krykietowy, podpisana piłka baseballowa, wędka).' },
       { roll: 9, text: 'Broń (np. ślubowy rewolwer, twoja stara strzelba do polowań, nóż ukryty w cholewce buta).' },
       { roll: 10, text: 'Domowe zwierzątko (np. pies, kot, żółw).' },

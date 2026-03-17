@@ -11,8 +11,8 @@ const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT'
 
 const BACKSTORY_LABELS: Record<string, string> = {
   ideology: 'Ideologia / Przekonania',
-  significant_people_who: 'Ważne osoby:Kto',
-  significant_people_why: 'Ważne osoby:Dlaczego',
+  significant_people_who: 'Ważne osoby: Kto',
+  significant_people_why: 'Ważne osoby: Dlaczego',
   meaningful_locations: 'Znaczące miejsca',
   treasured_possessions: 'Rzeczy osobiste',
   traits: 'Przymioty',

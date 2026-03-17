@@ -191,9 +191,13 @@ export function StepPersonalSkills() {
         </div>
       )}
 
-      {/* All available skills (expanded specializations) */}
+      {/* All available skills (expanded specializations) - hide those already assigned */}
       <div className="max-h-[400px] overflow-y-auto space-y-0.5 pr-1">
-        {expandedSkills.map((entry) => {
+        {expandedSkills.filter((entry) => {
+          // Hide skills that already have personal points (they're shown in the "Przydzielone punkty" section above)
+          if (!entry.isCustom && (personalPoints[entry.key] ?? 0) > 0) return false
+          return true
+        }).map((entry) => {
           if (entry.isCustom) {
             const customKey = getCustomKey(entry.baseSkillId)
             const occPts = customKey ? (store.occupationSkillPoints[customKey] ?? 0) : 0

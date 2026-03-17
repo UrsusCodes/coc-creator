@@ -185,7 +185,7 @@ export function StepInviteCode() {
                 Znaleziono postać w trakcie tworzenia
               </p>
               <p className="text-xs text-coc-text-muted">
-                Masz niezakończoną postać{store.name ? ` (${store.name})` : ''}: ostatni krok: {STEP_NAMES[store.savedStep] ?? `Krok ${store.savedStep}`}.
+                Masz niezakończoną postać{store.name ? ` (${store.name})` : ''}. Ostatni krok: {STEP_NAMES[store.savedStep] ?? `Krok ${store.savedStep}`}.
               </p>
               <div className="flex gap-2">
                 <Button onClick={handleResume} className="flex items-center gap-1.5">

@@ -303,7 +303,7 @@ export function StepEquipment() {
                   <input type="radio" name="transport" value={t.id} checked={transportStyleId === t.id}
                     onChange={() => setTransportStyleId(t.id)} className="accent-coc-accent" />
                   <span className="flex-1">{t.label}</span>
-                  {t.dailyCost > 0 && <span className="text-xs text-coc-text-muted">+{formatDollars(t.dailyCost)}/dzień</span>}
+                  {t.dailyCost > 0 && <span className="text-xs text-coc-text-muted">-{formatDollars(t.dailyCost)}/dzień</span>}
                 </label>
               ))}
             </div>
