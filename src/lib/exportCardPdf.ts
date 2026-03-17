@@ -163,10 +163,9 @@ function getFieldValue(id: string, char: ExportCharacter): string {
     const idx = parseInt(id.split('_').pop()!) - 1
     if (char.contacts_v2 && char.contacts_v2[idx]) {
       const c = char.contacts_v2[idx]
-      const name = c.subcategory_name || c.subcategory || ''
+      const name = c.subcategory_name || ''
       if (!name) return ''
       const d = Math.max(1, Math.min(3, c.strength))
-      const catLabel = c.category_name ? `${c.category_name}\n` : ''
       return `${'◆'.repeat(d)}${'░'.repeat(3 - d)} ${name} [${c.roll_value}%]${c.synergy_bonus > 0 ? ' ✨' : ''}${c.pending_st_approval ? ' [ST]' : ''}`
     }
     if (char.contacts && char.contacts[idx]) {

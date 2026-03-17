@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Unlock, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { getSkillBase } from '@/data/skills'
-import { CONTACT_CATEGORIES_NEW, findSubcategory as findSub } from '@/data/contactCategories'
+import { CONTACT_CATEGORIES_NEW } from '@/data/contactCategories'
 import {
   calculatePositionStrength,
   getAvailablePositionOptions,
@@ -76,7 +76,6 @@ export function StepPositionsContacts() {
     return totals
   }, [chars, occPts, persPts])
 
-  const isIsolated = ISOLATED_OCCUPATIONS.has(jobId)
   const occPointsTotal = useMemo(() => Object.values(occPts).reduce((a, b) => a + b, 0), [occPts])
 
   const socialSkills = {

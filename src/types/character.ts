@@ -109,9 +109,6 @@ export interface ContactV2 {
   is_custom: boolean
   pending_st_approval: boolean
   slot_source: 'occupation' | 'additional'
-  // Legacy compat fields
-  subcategory?: string
-  category?: string
 }
 
 export interface AssetBreakdown {

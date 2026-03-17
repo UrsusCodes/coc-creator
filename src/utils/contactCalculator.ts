@@ -198,8 +198,9 @@ export const CUSTOM_CATEGORY_DEFAULT_STRENGTH: Record<string, 1 | 2 | 3> = {
   ZIEMIANSTWO_WIES: 1,
 }
 
-// ── Legacy exports for backward compatibility ──
-export { ISOLATED_OCCUPATIONS } from '@/data/contactSubcategories'
-
-// Re-export old functions that StepPositionsContacts might still reference
-export { calculateContactStrength, calculateContactRollValue } from '@/utils/contactCalculatorLegacy'
+// ── Isolated occupations ──
+export const ISOLATED_OCCUPATIONS = new Set([
+  'naukowiec', 'artysta', 'pisarz', 'prywatny_detektyw', 'archeolog',
+  'parapsycholog', 'okultysta', 'traper', 'farmer', 'bibliotekarz',
+  'kustosz', 'laborant', 'pracownik_naukowy', 'profesor', 'przywodca_kultu', 'antykwariusz',
+])
