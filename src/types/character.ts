@@ -35,6 +35,12 @@ export interface StabilitySource {
   description: string
 }
 
+export interface AssetBreakdown {
+  type: string
+  percent: number
+  value: number
+}
+
 export interface CharacterData {
   id?: string
   invite_code_id: string
@@ -61,6 +67,13 @@ export interface CharacterData {
   admin_notes?: string
   created_at?: string
   updated_at?: string
+  // Wealth v2 fields
+  lifestyle_rating?: number
+  lifestyle_stars?: string
+  lifestyle_label?: string
+  spending_free?: string
+  assets_breakdown?: AssetBreakdown[]
+  equipment_catalogs_available?: string[]
 }
 
 export interface ShareToken {

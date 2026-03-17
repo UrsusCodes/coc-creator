@@ -71,6 +71,18 @@ export interface WizardState {
   cash: string
   assets: string
   spendingLevel: string
+  // Wealth v2 fields
+  lokumOwnership: 'rent' | 'own'
+  lokum2Id: string
+  lokum2Ownership: 'rent' | 'own' | ''
+  transportStyleId: string
+  assetBreakdown: { type: string; percent: number; value: number }[]
+  lifestyleRating: number
+  lifestyleStars: string
+  lifestyleLabel: string
+  spendingFree: string
+  catalogsAvailable: string[]
+  presetUsed: string
 
   // Actions
   setStep: (step: number) => void
@@ -136,6 +148,17 @@ const characterDataDefaults = {
   cash: '',
   assets: '',
   spendingLevel: '',
+  lokumOwnership: 'rent' as const,
+  lokum2Id: '',
+  lokum2Ownership: '' as const,
+  transportStyleId: '',
+  assetBreakdown: [],
+  lifestyleRating: 0,
+  lifestyleStars: '',
+  lifestyleLabel: '',
+  spendingFree: '',
+  catalogsAvailable: ['standard'],
+  presetUsed: '',
 }
 
 const initialState = {
@@ -240,11 +263,9 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
-        // Version 0/1 → 2: combat skills restructured (composite keys),
-        // wealth system reworked, clothingId removed.
-        // Reset character data but keep invite code info.
+        // Version 0/1 → 2: combat skills restructured, wealth reworked
         if (version < 2) {
           const old = persisted as Record<string, unknown>
           return {
@@ -266,6 +287,24 @@ export const useCharacterStore = create<WizardState>()(
         if (version < 3) {
           const old = persisted as Record<string, unknown>
           return { ...old, playerName: (old.playerName as string) ?? '' }
+        }
+        // Version 3 → 4: wealth v2 fields
+        if (version < 4) {
+          const old = persisted as Record<string, unknown>
+          return {
+            ...old,
+            lokumOwnership: 'rent',
+            lokum2Id: '',
+            lokum2Ownership: '',
+            transportStyleId: '',
+            assetBreakdown: [],
+            lifestyleRating: 0,
+            lifestyleStars: '',
+            lifestyleLabel: '',
+            spendingFree: '',
+            catalogsAvailable: ['standard'],
+            presetUsed: '',
+          }
         }
         return persisted as WizardState
       },
