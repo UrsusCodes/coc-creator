@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Characteristics, DerivedAttributes, Backstory } from '@/types/character'
+import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact } from '@/types/character'
 import type { Era, CreationMethod, CharacteristicKey } from '@/types/common'
 
 export interface WizardState {
@@ -56,7 +56,11 @@ export interface WizardState {
   occupationSkillPoints: Record<string, number>
   personalSkillPoints: Record<string, number>
 
-  // Step 9: Backstory
+  // Step 9: Positions & Contacts
+  positions: CharacterPosition[]
+  contacts: CharacterContact[]
+
+  // Step 10: Backstory
   backstory: Partial<Backstory>
 
   // Step 10: Equipment & Wealth
@@ -103,6 +107,7 @@ export interface WizardState {
   setOccupation: (id: string) => void
   setOccupationSkillPoints: (points: Record<string, number>) => void
   setPersonalSkillPoints: (points: Record<string, number>) => void
+  setPositionsAndContacts: (positions: CharacterPosition[], contacts: CharacterContact[]) => void
   setBackstory: (backstory: Partial<Backstory>) => void
   setEquipment: (equipment: string[]) => void
   setCustomItems: (items: string[]) => void
@@ -141,6 +146,8 @@ const characterDataDefaults = {
   occupationId: null,
   occupationSkillPoints: {},
   personalSkillPoints: {},
+  positions: [],
+  contacts: [],
   backstory: {},
   equipment: [],
   customItems: [],
@@ -235,6 +242,7 @@ export const useCharacterStore = create<WizardState>()(
 
       setOccupationSkillPoints: (points) => set({ occupationSkillPoints: points }),
       setPersonalSkillPoints: (points) => set({ personalSkillPoints: points }),
+      setPositionsAndContacts: (positions, contacts) => set({ positions, contacts }),
       setBackstory: (backstory) => set((s) => ({ backstory: { ...s.backstory, ...backstory } })),
       setEquipment: (equipment) => set({ equipment }),
       setCustomItems: (items) => set({ customItems: items }),

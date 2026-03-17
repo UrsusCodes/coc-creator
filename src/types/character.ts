@@ -35,6 +35,28 @@ export interface StabilitySource {
   description: string
 }
 
+export interface CharacterPosition {
+  description: string
+  category: string
+  weight: number
+  weightDisplay: string
+  rollValue: number
+  custom: boolean
+  pendingSt: boolean
+}
+
+export interface CharacterContact {
+  subcategory: string
+  category: string
+  strength: number
+  strengthDisplay: string
+  rollValue: number
+  synergyBonus: number
+  custom: boolean
+  customName: string
+  pendingSt: boolean
+}
+
 export interface AssetBreakdown {
   type: string
   percent: number
@@ -67,6 +89,9 @@ export interface CharacterData {
   admin_notes?: string
   created_at?: string
   updated_at?: string
+  // Positions & Contacts
+  positions?: CharacterPosition[]
+  contacts?: CharacterContact[]
   // Wealth v2 fields
   lifestyle_rating?: number
   lifestyle_stars?: string

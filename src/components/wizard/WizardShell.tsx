@@ -14,6 +14,7 @@ import { StepPersonalSkills } from './StepPersonalSkills'
 import { StepBackstory } from './StepBackstory'
 import { StepDrivePillars } from './StepDrivePillars'
 import { StepEquipment } from './StepEquipment'
+import { StepPositionsContacts } from './StepPositionsContacts'
 import { StepBasicInfo } from './StepBasicInfo'
 import { StepReview } from './StepReview'
 
@@ -31,8 +32,9 @@ function buildSteps(hasDrivePillars: boolean) {
       PL.step_occupation,
       PL.step_occupation_skills,
       PL.step_personal_skills,
-      backstoryLabel,
       PL.step_equipment,
+      'Pozycje i kontakty',
+      backstoryLabel,
       PL.step_basic_info,
       PL.step_review,
     ],
@@ -45,8 +47,9 @@ function buildSteps(hasDrivePillars: boolean) {
       StepOccupation,
       StepOccupationSkills,
       StepPersonalSkills,
-      BackstoryComponent,
       StepEquipment,
+      StepPositionsContacts,
+      BackstoryComponent,
       StepBasicInfo,
       StepReview,
     ],

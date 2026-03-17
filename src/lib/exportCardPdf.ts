@@ -120,8 +120,30 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   }
   if (id === 'other_traits') return String(char.backstory.other_traits ?? '')
 
+  // Positions (from positions array)
+  if (id.startsWith('position_')) {
+    const idx = parseInt(id.split('_').pop()!) - 1
+    const positions = (char as unknown as Record<string, unknown>).positions as { description: string; weightDisplay: string; rollValue: number; pendingSt: boolean }[] | undefined
+    if (positions && positions[idx]) {
+      const p = positions[idx]
+      return `${p.weightDisplay} ${p.description} [${p.rollValue}%]${p.pendingSt ? ' [ST]' : ''}`
+    }
+    return ''
+  }
+
+  // Contacts (from contacts array)
+  if (id.startsWith('contact_')) {
+    const idx = parseInt(id.split('_').pop()!) - 1
+    const contacts = (char as unknown as Record<string, unknown>).contacts as { subcategory: string; strengthDisplay: string; rollValue: number; synergyBonus: number; pendingSt: boolean }[] | undefined
+    if (contacts && contacts[idx]) {
+      const c = contacts[idx]
+      return `${c.strengthDisplay} ${c.subcategory} [${c.rollValue}%]${c.synergyBonus > 0 ? ' ✨' : ''}${c.pendingSt ? ' [ST]' : ''}`
+    }
+    return ''
+  }
+
   // Bottom section — filled by parseEquipment()
-  if (id.startsWith('equip_') || id.startsWith('asset_') || id.startsWith('position_') || id.startsWith('contact_')) return ''
+  if (id.startsWith('equip_') || id.startsWith('asset_')) return ''
 
   return ''
 }
