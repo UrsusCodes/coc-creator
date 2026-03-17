@@ -81,11 +81,7 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'build') return String(derived.build)
   if (id === 'dodge') return String(derived.dodge)
   if (id === 'spending_level') return char.spending_level
-  if (id === 'cash') {
-    // Parse just the amount from cash string (e.g. "Gotówka: 250 $ | Dobytek: ..." → "250 $")
-    const match = char.cash.match(/[\d\s,.]+\s*\$/)
-    return match ? match[0].trim() : char.cash
-  }
+  if (id === 'cash') return char.cash
 
   // Weapon fields — filled by parseEquipment()
   if (id.startsWith('weap')) return ''
@@ -154,17 +150,74 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   }
 
   for (const item of char.equipment) {
-    // Check for tagged items
-    if (item.startsWith('[Mieszkanie]') || item.startsWith('[Transport]')) {
-      assets.push(item.replace(/^\[.*?\]\s*/, ''))
+    const stripped = item.replace(/^\[.*?\]\s*/, '')
+
+    // New v2 tags
+    if (item.startsWith('[Lokum]')) {
+      assets.push(stripped)
       continue
     }
-    if (item.startsWith('[Styl życia]')) {
-      positions.push(item.replace(/^\[.*?\]\s*/, ''))
+    if (item.startsWith('[Transport]')) {
+      assets.push(stripped)
+      continue
+    }
+    if (item.startsWith('[Lifestyle]')) {
+      positions.push(stripped)
       continue
     }
 
-    // Check if it's a weapon (match against WEAPONS data by name)
+    // Legacy tags (v1 compat)
+    if (item.startsWith('[Mieszkanie]') || item.startsWith('[Transport]')) {
+      assets.push(stripped)
+      continue
+    }
+    if (item.startsWith('[Styl życia]')) {
+      positions.push(stripped)
+      continue
+    }
+
+    // Tagged weapons
+    if (item.startsWith('[Broń]') || item.startsWith('[Czarny rynek]') || item.startsWith('[Wojsko]')) {
+      // Try to match weapon from both old and new catalogs
+      const weapon = WEAPONS.find((w) => item.includes(w.name))
+      if (weapon) {
+        const skillBase = resolveBase(weapon.skill_id, char.characteristics)
+        const skillPoints = allSkillPoints[weapon.skill_id] ?? 0
+        const total = skillBase + skillPoints
+        weapons.push({
+          name: weapon.name,
+          skill: total > 0 ? String(total) : '',
+          half: total > 0 ? String(halfValue(total)) : '',
+          fifth: total > 0 ? String(fifthValue(total)) : '',
+          dmg: weapon.damage,
+          range: weapon.range,
+          attacks: weapon.attacks_per_round,
+          ammo: weapon.ammo ? String(weapon.ammo) : '—',
+          malf: weapon.malfunction ? String(weapon.malfunction) : '—',
+        })
+      } else {
+        // Weapon not in old catalog — parse from tag format "[Broń] Name (damage, range)"
+        const match = stripped.match(/^(.+?)\s*\(([^,]+),\s*(.+?)\)/)
+        if (match) {
+          weapons.push({
+            name: match[1], skill: '', half: '', fifth: '',
+            dmg: match[2], range: match[3],
+            attacks: '1', ammo: '—', malf: '—',
+          })
+        } else {
+          equip.push(stripped)
+        }
+      }
+      continue
+    }
+
+    // Tagged equipment
+    if (item.startsWith('[Ekwipunek]')) {
+      equip.push(stripped)
+      continue
+    }
+
+    // Untagged — try weapon match (legacy), otherwise equipment
     const weapon = WEAPONS.find((w) => item.includes(w.name))
     if (weapon) {
       const skillBase = resolveBase(weapon.skill_id, char.characteristics)
@@ -181,17 +234,9 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
         ammo: weapon.ammo ? String(weapon.ammo) : '—',
         malf: weapon.malfunction ? String(weapon.malfunction) : '—',
       })
-      continue
+    } else {
+      equip.push(item)
     }
-
-    // Regular equipment
-    equip.push(item)
-  }
-
-  // Also parse assets string
-  if (char.assets) {
-    const assetItems = char.assets.split('\n').map((s) => s.replace(/^[•\-]\s*/, '').trim()).filter(Boolean)
-    assets.push(...assetItems)
   }
 
   // Fill weapon fields (up to 5)

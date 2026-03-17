@@ -109,7 +109,11 @@ export interface WizardState {
   setLifestyle: (data: {
     housingId: string; transportId: string; lifestyleId: string;
     wealthFormIds: string[]; cashOnHand: number;
-    cash: string; assets: string; spendingLevel: string
+    cash: string; assets: string; spendingLevel: string;
+    lokumOwnership?: 'rent' | 'own'; lokum2Id?: string; lokum2Ownership?: 'rent' | 'own' | '';
+    transportStyleId?: string; assetBreakdown?: { type: string; percent: number; value: number }[];
+    lifestyleRating?: number; lifestyleStars?: string; lifestyleLabel?: string;
+    spendingFree?: string; catalogsAvailable?: string[]; presetUsed?: string;
   }) => void
   /** Update server-side invite code data without resetting character progress */
   updateInviteCodeMeta: (data: { timesUsed: number }) => void
@@ -240,6 +244,17 @@ export const useCharacterStore = create<WizardState>()(
           transportId: data.transportId, lifestyleId: data.lifestyleId,
           wealthFormIds: data.wealthFormIds, cashOnHand: data.cashOnHand,
           cash: data.cash, assets: data.assets, spendingLevel: data.spendingLevel,
+          ...(data.lokumOwnership !== undefined && { lokumOwnership: data.lokumOwnership }),
+          ...(data.lokum2Id !== undefined && { lokum2Id: data.lokum2Id }),
+          ...(data.lokum2Ownership !== undefined && { lokum2Ownership: data.lokum2Ownership }),
+          ...(data.transportStyleId !== undefined && { transportStyleId: data.transportStyleId }),
+          ...(data.assetBreakdown !== undefined && { assetBreakdown: data.assetBreakdown }),
+          ...(data.lifestyleRating !== undefined && { lifestyleRating: data.lifestyleRating }),
+          ...(data.lifestyleStars !== undefined && { lifestyleStars: data.lifestyleStars }),
+          ...(data.lifestyleLabel !== undefined && { lifestyleLabel: data.lifestyleLabel }),
+          ...(data.spendingFree !== undefined && { spendingFree: data.spendingFree }),
+          ...(data.catalogsAvailable !== undefined && { catalogsAvailable: data.catalogsAvailable }),
+          ...(data.presetUsed !== undefined && { presetUsed: data.presetUsed }),
         }),
 
       updateInviteCodeMeta: (data) => set({ timesUsed: data.timesUsed }),

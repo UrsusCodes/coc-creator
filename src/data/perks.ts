@@ -15,6 +15,16 @@ export const PERKS: Perk[] = [
     name: 'Motywacja i Filary',
     description: 'Zastępuje tradycyjną historię postaci systemem Motywacji, Filarów Poczytalności i Źródeł Stabilności.',
   },
+  {
+    id: 'black_market',
+    name: 'Czarny rynek',
+    description: 'Daje dostęp do katalogu czarnego rynku (nielegalna broń, narkotyki, fałszywe dokumenty).',
+  },
+  {
+    id: 'military_gear',
+    name: 'Sprzęt wojskowy',
+    description: 'Daje dostęp do katalogu sprzętu wojskowego (dla postaci z doświadczeniem wojskowym).',
+  },
 ]
 
 export function getPerkById(id: string): Perk | undefined {

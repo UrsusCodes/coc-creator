@@ -175,7 +175,6 @@ export function calcCosts(
   transport: TransportStyle,
   lifestyle: LifestyleLevel,
 ): CostBreakdown {
-  const playerTier = getTier(majetnosc)
   let assetsPurchase = 0
   let lokumDaily = 0
   let lokum2Daily = 0
