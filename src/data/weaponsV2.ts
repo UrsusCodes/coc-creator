@@ -69,9 +69,9 @@ export const WEAPONS_CATALOG_V2: WeaponV2[] = [
   { id: 'karabin_na_slonie', name: 'Karabin na słonie', price: 150, damage: '3K6+4', range: '100 m', ammo: 2, malfunction: 100, category: 'rifle', skillId: 'bron_palna:karabin_strzelba' },
 
   // === Strzelby (shotgun) ===
-  { id: 'remington_dwururka', name: 'Remington dwururka (12 g.)', price: 30, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 2, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
-  { id: 'winchester_lever', name: 'Winchester lever-action', price: 40, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 5, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
-  { id: 'winchester_pump', name: 'Winchester pump-action', price: 45, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 5, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
+  { id: 'remington_dwururka', name: 'Remington dwururka', price: 30, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 2, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
+  { id: 'winchester_lever', name: 'Winchester lever', price: 40, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 5, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
+  { id: 'winchester_pump', name: 'Winchester pump', price: 45, damage: '2K6+2/1K6+1', range: '10/20 m', ammo: 5, malfunction: 100, category: 'shotgun', skillId: 'bron_palna:karabin_strzelba' },
 ]
 
 export const AMMO_CATALOG: AmmoV2[] = [
@@ -89,7 +89,7 @@ export const AMMO_CATALOG: AmmoV2[] = [
   { id: 'ammo_763', name: 'Amunicja 7.63 Mauser', price: 3, quantity: 50 },
   { id: 'ammo_9mm', name: 'Amunicja 9mm Parabellum', price: 3, quantity: 50 },
   { id: 'ammo_455', name: 'Amunicja .455 Webley', price: 3, quantity: 50 },
-  { id: 'ammo_12g', name: 'Amunicja 12 gauge (strzelba)', price: 2.50, quantity: 25 },
+  { id: 'ammo_12g', name: 'Amun. 12 gauge', price: 2.50, quantity: 25 },
   { id: 'ammo_elephant', name: 'Amunicja na słonie', price: 5, quantity: 10 },
   { id: 'strzaly_luk', name: 'Strzały do łuku (12 szt.)', price: 2, quantity: 12 },
   { id: 'belty_kusza', name: 'Bełty do kuszy (12 szt.)', price: 3, quantity: 12 },

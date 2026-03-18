@@ -83,6 +83,7 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         main_position: state.mainPosition ?? null,
         additional_positions: state.additionalPositions ?? [],
         contacts_v2: state.contactsV2 ?? [],
+        portrait_url: state.portraitUrl || null,
       })
 
       if (insertError) {

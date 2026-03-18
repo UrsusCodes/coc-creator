@@ -39,6 +39,7 @@ interface CharacterRecord {
   main_position?: Record<string, unknown> | null
   additional_positions?: Record<string, unknown>[]
   contacts_v2?: Record<string, unknown>[]
+  portrait_url?: string
 }
 
 export function SuccessPage() {
@@ -119,6 +120,12 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
 
   return (
     <div className="space-y-4 border-t border-coc-border pt-4">
+      {/* Portrait */}
+      {char.portrait_url && (
+        <div className="flex justify-center">
+          <img src={char.portrait_url} alt="Portret" className="w-24 h-24 object-cover rounded-lg border border-coc-border" />
+        </div>
+      )}
       {/* Basic Info */}
       <div className="grid grid-cols-3 gap-2 text-sm">
         {char.player_name && <div><span className="text-coc-text-muted">Gracz:</span> {char.player_name}</div>}

@@ -13,6 +13,7 @@ import { halfValue, fifthValue } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { PortraitUpload } from '@/components/shared/PortraitUpload'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
@@ -367,6 +368,14 @@ export function StepReview() {
             {error}
           </div>
         )}
+
+        {/* Portrait */}
+        <Section title="Portret postaci (opcjonalnie)">
+          <PortraitUpload
+            value={store.portraitUrl}
+            onChange={(url) => store.setPortraitUrl(url)}
+          />
+        </Section>
 
         {!confirmOpen ? (
           <div className="flex justify-between">

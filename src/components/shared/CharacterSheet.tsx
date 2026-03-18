@@ -46,6 +46,7 @@ export interface CharacterSheetData {
   main_position?: MainPosition | null
   additional_positions?: AdditionalPosition[]
   contacts_v2?: ContactV2[]
+  portrait_url?: string
 }
 
 interface CharacterSheetProps {
@@ -70,7 +71,12 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
 
   return (
     <div className="space-y-4">
-      {/* Basic info */}
+      {/* Portrait + Basic info */}
+      {char.portrait_url && (
+        <div className="flex justify-center">
+          <img src={char.portrait_url} alt="Portret" className="w-24 h-24 object-cover rounded-lg border border-coc-border" />
+        </div>
+      )}
       <div className="grid grid-cols-3 gap-2 text-sm">
         {char.player_name && <div><span className="text-coc-text-muted">Gracz:</span> {char.player_name}</div>}
         {char.invite_code && <div><span className="text-coc-text-muted">Kod:</span> <span className="font-mono">{char.invite_code}</span></div>}

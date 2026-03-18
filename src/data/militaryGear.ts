@@ -110,14 +110,14 @@ export const MILITARY_CATALOG: MilitaryItem[] = [
   },
   {
     id: 'karabin_maszynowy_lekki',
-    name: 'Karabin maszynowy lekki (Lewis / BAR)',
+    name: 'K.m. lekki (Lewis/BAR)',
     price: 300,
     description: 'Lekki karabin maszynowy. Obrażenia: 2K6+4, ciągły ogień. Wymaga obsługi.',
     tag: '[Wojsko]',
   },
   {
     id: 'karabin_maszynowy_ciezki',
-    name: 'Karabin maszynowy ciężki (Maxim / Vickers)',
+    name: 'K.m. ciężki (Maxim/Vickers)',
     price: 750,
     description: 'Ciężki karabin maszynowy na trójnogu. Obrażenia: 2K6+4, ciągły ogień. Wymaga załogi 2–3 osób.',
     tag: '[Wojsko]',

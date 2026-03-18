@@ -40,6 +40,7 @@ interface ExportCharacter {
   main_position?: MainPosition
   additional_positions?: AdditionalPosition[]
   contacts_v2?: ContactV2[]
+  portrait_url?: string
 }
 
 type Derived = { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
@@ -96,7 +97,10 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'build') return String(derived.build)
   if (id === 'dodge') return String(derived.dodge)
   if (id === 'spending_level') return char.spending_level
-  if (id === 'cash') return char.cash
+  if (id === 'cash') {
+    const match = char.cash.match(/Gotówka:\s*(.+?)(?:\s*\||$)/)
+    return match ? match[1].trim() : char.cash
+  }
 
   // Weapon fields
   if (id.startsWith('weap')) return ''
@@ -231,12 +235,12 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     // v2 tags
     if (item.startsWith('[Lokum]')) { assets.push(stripped); continue }
     if (item.startsWith('[Transport]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Lifestyle]')) { positions.push(stripped); continue }
+    if (item.startsWith('[Lifestyle]')) { positions.push(`Styl życia: ${stripped}`); continue }
     if (item.startsWith('[Dobytek]')) { assets.push(stripped); continue }
 
     // Legacy tags (v1 compat)
     if (item.startsWith('[Mieszkanie]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Styl życia]')) { positions.push(stripped); continue }
+    if (item.startsWith('[Styl życia]')) { positions.push(`Styl życia: ${stripped}`); continue }
 
     // Tagged weapons (including black market and military)
     if (item.startsWith('[Broń]') || item.startsWith('[Czarny rynek]') || item.startsWith('[Wojsko]')) {
@@ -410,6 +414,22 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const frontImg = await pdfDoc.embedPng(frontImgBytes)
   const backImg = await pdfDoc.embedPng(backImgBytes)
 
+  // Load portrait if available
+  let portraitImage: PDFImage | null = null
+  if (char.portrait_url) {
+    try {
+      const portraitBytes = await fetch(char.portrait_url).then((r) => r.arrayBuffer())
+      // Try JPEG first (our uploads are JPEG), fallback to PNG
+      try {
+        portraitImage = await pdfDoc.embedJpg(portraitBytes)
+      } catch {
+        portraitImage = await pdfDoc.embedPng(portraitBytes)
+      }
+    } catch {
+      // Portrait load failed — skip silently
+    }
+  }
+
   // Page size: A4
   const PW = 595
   const PH = 842
@@ -442,6 +462,29 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     skillGrids?: SkillColumnGrid[],
   ) {
     page.drawImage(img, { x: 0, y: 0, width: PW, height: PH })
+
+    // Embed portrait if available
+    if (portraitImage) {
+      const photoField = fields.find((f) => f.id === 'photo')
+      if (photoField) {
+        const px = (photoField.x / 100) * PW
+        const py = PH - (photoField.y / 100) * PH
+        const pw = (photoField.w / 100) * PW
+        const ph = (photoField.h / 100) * PH
+        // Fit image within field, maintaining aspect ratio
+        const imgAspect = portraitImage.width / portraitImage.height
+        const boxAspect = pw / ph
+        let drawW = pw, drawH = ph
+        if (imgAspect > boxAspect) {
+          drawH = pw / imgAspect
+        } else {
+          drawW = ph * imgAspect
+        }
+        const drawX = px + (pw - drawW) / 2
+        const drawY = py - ph + (ph - drawH) / 2
+        page.drawImage(portraitImage, { x: drawX, y: drawY, width: drawW, height: drawH })
+      }
+    }
 
     const INK = rgb(0.05, 0.05, 0.05)
 
@@ -544,24 +587,15 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     }
   }
 
-  // ── Multi-line text wrapping with optional bold-before-colon ──
-  function renderWrappedText(
-    page: PDFPage, text: string,
-    x: number, y: number, w: number, h: number,
-    font: PDFFont, fontSize: number, color: ReturnType<typeof rgb>,
-    align?: string, boldBeforeColon?: boolean,
-  ) {
-    const lineHeight = fontSize * 1.3
+  // ── Word-wrap helper ──
+  function wrapText(text: string, w: number, font: PDFFont, size: number): string[] {
     const lines: string[] = []
-    const paragraphs = text.split('\n')
-
-    // Use regular font for measuring (bold is slightly wider but close enough)
-    for (const para of paragraphs) {
+    for (const para of text.split('\n')) {
       const words = para.split(/\s+/)
       let currentLine = ''
       for (const word of words) {
         const test = currentLine ? `${currentLine} ${word}` : word
-        if (font.widthOfTextAtSize(test, fontSize) > w && currentLine) {
+        if (font.widthOfTextAtSize(test, size) > w && currentLine) {
           lines.push(currentLine)
           currentLine = word
         } else {
@@ -570,33 +604,63 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       }
       if (currentLine) lines.push(currentLine)
     }
+    return lines
+  }
 
-    const maxLines = Math.floor(h / lineHeight)
-    for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+  // ── Multi-line text wrapping with auto-shrink and bold-before-colon ──
+  function renderWrappedText(
+    page: PDFPage, text: string,
+    x: number, y: number, w: number, h: number,
+    font: PDFFont, fontSize: number, color: ReturnType<typeof rgb>,
+    align?: string, boldBeforeColon?: boolean,
+  ) {
+    const MIN_FONT_SIZE = 7
+
+    // Auto-shrink: try decreasing font size until text fits or minimum reached
+    let currentSize = fontSize
+    let lines = wrapText(text, w, font, currentSize)
+    let lineHeight = currentSize * 1.3
+    let maxLines = Math.floor(h / lineHeight)
+
+    while (lines.length > maxLines && currentSize > MIN_FONT_SIZE) {
+      currentSize -= 0.5
+      lines = wrapText(text, w, font, currentSize)
+      lineHeight = currentSize * 1.3
+      maxLines = Math.floor(h / lineHeight)
+    }
+
+    // Truncate with "..." if still doesn't fit at minimum size
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines)
+      const lastLine = lines[maxLines - 1]
+      if (lastLine && lastLine.length > 3) {
+        lines[maxLines - 1] = lastLine.slice(0, -3) + '...'
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
       const lineY = y - (i + 1) * lineHeight
       let textX = x
-      if (align === 'center') textX = x + (w - font.widthOfTextAtSize(lines[i], fontSize)) / 2
-      else if (align === 'right') textX = x + w - font.widthOfTextAtSize(lines[i], fontSize)
+      if (align === 'center') textX = x + (w - font.widthOfTextAtSize(lines[i], currentSize)) / 2
+      else if (align === 'right') textX = x + w - font.widthOfTextAtSize(lines[i], currentSize)
 
       if (boldBeforeColon && lines[i].includes(':')) {
         const colonIdx = lines[i].indexOf(':')
         const beforeColon = lines[i].substring(0, colonIdx + 1)
         const afterColon = lines[i].substring(colonIdx + 1)
 
-        // Draw bold part
         page.drawText(beforeColon, {
-          x: textX, y: lineY, size: fontSize, font: fontBold, color,
+          x: textX, y: lineY, size: currentSize, font: fontBold, color,
         })
-        // Draw regular part after colon
         if (afterColon.trim()) {
-          const boldWidth = fontBold.widthOfTextAtSize(beforeColon, fontSize)
+          const boldWidth = fontBold.widthOfTextAtSize(beforeColon, currentSize)
           page.drawText(afterColon, {
-            x: textX + boldWidth, y: lineY, size: fontSize, font: fontRegular, color,
+            x: textX + boldWidth, y: lineY, size: currentSize, font: fontRegular, color,
           })
         }
       } else {
         page.drawText(lines[i], {
-          x: textX, y: lineY, size: fontSize, font, color,
+          x: textX, y: lineY, size: currentSize, font, color,
         })
       }
     }

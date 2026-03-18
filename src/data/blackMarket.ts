@@ -126,7 +126,7 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
   },
   {
     id: 'falszywe_dokumenty',
-    name: 'Fałszywe dokumenty tożsamości',
+    name: 'Fałszywe dokumenty toż.',
     priceMin: 50,
     priceMax: 200,
     description: 'Fałszywy paszport, prawo jazdy lub inne dokumenty. Jakość zależy od ceny.',
@@ -134,7 +134,7 @@ export const BLACK_MARKET_CATALOG: BlackMarketItem[] = [
   },
   {
     id: 'falszywe_pozwolenie_bron',
-    name: 'Fałszywe pozwolenie na broń',
+    name: 'Fałszywe pozw. na broń',
     priceMin: 25,
     priceMax: 100,
     description: 'Podrobione pozwolenie na broń palną.',

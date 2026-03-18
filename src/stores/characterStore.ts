@@ -71,6 +71,9 @@ export interface WizardState {
   // Step 10: Backstory
   backstory: Partial<Backstory>
 
+  // Portrait
+  portraitUrl: string
+
   // Step 10: Equipment & Wealth
   equipment: string[]
   customItems: string[]
@@ -121,6 +124,7 @@ export interface WizardState {
   setBackstory: (backstory: Partial<Backstory>) => void
   setEquipment: (equipment: string[]) => void
   setCustomItems: (items: string[]) => void
+  setPortraitUrl: (url: string) => void
   setLifestyle: (data: {
     housingId: string; transportId: string; lifestyleId: string;
     wealthFormIds: string[]; cashOnHand: number;
@@ -164,6 +168,7 @@ const characterDataDefaults = {
   additionalPositions: [],
   contactsV2: [],
   backstory: {},
+  portraitUrl: '',
   equipment: [],
   customItems: [],
   housingId: '',
@@ -265,6 +270,7 @@ export const useCharacterStore = create<WizardState>()(
       setBackstory: (backstory) => set((s) => ({ backstory: { ...s.backstory, ...backstory } })),
       setEquipment: (equipment) => set({ equipment }),
       setCustomItems: (items) => set({ customItems: items }),
+      setPortraitUrl: (url) => set({ portraitUrl: url }),
       setLifestyle: (data) =>
         set({
           housingId: data.housingId,

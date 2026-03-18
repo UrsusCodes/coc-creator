@@ -76,9 +76,9 @@ export const EQUIPMENT_CATALOG_V2: EquipmentItemV2[] = [
   // === Fotografia ===
   { id: 'blona_fotograficzna', name: 'Błona fotograficzna (rolka)', price: 0.50, category: 'photo' },
   { id: 'film_kinowy_rolka', name: 'Film kinowy (rolka)', price: 5, category: 'photo' },
-  { id: 'aparat_prosty', name: 'Aparat fotograficzny (prosty)', price: 5, category: 'photo' },
-  { id: 'aparat_dobry', name: 'Aparat fotograficzny (dobry)', price: 25, category: 'photo' },
-  { id: 'aparat_profesjonalny', name: 'Aparat fotograficzny (profesjonalny)', price: 75, category: 'photo' },
+  { id: 'aparat_prosty', name: 'Aparat foto (prosty)', price: 5, category: 'photo' },
+  { id: 'aparat_dobry', name: 'Aparat foto (dobry)', price: 25, category: 'photo' },
+  { id: 'aparat_profesjonalny', name: 'Aparat foto (prof.)', price: 75, category: 'photo' },
   { id: 'dyktafon', name: 'Dyktafon', price: 50, category: 'photo' },
   { id: 'kamera_filmowa', name: 'Kamera filmowa', price: 200, category: 'photo' },
   { id: 'spadochron', name: 'Spadochron', price: 100, category: 'photo' },
