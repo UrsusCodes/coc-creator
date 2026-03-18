@@ -4,6 +4,7 @@ import { useAdminStore } from '@/stores/adminStore'
 import { adminCreateCode } from '@/lib/admin'
 import { supabase } from '@/lib/supabase'
 import { generateInviteCode } from '@/lib/inviteCode'
+import { PERKS } from '@/data/perks'
 import { ERA_LABELS, METHOD_LABELS } from '@/types/common'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -22,39 +23,50 @@ const DEFAULT_DERIVED = {
   db: '0', build: 0, move_rate: 8, dodge: 25,
 }
 
+const ALL_METHODS = Object.keys(METHOD_LABELS) as string[]
+
 export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
   const { password } = useAdminStore()
 
   const [era, setEra] = useState<string>('classic_1920s')
-  const [method, setMethod] = useState<string>('direct')
+  const [methods, setMethods] = useState<string[]>(['dice', 'point_buy', 'direct'])
   const [characterName, setCharacterName] = useState('')
   const [playerName, setPlayerName] = useState('')
+  const [maxTries, setMaxTries] = useState(1)
+  const [maxSkillValue, setMaxSkillValue] = useState(80)
+  const [selectedPerks, setSelectedPerks] = useState<string[]>([])
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdCode, setCreatedCode] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
+  const toggleMethod = (m: string) => {
+    setMethods((prev) => prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m])
+  }
+
+  const togglePerk = (id: string) => {
+    setSelectedPerks((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  }
+
   const handleCreate = async () => {
-    if (!password) return
+    if (!password || methods.length === 0) return
     setLoading(true)
     setError(null)
 
     try {
-      // 1. Generate and create invite code
       const code = generateInviteCode()
       const codeResult = await adminCreateCode(password, {
-        methods: [method],
+        methods,
         era,
-        max_tries: 1,
+        max_tries: maxTries,
         code,
-        perks: [],
-        max_skill_value: 80,
+        perks: selectedPerks,
+        max_skill_value: maxSkillValue,
       })
 
       const codeId = codeResult.id
 
-      // 2. Insert minimal character
       const { data: charData, error: insertError } = await supabase
         .from('characters')
         .insert({
@@ -78,7 +90,7 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
           assets: '',
           spending_level: '',
           era,
-          method,
+          method: methods[0],
           main_position: null,
           additional_positions: [],
           contacts_v2: [],
@@ -88,7 +100,6 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
 
       if (insertError) throw new Error(insertError.message)
 
-      // 3. Increment times_used
       await supabase.rpc('increment_times_used', { code_id: codeId })
 
       setCreatedCode(code)
@@ -111,7 +122,7 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
     <Card>
       <h3 className="text-lg font-serif font-bold mb-3">Szybkie tworzenie postaci</h3>
       <p className="text-sm text-coc-text-muted mb-4">
-        Tworzy kod zaproszenia + pustą postać i otwiera edytor. Do testów i szybkiego prototypowania.
+        Tworzy kod zaproszenia + pustą postać i otwiera edytor.
       </p>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -123,18 +134,6 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
             className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
           >
             {Object.entries(ERA_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-coc-text-muted mb-1">Metoda</label>
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
-          >
-            {Object.entries(METHOD_LABELS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
@@ -159,6 +158,67 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
             className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light"
           />
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm font-medium text-coc-text-muted mb-1">Maks. prób</label>
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={maxTries}
+              onChange={(e) => setMaxTries(Math.max(1, Math.min(99, Number(e.target.value))))}
+              className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-coc-text-muted mb-1">Maks. skill</label>
+            <input
+              type="number"
+              min={50}
+              max={99}
+              value={maxSkillValue}
+              onChange={(e) => setMaxSkillValue(Math.max(50, Math.min(99, Number(e.target.value))))}
+              className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Methods */}
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-coc-text-muted mb-1">Metody tworzenia</label>
+        <div className="flex flex-wrap gap-2">
+          {ALL_METHODS.map((m) => (
+            <label key={m} className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={methods.includes(m)}
+                onChange={() => toggleMethod(m)}
+                className="accent-coc-accent-light"
+              />
+              {METHOD_LABELS[m as keyof typeof METHOD_LABELS] ?? m}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Perks */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-coc-text-muted mb-1">Perki</label>
+        <div className="space-y-1">
+          {PERKS.map((perk) => (
+            <label key={perk.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedPerks.includes(perk.id)}
+                onChange={() => togglePerk(perk.id)}
+                className="accent-coc-accent-light"
+              />
+              <span>{perk.name}</span>
+              <span className="text-coc-text-muted text-xs">— {perk.description}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       {error && <p className="text-sm text-coc-danger mb-3">{error}</p>}
@@ -177,7 +237,7 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
         </div>
       )}
 
-      <Button onClick={handleCreate} disabled={loading}>
+      <Button onClick={handleCreate} disabled={loading || methods.length === 0}>
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
         Utwórz i edytuj
       </Button>
