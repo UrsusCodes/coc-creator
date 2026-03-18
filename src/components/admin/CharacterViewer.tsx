@@ -15,6 +15,7 @@ import { DerivedEditor } from './edit/DerivedEditor'
 import { SkillsEditor } from './edit/SkillsEditor'
 import { BackstoryEditor } from './edit/BackstoryEditor'
 import { EquipmentEditor } from './edit/EquipmentEditor'
+import { ArtPromptSection } from './ArtPromptSection'
 import type { ShareToken, HistoryEntry } from '@/types/character'
 
 interface CharacterViewerProps {
@@ -315,6 +316,15 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
           </Button>
         </div>
       </Card>
+
+      {/* Art Prompt & Gallery */}
+      <ArtPromptSection
+        characterId={char.id}
+        character={char}
+        artPrompt={(char as Record<string, unknown>).art_prompt as string ?? ''}
+        artGallery={((char as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
+        onUpdate={(fields) => onUpdate?.({ id: char.id, ...fields })}
+      />
 
       {/* Share links */}
       <Card>

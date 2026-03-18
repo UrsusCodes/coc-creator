@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { CharacterSheet, type CharacterSheetData } from '@/components/shared/CharacterSheet'
 import { ExportButtons } from '@/components/shared/ExportButtons'
+import { PortraitUpload } from '@/components/shared/PortraitUpload'
 import { BasicInfoEditor } from '@/components/admin/edit/BasicInfoEditor'
 import { CharacteristicsEditor } from '@/components/admin/edit/CharacteristicsEditor'
 import { DerivedEditor } from '@/components/admin/edit/DerivedEditor'
@@ -273,6 +274,9 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
         )}
       </Card>
 
+      {/* Portrait gallery */}
+      {!editMode && <PortraitGallery character={char} onPortraitChange={(url) => onUpdate?.({ id: char.id, portrait_url: url })} />}
+
       {/* Export buttons */}
       {!editMode && (
         <Card>
@@ -280,5 +284,58 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
         </Card>
       )}
     </div>
+  )
+}
+
+function PortraitGallery({ character, onPortraitChange }: { character: CharacterSheetData; onPortraitChange: (url: string) => void }) {
+  const { token } = usePlayerStore()
+  const gallery = (character as Record<string, unknown>).art_gallery as { url: string; label: string }[] ?? []
+
+  if (gallery.length === 0 && !character.portrait_url) return null
+
+  const handleSelectPortrait = async (url: string) => {
+    if (!token) return
+    try {
+      await playerProposeEdit(token, character.id, { ...character, portrait_url: url }, 'Zmiana portretu')
+      onPortraitChange(url)
+    } catch {
+      // fallback: just update locally
+      onPortraitChange(url)
+    }
+  }
+
+  return (
+    <Card>
+      <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">Portrety</h4>
+
+      {gallery.length > 0 && (
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {gallery.map((item, idx) => (
+            <div key={idx} className="relative group">
+              <img
+                src={item.url}
+                alt={item.label}
+                className={`w-full aspect-square object-cover rounded-lg border-2 cursor-pointer transition-colors ${
+                  character.portrait_url === item.url ? 'border-coc-accent-light' : 'border-coc-border hover:border-coc-accent-light/50'
+                }`}
+                onClick={() => handleSelectPortrait(item.url)}
+              />
+              {character.portrait_url === item.url && (
+                <div className="absolute top-1 right-1 w-4 h-4 bg-coc-accent-light rounded-full flex items-center justify-center">
+                  <span className="text-white text-[10px]">✓</span>
+                </div>
+              )}
+              <div className="text-[10px] text-coc-text-muted text-center mt-0.5 truncate">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <PortraitUpload
+        value={character.portrait_url ?? ''}
+        onChange={handleSelectPortrait}
+        label="Wgraj własny portret"
+      />
+    </Card>
   )
 }

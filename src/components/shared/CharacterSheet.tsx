@@ -47,6 +47,8 @@ export interface CharacterSheetData {
   additional_positions?: AdditionalPosition[]
   contacts_v2?: ContactV2[]
   portrait_url?: string
+  art_prompt?: string
+  art_gallery?: { url: string; label: string; created_at: string }[]
 }
 
 interface CharacterSheetProps {
