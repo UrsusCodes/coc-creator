@@ -35,17 +35,17 @@ export const CONTACT_SUBCATEGORIES_V2: ContactSubcategoryV2[] = [
 
   // PÓŁŚWIATEK (6)
   { id: 'gangi_uliczne', name: 'Gangi uliczne', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['gangster', 'przestepca', 'kieszonkowiec', 'dziennikarz', 'detektyw_agencji'] },
+    natural_for_occupations: ['gangster_przywodca', 'gangster_podwladny', 'przestepca', 'uliczny_chuligan', 'dziennikarz', 'detektyw_agencji'] },
   { id: 'przemytnicy', name: 'Przemytnicy (alkohol, towary)', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['szmugler', 'gangster', 'barman'] },
+    natural_for_occupations: ['szmugler', 'gangster_przywodca', 'gangster_podwladny', 'przemytnik_alkoholu_bandyta', 'barman'] },
   { id: 'hazard_domy_gry', name: 'Hazard i domy gry', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['hazardzista', 'gangster', 'pisarz', 'muzyk', 'barman'] },
+    natural_for_occupations: ['hazardzista', 'gangster_przywodca', 'oszust', 'pisarz', 'muzyk', 'barman'] },
   { id: 'paserzy', name: 'Paserzy i czarny rynek', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['przestepca', 'kieszonkowiec', 'detektyw_agencji'] },
+    natural_for_occupations: ['przestepca', 'paser', 'falszerz', 'wlamywacz', 'detektyw_agencji'] },
   { id: 'rozrywka_domy', name: 'Rozrywka i domy schadzek', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['prostytutka', 'gangster', 'muzyk', 'barman'] },
+    natural_for_occupations: ['prostytutka', 'dziewczyna_gangstera', 'muzyk', 'barman'] },
   { id: 'lichwiarze', name: 'Lichwiarze i wymuszone długi', category: 'PÓŁŚWIATEK', base_strength: 1,
-    natural_for_occupations: ['gangster', 'przestepca', 'hazardzista'] },
+    natural_for_occupations: ['gangster_przywodca', 'przestepca', 'hazardzista', 'przemytnik_alkoholu_bandyta'] },
 
   // AKADEMIA I WIEDZA (6)
   { id: 'profesorowie', name: 'Profesorowie i wykładowcy', category: 'AKADEMIA I WIEDZA', base_strength: 1,
@@ -119,7 +119,7 @@ export const CONTACT_SUBCATEGORIES_V2: ContactSubcategoryV2[] = [
   { id: 'jednostki_rez', name: 'Jednostki rezerwowe', category: 'WOJSKO I WETERANI', base_strength: 1,
     natural_for_occupations: ['oficer_wojskowy', 'wojskowy_zolnierz'] },
   { id: 'dostawcy_wojsk', name: 'Dostawcy wojskowi i uzbrojenie', category: 'WOJSKO I WETERANI', base_strength: 1,
-    natural_for_occupations: ['oficer_wojskowy', 'inzynier', 'gangster', 'szmugler'] },
+    natural_for_occupations: ['oficer_wojskowy', 'inzynier', 'gangster_przywodca', 'szmugler'] },
 
   // OKULTYZM I TAJNE KRĘGI (5)
   { id: 'spirytysci', name: 'Spirytyści i medium', category: 'OKULTYZM I TAJNE KRĘGI', base_strength: 1,

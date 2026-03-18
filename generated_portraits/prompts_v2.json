@@ -1,0 +1,26 @@
+[
+  {
+    "model": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+    "label": "Juggernaut - sepia",
+    "seed": 42,
+    "prompt": "33-year-old tall handsome man, dark hair with premature gray streaks, three-day stubble, sharp warm eyes, detached tired expression, 1920s agency detective, wearing suit and tie with fedora hat, upper body portrait from chest up, black and white photograph, sepia toned, soft blurred light background, shallow depth of field, detailed face, realistic, studio portrait lighting, vintage 1920s photo, sepia tone"
+  },
+  {
+    "model": "epiCRealismXL.safetensors",
+    "label": "epiCRealism - bw",
+    "seed": 123,
+    "prompt": "33-year-old tall handsome man, dark hair with premature gray streaks, three-day stubble, sharp warm eyes, detached tired expression, 1920s agency detective, wearing suit and tie with fedora hat, upper body portrait from chest up, black and white photograph, sepia toned, soft blurred light background, shallow depth of field, detailed face, realistic, studio portrait lighting, vintage 1920s photo, monochrome, black and white"
+  },
+  {
+    "model": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+    "label": "Juggernaut - bw",
+    "seed": 555,
+    "prompt": "33-year-old tall handsome man, dark hair with premature gray streaks, three-day stubble, sharp warm eyes, detached tired expression, 1920s agency detective, wearing suit and tie with fedora hat, looking slightly to the side, upper body portrait from chest up, black and white photograph, sepia toned, soft blurred light background, shallow depth of field, detailed face, realistic, studio portrait lighting, vintage 1920s photo, monochrome, high contrast black and white"
+  },
+  {
+    "model": "NightVisionXL_v9.safetensors",
+    "label": "NightVision - sepia",
+    "seed": 888,
+    "prompt": "33-year-old tall handsome man, dark hair with premature gray streaks, three-day stubble, sharp warm eyes, detached tired expression, 1920s agency detective, wearing suit and tie with fedora hat, slight smirk, upper body portrait from chest up, black and white photograph, sepia toned, soft blurred light background, shallow depth of field, detailed face, realistic, studio portrait lighting, vintage 1920s photo, warm sepia tone, film grain"
+  }
+]

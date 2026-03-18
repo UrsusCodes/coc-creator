@@ -53,6 +53,8 @@ const BOJOWE_I_FIZYCZNE: AdditionalPositionOption[] = [
       'pracownik_fizyczny', 'kowboj', 'farmer', 'marynarz', 'mechanik',
       'bokser_zapasnik', 'wojskowy_zolnierz', 'traper', 'nurek',
       'wspinacz_wysokogorski', 'lowca_grubego_zwierza', 'strazak', 'poszukiwacz',
+      'drwal', 'gornik', 'pracownik_fizyczny_niewykwalifikowany',
+      'przemytnik_alkoholu_bandyta', 'rabus', 'uliczny_chuligan',
     ],
     flavor: 'Grupa robociarzy, którzy trzymają się razem: na budowie, w porcie i po godzinach.',
     placeholder: 'np. Ekipa dokerów z Pier 17. Razem pracujecie, razem pijecie, razem się bijacie. Nikt z zewnątrz nie wchodzi bez zaproszenia.',

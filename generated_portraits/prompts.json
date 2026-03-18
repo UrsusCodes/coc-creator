@@ -1,0 +1,26 @@
+[
+  {
+    "prompt": "portrait of a 33-year-old man, tall and imposing build, strikingly handsome with prematurely graying dark hair, three-day stubble, sharp warm eyes despite a detached expression, agency detective, wearing a fedora hat, 1920s clothing, art deco era, prohibition era America, dramatic side lighting, sepia photograph, detailed face, realistic, film noir atmosphere",
+    "model": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+    "label": "Film noir portrait",
+    "seed": 42
+  },
+  {
+    "prompt": "portrait of a 33-year-old man, tall and imposing build, strikingly handsome with prematurely graying dark hair, three-day stubble, sharp warm eyes despite a detached expression, agency detective, wearing a fedora hat, 1920s clothing, art deco era, prohibition era America, oil painting style, moody atmosphere, dark background, Rembrandt lighting, masterpiece",
+    "model": "epiCRealismXL.safetensors",
+    "label": "Painterly portrait",
+    "seed": 123
+  },
+  {
+    "prompt": "a 33-year-old tall handsome detective walking down a rainy 1920s city street at night, dark hair with early gray, fedora hat, trenchcoat, Colt M1911 holstered, gas lamps, wet cobblestones, film noir, cinematic, detailed face",
+    "model": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+    "label": "Rainy street scene",
+    "seed": 777
+  },
+  {
+    "prompt": "a 33-year-old tall imposing detective sitting at a wooden desk in a 1920s office, dark hair with premature gray, stubble, warm intelligent eyes, tired expression, papers and files on desk, desk lamp, smoke from cigarette, detailed face, realistic, moody lighting",
+    "model": "NightVisionXL_v9.safetensors",
+    "label": "Office portrait",
+    "seed": 999
+  }
+]

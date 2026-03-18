@@ -11,6 +11,10 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
     type: 'sieciowy',
     natural_subcategories: ['sluzby_specjalne', 'policja_miejska', 'sluzby_celne'],
   },
+  alienista: {
+    type: 'izolowany',
+    natural_subcategories: ['psychiatrzy', 'lekarze', 'eksperci_sadowi', 'personel_szpitalny'],
+  },
   detektyw_agencji: {
     type: 'sieciowy',
     natural_subcategories: ['detektywi_prywatni', 'policja_miejska', 'plotkarze'],
@@ -18,6 +22,10 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   detektyw_policyjny: {
     type: 'sieciowy',
     natural_subcategories: ['policja_miejska', 'prokuratura_sady', 'gangi_uliczne'],
+  },
+  lekarz_medycyny_sadowej: {
+    type: 'izolowany',
+    natural_subcategories: ['patolodzy', 'prokuratura_sady', 'policja_miejska', 'eksperci_sadowi', 'lekarze'],
   },
   prawnik: {
     type: 'sieciowy',
@@ -49,6 +57,10 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
     type: 'przeciętny',
     natural_subcategories: ['policja_miejska', 'personel_szpitalny'],
   },
+  pilot_akrobacyjny: {
+    type: 'przeciętny',
+    natural_subcategories: ['oficerowie', 'weterani', 'dostawcy_wojsk', 'plotkarze'],
+  },
 
   // ── Medycyna ────────────────────────────────────────────────
   lekarz: {
@@ -66,6 +78,10 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   pielegniarka: {
     type: 'przeciętny',
     natural_subcategories: ['personel_szpitalny', 'lekarze'],
+  },
+  psycholog_psychoanalityk: {
+    type: 'izolowany',
+    natural_subcategories: ['psychiatrzy', 'profesorowie', 'eksperci_sadowi', 'lekarze'],
   },
 
   // ── Prasa i media ───────────────────────────────────────────
@@ -87,20 +103,64 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   },
 
   // ── Przestępczość ───────────────────────────────────────────
-  gangster: {
+  gangster_przywodca: {
     type: 'sieciowy',
-    natural_subcategories: ['gangi_uliczne', 'przemytnicy', 'hazard_domy_gry', 'lichwiarze'],
+    natural_subcategories: ['gangi_uliczne', 'hazard_domy_gry', 'lichwiarze', 'politycy', 'policja_miejska'],
+  },
+  oszust: {
+    type: 'sieciowy',
+    natural_subcategories: ['hazard_domy_gry', 'paserzy', 'kluby_dzentelmenow', 'bankierzy', 'plotkarze'],
   },
   szmugler: {
     type: 'sieciowy',
     natural_subcategories: ['przemytnicy', 'paserzy', 'sluzby_celne'],
   },
+  gangster_podwladny: {
+    type: 'przeciętny',
+    natural_subcategories: ['gangi_uliczne', 'przemytnicy', 'policja_miejska', 'plotkarze'],
+  },
+  dziewczyna_gangstera: {
+    type: 'przeciętny',
+    natural_subcategories: ['gangi_uliczne', 'rozrywka_domy', 'hazard_domy_gry', 'policja_miejska'],
+  },
   hazardzista: {
     type: 'przeciętny',
     natural_subcategories: ['hazard_domy_gry', 'lichwiarze', 'rozrywka_domy'],
   },
+  paser: {
+    type: 'przeciętny',
+    natural_subcategories: ['paserzy', 'gangi_uliczne', 'przemyslowcy', 'kolekcjonerzy_ant'],
+  },
+  przemytnik_alkoholu_bandyta: {
+    type: 'przeciętny',
+    natural_subcategories: ['przemytnicy', 'gangi_uliczne', 'policja_miejska', 'lichwiarze'],
+  },
+  rabus: {
+    type: 'przeciętny',
+    natural_subcategories: ['gangi_uliczne', 'paserzy', 'straz_wiezienna', 'lichwiarze'],
+  },
+  uliczny_chuligan: {
+    type: 'przeciętny',
+    natural_subcategories: ['gangi_uliczne', 'paserzy', 'policja_miejska', 'hazard_domy_gry'],
+  },
+  falszerz: {
+    type: 'izolowany',
+    natural_subcategories: ['paserzy', 'gangi_uliczne', 'bankierzy', 'przemytnicy'],
+  },
+  wlamywacz: {
+    type: 'izolowany',
+    natural_subcategories: ['paserzy', 'gangi_uliczne', 'przemyslowcy', 'kolekcjonerzy_ant'],
+  },
+  zabojca: {
+    type: 'izolowany',
+    natural_subcategories: ['gangi_uliczne', 'lichwiarze', 'sluzby_specjalne', 'paserzy'],
+  },
 
   // ── Handel i usługi ─────────────────────────────────────────
+  handlarz_antykami: {
+    type: 'izolowany',
+    natural_subcategories: ['kolekcjonerzy_ant', 'handlarze_ksiag', 'muzea_kolekcjonerzy', 'przemyslowcy'],
+  },
   komiwojazer: {
     type: 'sieciowy',
     natural_subcategories: ['przemyslowcy', 'bankierzy', 'plotkarze'],
@@ -128,6 +188,14 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   sekretarz: {
     type: 'przeciętny',
     natural_subcategories: ['politycy', 'plotkarze'],
+  },
+  szofer: {
+    type: 'przeciętny',
+    natural_subcategories: ['politycy', 'plotkarze', 'gangi_uliczne', 'kluby_dzentelmenow'],
+  },
+  taksowkarz: {
+    type: 'przeciętny',
+    natural_subcategories: ['plotkarze', 'gangi_uliczne', 'policja_miejska', 'przemyslowcy'],
   },
 
   // ── Religia i okultyzm ──────────────────────────────────────
@@ -203,6 +271,10 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
     type: 'przeciętny',
     natural_subcategories: ['rozrywka_domy', 'plotkarze', 'towarzystwa_lit'],
   },
+  gwiazda_filmowa: {
+    type: 'sieciowy',
+    natural_subcategories: ['towarzystwa_lit', 'dziennikarze', 'kluby_dzentelmenow', 'plotkarze', 'politycy'],
+  },
   muzyk: {
     type: 'przeciętny',
     natural_subcategories: ['rozrywka_domy', 'plotkarze', 'towarzystwa_lit'],
@@ -240,6 +312,18 @@ export const OCCUPATION_CONTACT_MAP: Record<string, OccupationContactProfile> = 
   mechanik: {
     type: 'izolowany',
     natural_subcategories: ['dostawcy_wojsk', 'przemyslowcy'],
+  },
+  drwal: {
+    type: 'przeciętny',
+    natural_subcategories: ['farmerzy_ranczerzy', 'wlasciciele_ziemscy', 'przemyslowcy', 'mysliwi_traperzy'],
+  },
+  gornik: {
+    type: 'przeciętny',
+    natural_subcategories: ['przemyslowcy', 'dostawcy_wojsk', 'wlasciciele_ziemscy'],
+  },
+  pracownik_fizyczny_niewykwalifikowany: {
+    type: 'przeciętny',
+    natural_subcategories: ['przemyslowcy', 'gangi_uliczne', 'lichwiarze'],
   },
 
   // ── Przyroda i podróże ──────────────────────────────────────
