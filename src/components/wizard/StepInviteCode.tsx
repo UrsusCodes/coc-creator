@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { KeyRound, Loader2, RotateCcw, PlayCircle } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useInviteCode } from '@/hooks/useInviteCode'
@@ -30,10 +31,20 @@ const STEP_NAMES = [
 export function StepInviteCode() {
   const store = useCharacterStore()
   const { loading, error, inviteCode, validate } = useInviteCode()
-  const [code, setCode] = useState(store.inviteCode ?? '')
+  const [searchParams] = useSearchParams()
+  const [code, setCode] = useState(store.inviteCode ?? searchParams.get('code') ?? '')
   const [selectedMethod, setSelectedMethod] = useState<CreationMethod | null>(store.method)
   const [resumeAvailable, setResumeAvailable] = useState(false)
   const [submittedCharacter, setSubmittedCharacter] = useState<CharacterData | null>(null)
+
+  // Auto-validate if code comes from URL param
+  const urlCode = searchParams.get('code')
+  useEffect(() => {
+    if (urlCode && !store.inviteCode && !inviteCode) {
+      validate(urlCode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleValidate = async () => {
     setSubmittedCharacter(null)

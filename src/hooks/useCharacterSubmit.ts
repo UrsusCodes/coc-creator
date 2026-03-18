@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { WizardState } from '@/stores/characterStore'
 import { getWealthBracket, calculateWealth, formatCurrency, WEALTH_FORMS } from '@/data/eras'
 import { getSkillById } from '@/data/skills'
+import { playerClaimCharacter } from '@/lib/player'
 import type { Era } from '@/types/common'
 
 interface UseCharacterSubmitReturn {
@@ -88,6 +89,16 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
 
       // Increment times_used atomically
       await supabase.rpc('increment_times_used', { code_id: state.inviteCodeId })
+
+      // If player is logged in, claim the character
+      const playerToken = sessionStorage.getItem('player_token')
+      if (playerToken) {
+        try {
+          await playerClaimCharacter(playerToken, state.inviteCodeId)
+        } catch {
+          // Non-critical: character created but not claimed (admin can assign later)
+        }
+      }
 
       return true
     } catch {

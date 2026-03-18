@@ -105,3 +105,101 @@ export async function adminValidatePassword(password: string): Promise<boolean> 
     return false
   }
 }
+
+// ── Player management ────────────────────────────────────────────
+
+export async function adminGetPlayers(password: string) {
+  const res = await adminFetch('/players', password)
+  if (!res.ok) throw new Error('Błąd pobierania graczy')
+  return res.json()
+}
+
+export async function adminCreatePlayer(
+  password: string,
+  data: { name: string; login: string; password: string }
+) {
+  const res = await adminFetch('/players', password, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd tworzenia gracza' }))
+    throw new Error(err.error ?? 'Błąd tworzenia gracza')
+  }
+  return res.json()
+}
+
+export async function adminUpdatePlayer(
+  password: string,
+  playerId: string,
+  data: Record<string, unknown>
+) {
+  const res = await adminFetch(`/players/${playerId}`, password, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Błąd aktualizacji gracza')
+  return res.json()
+}
+
+export async function adminDeletePlayer(password: string, playerId: string) {
+  const res = await adminFetch(`/players/${playerId}`, password, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Błąd usuwania gracza')
+  return res.json()
+}
+
+export async function adminGetPlayerCodes(password: string, playerId: string) {
+  const res = await adminFetch(`/players/${playerId}/codes`, password)
+  if (!res.ok) throw new Error('Błąd pobierania kodów gracza')
+  return res.json()
+}
+
+export async function adminAssignCode(password: string, playerId: string, inviteCodeId: string) {
+  const res = await adminFetch(`/players/${playerId}/codes`, password, {
+    method: 'POST',
+    body: JSON.stringify({ invite_code_id: inviteCodeId }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd przypisywania kodu' }))
+    throw new Error(err.error ?? 'Błąd przypisywania kodu')
+  }
+  return res.json()
+}
+
+export async function adminUnassignCode(password: string, playerId: string, codeId: string) {
+  const res = await adminFetch(`/players/${playerId}/codes/${codeId}`, password, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Błąd usuwania przypisania kodu')
+  return res.json()
+}
+
+// ── Pending edits ────────────────────────────────────────────────
+
+export async function adminGetPendingEdits(password: string) {
+  const res = await adminFetch('/pending-edits', password)
+  if (!res.ok) throw new Error('Błąd pobierania oczekujących edycji')
+  return res.json()
+}
+
+export async function adminGetPendingEdit(password: string, editId: string) {
+  const res = await adminFetch(`/pending-edits/${editId}`, password)
+  if (!res.ok) throw new Error('Błąd pobierania edycji')
+  return res.json()
+}
+
+export async function adminApprovePendingEdit(password: string, editId: string, adminComment?: string) {
+  const res = await adminFetch(`/pending-edits/${editId}/approve`, password, {
+    method: 'POST',
+    body: JSON.stringify({ admin_comment: adminComment ?? '' }),
+  })
+  if (!res.ok) throw new Error('Błąd zatwierdzania edycji')
+  return res.json()
+}
+
+export async function adminRejectPendingEdit(password: string, editId: string, adminComment: string) {
+  const res = await adminFetch(`/pending-edits/${editId}/reject`, password, {
+    method: 'POST',
+    body: JSON.stringify({ admin_comment: adminComment }),
+  })
+  if (!res.ok) throw new Error('Błąd odrzucania edycji')
+  return res.json()
+}
