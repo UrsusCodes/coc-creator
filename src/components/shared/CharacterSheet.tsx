@@ -5,7 +5,7 @@ import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
-import type { StabilitySource } from '@/types/character'
+import type { StabilitySource, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
@@ -43,6 +43,9 @@ export interface CharacterSheetData {
   player_name?: string
   invite_code?: string
   admin_notes?: string
+  main_position?: MainPosition | null
+  additional_positions?: AdditionalPosition[]
+  contacts_v2?: ContactV2[]
 }
 
 interface CharacterSheetProps {
@@ -154,6 +157,13 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
         )
       )}
 
+      {/* Positions & Contacts */}
+      <PositionsContactsDisplay
+        mainPosition={char.main_position}
+        additionalPositions={char.additional_positions}
+        contacts={char.contacts_v2}
+      />
+
       {/* Equipment */}
       {char.equipment.length > 0 && (
         <>
@@ -184,6 +194,77 @@ function MiniStat({ label, value }: { label: string; value: number | string }) {
       <div className="text-[10px] text-coc-text-muted">{label}</div>
       <div className="font-bold font-mono">{value}</div>
     </div>
+  )
+}
+
+function PositionsContactsDisplay({ mainPosition, additionalPositions, contacts }: {
+  mainPosition?: MainPosition | null
+  additionalPositions?: AdditionalPosition[]
+  contacts?: ContactV2[]
+}) {
+  const hasMain = !!mainPosition
+  const hasAdditional = (additionalPositions?.length ?? 0) > 0
+  const hasContacts = (contacts?.length ?? 0) > 0
+
+  if (!hasMain && !hasAdditional && !hasContacts) return null
+
+  return (
+    <>
+      {(hasMain || hasAdditional) && (
+        <>
+          <SectionHeader>Pozycje</SectionHeader>
+          <div className="space-y-1.5">
+            {mainPosition && (
+              <div className="p-2 bg-coc-surface-light rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{mainPosition.option_name}</span>
+                  <Badge variant="default">{mainPosition.organization_size}</Badge>
+                  <span className="text-xs text-coc-text-muted">{mainPosition.strength_percent}%</span>
+                </div>
+                {mainPosition.custom_description && (
+                  <p className="text-xs text-coc-text-muted mt-1">{mainPosition.custom_description}</p>
+                )}
+              </div>
+            )}
+            {additionalPositions?.map((pos, i) => (
+              <div key={i} className="p-2 bg-coc-surface-light rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{pos.option_name}</span>
+                  <Badge variant="default">{pos.organization_size}</Badge>
+                  <span className="text-xs text-coc-text-muted">{'★'.repeat(pos.weight)}</span>
+                  {pos.pending_st_approval && <Badge variant="warning">Do zatwierdzenia</Badge>}
+                </div>
+                {pos.custom_description && (
+                  <p className="text-xs text-coc-text-muted mt-1">{pos.custom_description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {hasContacts && (
+        <>
+          <SectionHeader>Kontakty</SectionHeader>
+          <div className="space-y-1.5">
+            {contacts!.map((c, i) => (
+              <div key={i} className="p-2 bg-coc-surface-light rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-coc-text-muted">{c.category_name}:</span>
+                  <span className="text-sm font-medium">{c.custom_name || c.subcategory_name}</span>
+                  <span className="text-xs">{'◆'.repeat(c.strength)}{'◇'.repeat(3 - c.strength)}</span>
+                  {c.synergy_bonus > 0 && <span className="text-xs text-yellow-400">+{c.synergy_bonus}</span>}
+                  {c.pending_st_approval && <Badge variant="warning">Do zatwierdzenia</Badge>}
+                </div>
+                {c.custom_description && (
+                  <p className="text-xs text-coc-text-muted mt-1">{c.custom_description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   )
 }
 

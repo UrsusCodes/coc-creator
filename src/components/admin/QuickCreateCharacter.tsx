@@ -79,6 +79,9 @@ export function QuickCreateCharacter({ onCreated }: QuickCreateProps) {
           spending_level: '',
           era,
           method,
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
         })
         .select()
         .single()

@@ -36,6 +36,9 @@ interface CharacterRecord {
   status: string
   player_name?: string
   invite_code?: string
+  main_position?: Record<string, unknown> | null
+  additional_positions?: Record<string, unknown>[]
+  contacts_v2?: Record<string, unknown>[]
 }
 
 export function SuccessPage() {

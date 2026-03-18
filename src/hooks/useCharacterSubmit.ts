@@ -80,6 +80,9 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         spending_level: state.spendingLevel,
         era: state.era,
         method: state.method,
+        main_position: state.mainPosition ?? null,
+        additional_positions: state.additionalPositions ?? [],
+        contacts_v2: state.contactsV2 ?? [],
       })
 
       if (insertError) {
