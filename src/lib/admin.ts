@@ -203,3 +203,36 @@ export async function adminRejectPendingEdit(password: string, editId: string, a
   if (!res.ok) throw new Error('Błąd odrzucania edycji')
   return res.json()
 }
+
+// ── Portrait feedback ─────────────────────────────────────────────
+
+export async function adminGetPortraitFeedback(password: string) {
+  const res = await adminFetch('/portrait-feedback', password)
+  if (!res.ok) throw new Error('Błąd pobierania feedbacku portretów')
+  return res.json()
+}
+
+export async function adminGetPortraitStatus(password: string) {
+  const res = await adminFetch('/portrait-feedback/status', password)
+  if (!res.ok) throw new Error('Błąd pobierania statusu portretów')
+  return res.json()
+}
+
+export async function adminGetCharacterPortraitFeedback(password: string, charId: string) {
+  const res = await adminFetch(`/characters/${charId}/portrait-feedback`, password)
+  if (!res.ok) throw new Error('Błąd pobierania feedbacku postaci')
+  return res.json()
+}
+
+export async function adminUpdatePortraitFeedback(
+  password: string,
+  feedbackId: string,
+  data: { status?: 'pending_fix' | 'in_progress' | 'resolved'; admin_comment?: string }
+) {
+  const res = await adminFetch(`/portrait-feedback/${feedbackId}`, password, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Błąd aktualizacji feedbacku')
+  return res.json()
+}

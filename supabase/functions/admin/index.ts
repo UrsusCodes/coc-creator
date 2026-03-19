@@ -442,6 +442,91 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // PORTRAIT FEEDBACK
+    // ══════════════════════════════════════════════════════════════
+
+    // GET /portrait-feedback — all feedback (with character name)
+    if (path === '/portrait-feedback' && req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('portrait_feedback')
+        .select('*, characters(id, name, player_name), players(name, login)')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // GET /portrait-feedback/status — summary counts per status
+    if (path === '/portrait-feedback/status' && req.method === 'GET') {
+      const { data: chars, error: charsErr } = await supabase
+        .from('characters')
+        .select('id, name, player_name, portrait_url, art_gallery')
+        .order('created_at', { ascending: false })
+      if (charsErr) throw charsErr
+
+      const { data: feedbacks, error: fbErr } = await supabase
+        .from('portrait_feedback')
+        .select('character_id, status')
+        .eq('status', 'pending_fix')
+      if (fbErr) throw fbErr
+
+      const feedbackByChar = new Set((feedbacks ?? []).map((f: Record<string, unknown>) => f.character_id))
+
+      const report = (chars ?? []).map((c: Record<string, unknown>) => {
+        const gallery = (c.art_gallery as unknown[]) ?? []
+        const hasGallery = gallery.length > 0
+        const hasSelected = !!c.portrait_url
+        const hasFeedback = feedbackByChar.has(c.id)
+
+        let portraitStatus: string
+        if (hasFeedback) portraitStatus = 'feedback'
+        else if (hasSelected) portraitStatus = 'chosen'
+        else if (hasGallery) portraitStatus = 'has_gallery'
+        else portraitStatus = 'no_portraits'
+
+        return {
+          id: c.id,
+          name: c.name,
+          player_name: c.player_name,
+          portrait_status: portraitStatus,
+          gallery_count: gallery.length,
+          portrait_url: c.portrait_url,
+        }
+      })
+      return jsonResponse(report)
+    }
+
+    // GET /characters/:id/portrait-feedback — feedback for one character
+    const charFeedbackGetMatch = path.match(/^\/characters\/([^/]+)\/portrait-feedback$/)
+    if (charFeedbackGetMatch && req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('portrait_feedback')
+        .select('*, players(name, login)')
+        .eq('character_id', charFeedbackGetMatch[1])
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // PUT /portrait-feedback/:id — update feedback status + admin comment
+    const feedbackUpdateMatch = path.match(/^\/portrait-feedback\/([^/]+)$/)
+    if (feedbackUpdateMatch && req.method === 'PUT') {
+      const body = await req.json()
+      const updateData: Record<string, unknown> = {}
+      if (body.status !== undefined) updateData.status = body.status
+      if (body.admin_comment !== undefined) updateData.admin_comment = body.admin_comment
+      if (body.status === 'resolved') updateData.resolved_at = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from('portrait_feedback')
+        .update(updateData)
+        .eq('id', feedbackUpdateMatch[1])
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
     return new Response(JSON.stringify({ error: 'Not found' }), {
       status: 404,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

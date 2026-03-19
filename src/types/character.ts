@@ -159,6 +159,43 @@ export interface CharacterData {
   spending_free?: string
   assets_breakdown?: AssetBreakdown[]
   equipment_catalogs_available?: string[]
+  // Portrait fields
+  portrait_url?: string
+  art_prompt?: string
+  art_gallery?: { url: string; label: string; created_at: string }[]
+  portrait_crop_data?: PortraitCropData
+}
+
+export interface PortraitCropData {
+  x: number      // left offset as % of image width (0–100)
+  y: number      // top offset as % of image height (0–100)
+  width: number  // crop width as % of image width (0–100)
+  height: number // crop height as % of image height (0–100)
+}
+
+export interface PortraitFeedback {
+  id: string
+  character_id: string
+  player_id?: string
+  variant_url: string
+  comment: string
+  reference_image_url?: string
+  status: 'pending_fix' | 'in_progress' | 'resolved'
+  admin_comment?: string
+  created_at: string
+  resolved_at?: string
+  // joined fields
+  characters?: { id: string; name: string; player_name?: string }
+  players?: { name: string; login: string }
+}
+
+export interface PortraitStatusEntry {
+  id: string
+  name: string
+  player_name?: string
+  portrait_status: 'no_portraits' | 'has_gallery' | 'chosen' | 'feedback'
+  gallery_count: number
+  portrait_url?: string
 }
 
 export interface ShareToken {

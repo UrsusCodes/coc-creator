@@ -244,6 +244,120 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
+    // ── PUT /characters/:id/portrait — direct portrait select + crop ──
+    const portraitMatch = path.match(/^\/characters\/([^/]+)\/portrait$/)
+    if (portraitMatch && req.method === 'PUT') {
+      const charId = portraitMatch[1]
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const body = await req.json()
+      const { portrait_url, portrait_crop_data } = body
+      if (!portrait_url) return errorResponse('portrait_url required', 400)
+
+      const updateData: Record<string, unknown> = { portrait_url }
+      if (portrait_crop_data !== undefined) updateData.portrait_crop_data = portrait_crop_data
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update(updateData)
+        .eq('id', charId)
+        .select('id, portrait_url, portrait_crop_data')
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/portrait-feedback — submit feedback ──
+    const feedbackPostMatch = path.match(/^\/characters\/([^/]+)\/portrait-feedback$/)
+    if (feedbackPostMatch && req.method === 'POST') {
+      const charId = feedbackPostMatch[1]
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const body = await req.json()
+      const { variant_url, comment, reference_image_url } = body
+      if (!variant_url) return errorResponse('variant_url required', 400)
+      if (!comment) return errorResponse('comment required', 400)
+
+      const { data, error } = await supabase
+        .from('portrait_feedback')
+        .insert({
+          character_id: charId,
+          player_id: playerId,
+          variant_url,
+          comment,
+          reference_image_url: reference_image_url ?? null,
+          status: 'pending_fix',
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── GET /characters/:id/portrait-feedback — get own feedback ──
+    const feedbackGetMatch = path.match(/^\/characters\/([^/]+)\/portrait-feedback$/)
+    if (feedbackGetMatch && req.method === 'GET') {
+      const charId = feedbackGetMatch[1]
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const { data, error } = await supabase
+        .from('portrait_feedback')
+        .select('*')
+        .eq('character_id', charId)
+        .eq('player_id', playerId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── DELETE /characters/:id/portrait-feedback/:feedbackId ──────
+    const feedbackDeleteMatch = path.match(/^\/characters\/([^/]+)\/portrait-feedback\/([^/]+)$/)
+    if (feedbackDeleteMatch && req.method === 'DELETE') {
+      const [, charId, feedbackId] = feedbackDeleteMatch
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const { error } = await supabase
+        .from('portrait_feedback')
+        .delete()
+        .eq('id', feedbackId)
+        .eq('player_id', playerId)
+        .eq('status', 'pending_fix')
+      if (error) throw error
+      return jsonResponse({ deleted: true })
+    }
+
     // ── POST /claim — claim character after wizard creation ──────
     if (path === '/claim' && req.method === 'POST') {
       const { invite_code_id } = await req.json()

@@ -108,3 +108,52 @@ export async function playerGetHistory(token: string, charId: string) {
   if (!res.ok) throw new Error('Failed to get history')
   return res.json()
 }
+
+// ── Portrait ──────────────────────────────────────────────────────
+
+export async function playerSelectPortrait(
+  token: string,
+  charId: string,
+  portraitUrl: string,
+  cropData?: { x: number; y: number; width: number; height: number } | null
+) {
+  const res = await playerFetch(`/characters/${charId}/portrait`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ portrait_url: portraitUrl, portrait_crop_data: cropData ?? null }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to select portrait' }))
+    throw new Error(err.error ?? 'Failed to select portrait')
+  }
+  return res.json()
+}
+
+export async function playerSubmitPortraitFeedback(
+  token: string,
+  charId: string,
+  data: { variant_url: string; comment: string; reference_image_url?: string }
+) {
+  const res = await playerFetch(`/characters/${charId}/portrait-feedback`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to submit feedback' }))
+    throw new Error(err.error ?? 'Failed to submit feedback')
+  }
+  return res.json()
+}
+
+export async function playerGetPortraitFeedback(token: string, charId: string) {
+  const res = await playerFetch(`/characters/${charId}/portrait-feedback`, token)
+  if (!res.ok) throw new Error('Failed to get feedback')
+  return res.json()
+}
+
+export async function playerDeletePortraitFeedback(token: string, charId: string, feedbackId: string) {
+  const res = await playerFetch(`/characters/${charId}/portrait-feedback/${feedbackId}`, token, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error('Failed to delete feedback')
+  return res.json()
+}

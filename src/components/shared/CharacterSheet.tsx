@@ -49,6 +49,7 @@ export interface CharacterSheetData {
   portrait_url?: string
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
+  portrait_crop_data?: { x: number; y: number; width: number; height: number } | null
 }
 
 interface CharacterSheetProps {
