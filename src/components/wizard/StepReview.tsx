@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, AlertTriangle, Pencil, Check } from 'lucide-react'
+import { Loader2, AlertTriangle, Pencil, Check, Send } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
+import { useEditSubmit } from '@/hooks/useEditSubmit'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
@@ -72,7 +73,12 @@ export function StepReview() {
   const store = useCharacterStore()
   const navigate = useNavigate()
   const { loading, error, submit } = useCharacterSubmit()
+  const { loading: editLoading, error: editError, submitEdit } = useEditSubmit()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [changeComment, setChangeComment] = useState('')
+  const [editSuccess, setEditSuccess] = useState(false)
+
+  const isEditMode = !!store.editMode
 
   const chars = store.characteristics as Characteristics
   const occupation = OCCUPATIONS.find((o) => o.id === store.occupationId)
@@ -95,6 +101,13 @@ export function StepReview() {
     if (success) {
       store.reset()
       navigate('/success', { state: { inviteCodeId } })
+    }
+  }
+
+  const handleProposeEdit = async () => {
+    const success = await submitEdit(store, changeComment)
+    if (success) {
+      setEditSuccess(true)
     }
   }
 
@@ -360,15 +373,8 @@ export function StepReview() {
         </ul>
       </Section>
 
-      {/* Submit */}
+      {/* Submit / Propose Edit */}
       <div className="border-t border-coc-border pt-4 mt-4">
-        {error && (
-          <div className="flex items-center gap-2 text-coc-danger text-sm mb-3">
-            <AlertTriangle className="w-4 h-4" />
-            {error}
-          </div>
-        )}
-
         {/* Portrait */}
         <Section title="Portret postaci (opcjonalnie)">
           <PortraitUpload
@@ -377,25 +383,92 @@ export function StepReview() {
           />
         </Section>
 
-        {!confirmOpen ? (
-          <div className="flex justify-between">
-            <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
-            <Button onClick={() => setConfirmOpen(true)}>Zatwierdź postać</Button>
-          </div>
-        ) : (
-          <div className="bg-coc-warning/10 border border-coc-warning/30 rounded-lg p-4">
-            <p className="text-sm text-coc-warning mb-3">
-              Czy na pewno chcesz zatwierdzić postać? Po zatwierdzeniu nie będzie możliwości edycji.
-              {store.inviteCode && ' Twoja poprzednia postać (jeśli istnieje) zostanie zastąpiona.'}
-            </p>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Anuluj</Button>
-              <Button onClick={handleSubmit} disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                Tak, zatwierdź
-              </Button>
+        {isEditMode ? (
+          /* ── Edit mode: propose changes ── */
+          editSuccess ? (
+            <div className="bg-coc-accent/10 border border-coc-accent/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-coc-accent-light font-medium mb-1">
+                <Send className="w-4 h-4" />
+                Propozycja zmian wysłana!
+              </div>
+              <p className="text-sm text-coc-text-muted">
+                Strażnik Tajemnic otrzymał Twoją propozycję zmian i zatwierdzi je lub odrzuci.
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              {(editError) && (
+                <div className="flex items-center gap-2 text-coc-danger text-sm">
+                  <AlertTriangle className="w-4 h-4" />
+                  {editError}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-coc-text-muted mb-1">
+                  Komentarz do zmian (opcjonalnie)
+                </label>
+                <textarea
+                  value={changeComment}
+                  onChange={(e) => setChangeComment(e.target.value)}
+                  placeholder="Co chcesz zmienić i dlaczego..."
+                  className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors min-h-[60px] resize-y"
+                />
+              </div>
+              {!confirmOpen ? (
+                <div className="flex justify-between">
+                  <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+                  <Button onClick={() => setConfirmOpen(true)}>
+                    <Send className="w-4 h-4" />
+                    Zaproponuj zmiany
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-coc-warning/10 border border-coc-warning/30 rounded-lg p-4">
+                  <p className="text-sm text-coc-warning mb-3">
+                    Propozycja zmian zostanie wysłana do Strażnika Tajemnic do zatwierdzenia.
+                    Zmiany nie zostaną zastosowane od razu.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Anuluj</Button>
+                    <Button onClick={handleProposeEdit} disabled={editLoading}>
+                      {editLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      Tak, wyślij
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+          /* ── Normal mode: create character ── */
+          <>
+            {error && (
+              <div className="flex items-center gap-2 text-coc-danger text-sm mb-3">
+                <AlertTriangle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+            {!confirmOpen ? (
+              <div className="flex justify-between">
+                <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+                <Button onClick={() => setConfirmOpen(true)}>Zatwierdź postać</Button>
+              </div>
+            ) : (
+              <div className="bg-coc-warning/10 border border-coc-warning/30 rounded-lg p-4">
+                <p className="text-sm text-coc-warning mb-3">
+                  Czy na pewno chcesz zatwierdzić postać? Po zatwierdzeniu nie będzie możliwości edycji.
+                  {store.inviteCode && ' Twoja poprzednia postać (jeśli istnieje) zostanie zastąpiona.'}
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Anuluj</Button>
+                  <Button onClick={handleSubmit} disabled={loading}>
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Tak, zatwierdź
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Card>

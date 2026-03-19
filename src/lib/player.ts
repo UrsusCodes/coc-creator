@@ -157,3 +157,26 @@ export async function playerDeletePortraitFeedback(token: string, charId: string
   if (!res.ok) throw new Error('Failed to delete feedback')
   return res.json()
 }
+
+// ── Edit permissions (player-centric) ────────────────────────────
+
+export async function playerGetEditPermissions(token: string) {
+  const res = await playerFetch('/edit-permissions', token)
+  if (!res.ok) throw new Error('Błąd pobierania uprawnień')
+  return res.json()
+}
+
+export async function playerGetEditPermission(token: string, charId: string) {
+  const res = await playerFetch(`/characters/${charId}/edit-permission`, token)
+  if (!res.ok) return null
+  return res.json()
+}
+
+export async function playerSubmitEdit(token: string, charId: string, proposedData: Record<string, unknown>, changeComment: string) {
+  const res = await playerFetch(`/characters/${charId}/submit-edit`, token, {
+    method: 'POST',
+    body: JSON.stringify({ proposed_data: proposedData, change_comment: changeComment }),
+  })
+  if (!res.ok) throw new Error('Błąd wysyłania zmian')
+  return res.json()
+}

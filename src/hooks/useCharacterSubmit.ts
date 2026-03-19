@@ -52,7 +52,7 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
       const assetsDisplay = formatCurrency(era, wealth.assets)
 
       // Insert the new character
-      const { error: insertError } = await supabase.from('characters').insert({
+      const insertData: Record<string, unknown> = {
         invite_code_id: state.inviteCodeId,
         status: 'submitted',
         player_name: state.playerName,
@@ -84,7 +84,17 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         additional_positions: state.additionalPositions ?? [],
         contacts_v2: state.contactsV2 ?? [],
         portrait_url: state.portraitUrl || null,
-      })
+        perks: state.perks ?? [],
+        max_skill_value: state.maxSkillValue ?? 80,
+      }
+
+      // Attach player_id if player is logged in
+      const playerInfo = JSON.parse(sessionStorage.getItem('player_info') ?? 'null')
+      if (playerInfo?.id) {
+        insertData.player_id = playerInfo.id
+      }
+
+      const { error: insertError } = await supabase.from('characters').insert(insertData)
 
       if (insertError) {
         setError('Błąd zapisu postaci: ' + insertError.message)

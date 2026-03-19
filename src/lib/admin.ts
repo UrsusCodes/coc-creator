@@ -76,6 +76,19 @@ export async function adminGetCharacterHistory(password: string, charId: string)
   return res.json()
 }
 
+export async function adminCreateEditToken(
+  password: string,
+  charId: string,
+  mode: 'standard' | 'full'
+): Promise<{ token: string; url: string; expires_at: string; edit_mode: string; id: string }> {
+  const res = await adminFetch(`/characters/${charId}/edit-token`, password, {
+    method: 'POST',
+    body: JSON.stringify({ mode }),
+  })
+  if (!res.ok) throw new Error('Błąd tworzenia tokenu edycji')
+  return res.json()
+}
+
 export async function adminCreateShareToken(password: string, charId: string, type: 'view' | 'edit') {
   const res = await adminFetch(`/characters/${charId}/share`, password, {
     method: 'POST',
@@ -234,5 +247,31 @@ export async function adminUpdatePortraitFeedback(
     body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error('Błąd aktualizacji feedbacku')
+  return res.json()
+}
+
+// ── Edit permissions (player-centric) ────────────────────────────
+
+export async function adminCreateEditPermission(password: string, charId: string, data: { edit_mode: string; duration: string }) {
+  const res = await adminFetch(`/characters/${charId}/edit-permission`, password, { method: 'POST', body: JSON.stringify(data) })
+  if (!res.ok) throw new Error('Błąd nadawania uprawnień')
+  return res.json()
+}
+
+export async function adminRevokeEditPermission(password: string, charId: string) {
+  const res = await adminFetch(`/characters/${charId}/edit-permission`, password, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Błąd cofania uprawnień')
+  return res.json()
+}
+
+export async function adminAssignCharacterToPlayer(password: string, charId: string, playerId: string) {
+  const res = await adminFetch(`/characters/${charId}/assign-player`, password, { method: 'PUT', body: JSON.stringify({ player_id: playerId }) })
+  if (!res.ok) throw new Error('Błąd przypisywania')
+  return res.json()
+}
+
+export async function adminCreateDraft(password: string, data: Record<string, unknown>) {
+  const res = await adminFetch('/drafts', password, { method: 'POST', body: JSON.stringify(data) })
+  if (!res.ok) throw new Error('Błąd tworzenia szkicu')
   return res.json()
 }

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 export function StepAge() {
   const store = useCharacterStore()
   const isLocked = store.ageLocked
+  const isEditReadonly = store.editMode === 'standard'
 
   const [age, setAge] = useState<number>(store.age ?? 25)
   const [luck, setLuck] = useState<number | null>(store.luck)
@@ -46,7 +47,7 @@ export function StepAge() {
     }
   }
 
-  const method = store.method!
+  const method = store.method ?? 'direct'
   const canContinue = age >= 15 && age <= 89 && luck !== null
 
   const handleNext = () => {
@@ -56,6 +57,33 @@ export function StepAge() {
       store.lockAge()
     }
     store.nextStep()
+  }
+
+  // Standard edit mode: show readonly
+  if (isEditReadonly) {
+    return (
+      <Card title="Wiek i Szczęście">
+        <div className="mb-4 p-3 bg-coc-surface-light border border-coc-border rounded-lg">
+          <p className="text-sm text-coc-text-muted">
+            W trybie Standard wiek i szczęście są tylko do odczytu i nie mogą być zmienione.
+          </p>
+        </div>
+        <div className="flex gap-8 mb-6">
+          <div>
+            <div className="text-sm text-coc-text-muted mb-1">Wiek</div>
+            <div className="text-3xl font-bold font-mono">{age}</div>
+          </div>
+          <div>
+            <div className="text-sm text-coc-text-muted mb-1">Szczęście</div>
+            <div className="text-3xl font-bold font-mono">{luck ?? '—'}</div>
+          </div>
+        </div>
+        <div className="flex justify-between pt-2">
+          <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+          <Button onClick={() => store.nextStep()}>Dalej</Button>
+        </div>
+      </Card>
+    )
   }
 
   return (

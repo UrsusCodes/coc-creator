@@ -358,6 +358,106 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ deleted: true })
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // EDIT PERMISSIONS (player-centric model)
+    // ══════════════════════════════════════════════════════════════
+
+    // ── GET /edit-permissions — list active edit permissions ───────
+    if (path === '/edit-permissions' && req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('edit_permissions')
+        .select('id, character_id, edit_mode, expires_at, characters(name)')
+        .eq('player_id', playerId)
+        .gt('expires_at', new Date().toISOString())
+        .order('expires_at', { ascending: true })
+      if (error) throw error
+
+      const result = (data ?? []).map((row: Record<string, unknown>) => ({
+        id: row.id,
+        character_id: row.character_id,
+        character_name: (row.characters as Record<string, unknown>)?.name ?? null,
+        edit_mode: row.edit_mode,
+        expires_at: row.expires_at,
+      }))
+      return jsonResponse(result)
+    }
+
+    // ── GET /characters/:id/edit-permission — check edit permission ─
+    const editPermGetMatch = path.match(/^\/characters\/([^/]+)\/edit-permission$/)
+    if (editPermGetMatch && req.method === 'GET') {
+      const charId = editPermGetMatch[1]
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const { data, error } = await supabase
+        .from('edit_permissions')
+        .select('id, character_id, edit_mode, expires_at')
+        .eq('character_id', charId)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/submit-edit — submit edit via permission ─
+    const submitEditMatch = path.match(/^\/characters\/([^/]+)\/submit-edit$/)
+    if (submitEditMatch && req.method === 'POST') {
+      const charId = submitEditMatch[1]
+
+      // Verify ownership
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      // Verify active edit permission
+      const { data: perm, error: permErr } = await supabase
+        .from('edit_permissions')
+        .select('id, edit_mode')
+        .eq('character_id', charId)
+        .eq('player_id', playerId)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle()
+      if (permErr) throw permErr
+      if (!perm) return errorResponse('No active edit permission', 403)
+
+      const body = await req.json()
+      const { proposed_data, change_comment } = body
+      if (!proposed_data) return errorResponse('proposed_data required', 400)
+
+      // Delete any existing pending edit for this character
+      await supabase
+        .from('pending_edits')
+        .delete()
+        .eq('character_id', charId)
+        .eq('player_id', playerId)
+        .eq('status', 'pending')
+
+      // Insert new pending edit
+      const { data, error } = await supabase
+        .from('pending_edits')
+        .insert({
+          character_id: charId,
+          player_id: playerId,
+          proposed_data,
+          change_comment: change_comment ?? '',
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
     // ── POST /claim — claim character after wizard creation ──────
     if (path === '/claim' && req.method === 'POST') {
       const { invite_code_id } = await req.json()

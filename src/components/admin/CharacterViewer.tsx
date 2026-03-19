@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History, PenLine, Clock, UserPlus, Shield } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
-import { adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens, adminDeleteShareToken } from '@/lib/admin'
+import {
+  adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens,
+  adminDeleteShareToken, adminCreateEditToken, adminCreateEditPermission, adminRevokeEditPermission,
+  adminAssignCharacterToPlayer, adminGetPlayers,
+} from '@/lib/admin'
 import { getSkillBase } from '@/data/skills'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -46,10 +50,30 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
   const [historyLoading, setHistoryLoading] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
+  // Edit token generation
+  const [editTokenMode, setEditTokenMode] = useState<'standard' | 'full'>('standard')
+  const [editTokenResult, setEditTokenResult] = useState<{ url: string; expires_at: string } | null>(null)
+  const [editTokenCopied, setEditTokenCopied] = useState(false)
+  const [editTokenLoading, setEditTokenLoading] = useState(false)
+
   // Admin notes (independent of edit mode)
   const [notes, setNotes] = useState(char.admin_notes ?? '')
   const [notesSaving, setNotesSaving] = useState(false)
   const [notesSaved, setNotesSaved] = useState(false)
+
+  // Edit permissions (player-centric)
+  const [showEditPermissions, setShowEditPermissions] = useState(false)
+  const [editPermMode, setEditPermMode] = useState<'standard' | 'full'>('standard')
+  const [editPermDuration, setEditPermDuration] = useState<string>('24h')
+  const [editPermResult, setEditPermResult] = useState<{ edit_mode: string; expires_at: string } | null>(null)
+  const [editPermLoading, setEditPermLoading] = useState(false)
+
+  // Player assignment
+  const [showPlayerAssignment, setShowPlayerAssignment] = useState(false)
+  const [players, setPlayers] = useState<{ id: string; name: string; login: string }[]>([])
+  const [playersLoading, setPlayersLoading] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('')
+  const [assignLoading, setAssignLoading] = useState(false)
 
   useEffect(() => {
     setEditData(structuredClone(char))
@@ -213,6 +237,96 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
     setShowHistory(!showHistory)
   }
 
+  // --- Edit token ---
+
+  const handleGenerateEditToken = async () => {
+    if (!password) return
+    setEditTokenLoading(true)
+    setEditTokenResult(null)
+    try {
+      const result = await adminCreateEditToken(password, char.id, editTokenMode)
+      setEditTokenResult({ url: result.url, expires_at: result.expires_at })
+    } catch {
+      // error silently
+    } finally {
+      setEditTokenLoading(false)
+    }
+  }
+
+  const handleCopyEditToken = () => {
+    if (!editTokenResult) return
+    navigator.clipboard.writeText(editTokenResult.url)
+    setEditTokenCopied(true)
+    setTimeout(() => setEditTokenCopied(false), 2000)
+  }
+
+  // --- Edit permissions ---
+
+  const handleGrantEditPermission = async () => {
+    if (!password) return
+    setEditPermLoading(true)
+    setEditPermResult(null)
+    try {
+      const result = await adminCreateEditPermission(password, char.id, {
+        edit_mode: editPermMode,
+        duration: editPermDuration,
+      })
+      setEditPermResult({ edit_mode: result.edit_mode, expires_at: result.expires_at })
+    } catch {
+      // error silently
+    } finally {
+      setEditPermLoading(false)
+    }
+  }
+
+  const handleRevokeEditPermission = async () => {
+    if (!password) return
+    setEditPermLoading(true)
+    try {
+      await adminRevokeEditPermission(password, char.id)
+      setEditPermResult(null)
+    } catch {
+      // error silently
+    } finally {
+      setEditPermLoading(false)
+    }
+  }
+
+  // --- Player assignment ---
+
+  const loadPlayers = async () => {
+    if (!password) return
+    setPlayersLoading(true)
+    try {
+      const data = await adminGetPlayers(password)
+      setPlayers(data)
+    } catch {
+      // error silently
+    } finally {
+      setPlayersLoading(false)
+    }
+  }
+
+  const handleTogglePlayerAssignment = () => {
+    if (!showPlayerAssignment && players.length === 0) loadPlayers()
+    setShowPlayerAssignment(!showPlayerAssignment)
+  }
+
+  const handleAssignPlayer = async () => {
+    if (!password || !selectedPlayerId) return
+    setAssignLoading(true)
+    try {
+      await adminAssignCharacterToPlayer(password, char.id, selectedPlayerId)
+      const assignedPlayer = players.find((p) => p.id === selectedPlayerId)
+      onUpdate?.({ id: char.id, player_id: selectedPlayerId, player_name: assignedPlayer?.name } as Partial<CharacterSheetData> & { id: string })
+      setSelectedPlayerId('')
+    } catch {
+      // error silently
+    } finally {
+      setAssignLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -325,6 +439,179 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
         artGallery={((char as unknown as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
         onUpdate={(fields) => onUpdate?.({ id: char.id, ...fields })}
       />
+
+      {/* Edit permissions (player-centric) */}
+      <Card>
+        <button
+          type="button"
+          onClick={() => setShowEditPermissions(!showEditPermissions)}
+          className="flex items-center gap-2 text-sm font-medium text-coc-text-muted uppercase tracking-wider cursor-pointer hover:text-coc-text transition-colors w-full"
+        >
+          <Shield className="w-4 h-4" />
+          Uprawnienia edycji
+        </button>
+        {showEditPermissions && (
+          <div className="mt-3 space-y-3">
+            {(char as unknown as Record<string, unknown>).player_id ? (
+              <>
+                <p className="text-xs text-coc-text-muted">
+                  Odblokuj edycję postaci dla przypisanego gracza. Zmiany wymagają zatwierdzenia.
+                </p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="text-sm text-coc-text-muted">Tryb:</label>
+                  <select
+                    value={editPermMode}
+                    onChange={(e) => { setEditPermMode(e.target.value as 'standard' | 'full'); setEditPermResult(null) }}
+                    className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+                  >
+                    <option value="standard">Standard (cechy/wiek tylko do odczytu)</option>
+                    <option value="full">Pełny (edycja wszystkiego)</option>
+                  </select>
+                  <label className="text-sm text-coc-text-muted">Czas:</label>
+                  <select
+                    value={editPermDuration}
+                    onChange={(e) => { setEditPermDuration(e.target.value); setEditPermResult(null) }}
+                    className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+                  >
+                    <option value="24h">24 godziny</option>
+                    <option value="3d">3 dni</option>
+                    <option value="1w">1 tydzień</option>
+                  </select>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleGrantEditPermission}
+                    disabled={editPermLoading}
+                  >
+                    {editPermLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+                    Odblokuj edycję
+                  </Button>
+                </div>
+                {editPermResult && (
+                  <div className="bg-coc-surface-light border border-coc-accent/30 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 text-coc-text-muted shrink-0" />
+                        <span className="text-xs text-coc-text-muted">
+                          Aktywne uprawnienie ({editPermResult.edit_mode}) — wygasa: {new Date(editPermResult.expires_at).toLocaleString('pl-PL')}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRevokeEditPermission}
+                        disabled={editPermLoading}
+                      >
+                        <X className="w-3.5 h-3.5" /> Cofnij
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Fallback: token-based edit link for characters without player */}
+                <p className="text-xs text-amber-400 mb-2">
+                  Przypisz postać do gracza, aby użyć uprawnień edycji.
+                </p>
+                <p className="text-xs text-coc-text-muted">
+                  Alternatywnie: wygeneruj jednorazowy link do edycji (24h).
+                </p>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-coc-text-muted">Tryb:</label>
+                  <select
+                    value={editTokenMode}
+                    onChange={(e) => { setEditTokenMode(e.target.value as 'standard' | 'full'); setEditTokenResult(null) }}
+                    className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+                  >
+                    <option value="standard">Standard (cechy/wiek tylko do odczytu)</option>
+                    <option value="full">Pełny (edycja wszystkiego)</option>
+                  </select>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleGenerateEditToken}
+                    disabled={editTokenLoading}
+                  >
+                    {editTokenLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
+                    Generuj link (24h)
+                  </Button>
+                </div>
+                {editTokenResult && (
+                  <div className="bg-coc-surface-light border border-coc-accent/30 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-coc-text-muted shrink-0" />
+                      <span className="text-xs text-coc-text-muted">
+                        Wygasa: {new Date(editTokenResult.expires_at).toLocaleString('pl-PL')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-coc-accent-light truncate flex-1 min-w-0">
+                        {editTokenResult.url}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyEditToken}
+                        className="p-1 text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer shrink-0"
+                        title="Kopiuj link"
+                      >
+                        {editTokenCopied ? <Check className="w-3.5 h-3.5 text-coc-accent-light" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* Player assignment */}
+      <Card>
+        <button
+          type="button"
+          onClick={handleTogglePlayerAssignment}
+          className="flex items-center gap-2 text-sm font-medium text-coc-text-muted uppercase tracking-wider cursor-pointer hover:text-coc-text transition-colors w-full"
+        >
+          <UserPlus className="w-4 h-4" />
+          Przypisanie do gracza
+          {playersLoading && <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" />}
+        </button>
+        {showPlayerAssignment && (
+          <div className="mt-3 space-y-3">
+            {(char as unknown as Record<string, unknown>).player_id ? (
+              <div className="text-sm text-coc-text">
+                <span className="text-coc-text-muted">Przypisany gracz: </span>
+                <span className="font-medium">{(char as unknown as Record<string, unknown>).player_name as string ?? 'Nieznany'}</span>
+                <p className="text-xs text-coc-text-muted mt-1">Aby zmienić, wybierz innego gracza poniżej.</p>
+              </div>
+            ) : (
+              <p className="text-xs text-coc-text-muted">Postać nie jest przypisana do żadnego gracza.</p>
+            )}
+            <div className="flex items-center gap-3">
+              <select
+                value={selectedPlayerId}
+                onChange={(e) => setSelectedPlayerId(e.target.value)}
+                className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light flex-1"
+              >
+                <option value="">— Wybierz gracza —</option>
+                {players.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name} ({p.login})</option>
+                ))}
+              </select>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleAssignPlayer}
+                disabled={!selectedPlayerId || assignLoading}
+              >
+                {assignLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+                Przypisz
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Share links */}
       <Card>

@@ -12,9 +12,10 @@ import { NumberInput } from '@/components/ui/NumberInput'
 
 export function StepCharacteristics() {
   const store = useCharacterStore()
-  const method = store.method!
+  const method = store.method ?? 'direct'
   const isLocked = store.characteristicsLocked
   const hasSwapPerk = store.perks.includes('swap_characteristics')
+  const isEditReadonly = store.editMode === 'standard'
 
   const [chars, setChars] = useState<Partial<Characteristics>>(store.characteristics)
   const [rolled, setRolled] = useState(Object.keys(store.characteristics).length > 0)
@@ -81,6 +82,45 @@ export function StepCharacteristics() {
     store.setCharacteristics(chars)
     store.lockCharacteristics()
     store.nextStep()
+  }
+
+  // In standard edit mode, show a readonly view and allow proceeding
+  if (isEditReadonly) {
+    return (
+      <Card title="Cechy">
+        <div className="mb-4 p-3 bg-coc-surface-light border border-coc-border rounded-lg">
+          <p className="text-sm text-coc-text-muted">
+            W trybie Standard cechy są tylko do odczytu i nie mogą być zmienione.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          {CHARACTERISTICS.map((c) => {
+            const def = CHARACTERISTIC_MAP[c.key]
+            return (
+              <div key={c.key} className="space-y-1">
+                <div className="text-sm font-medium">
+                  {def.abbreviation}
+                  <span className="text-coc-text-muted ml-1 text-xs">({def.name})</span>
+                </div>
+                <div className="text-2xl font-bold font-mono text-center py-2 rounded-lg border border-coc-accent/30 bg-coc-accent/10">
+                  {chars[c.key] ?? '—'}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <div className="border-t border-coc-border pt-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-coc-text-muted">
+              Szczęście: <span className="font-bold font-mono text-coc-text">{store.luck ?? '—'}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end pt-4">
+          <Button onClick={() => store.nextStep()}>Dalej</Button>
+        </div>
+      </Card>
+    )
   }
 
   return (

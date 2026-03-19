@@ -132,6 +132,46 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
+    // POST /characters/:id/edit-token - create a time-limited wizard edit token
+    const editTokenMatch = path.match(/^\/characters\/([^/]+)\/edit-token$/)
+    if (editTokenMatch && req.method === 'POST') {
+      const charId = editTokenMatch[1]
+      const body = await req.json()
+      const mode = body.mode === 'full' ? 'full' : 'standard'
+
+      // Delete any existing edit tokens for this character
+      await supabase
+        .from('share_tokens')
+        .delete()
+        .eq('character_id', charId)
+        .eq('type', 'wizard_edit')
+
+      const token = crypto.randomUUID()
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+
+      const { data, error } = await supabase
+        .from('share_tokens')
+        .insert({
+          character_id: charId,
+          token,
+          type: 'wizard_edit',
+          edit_mode: mode,
+          expires_at: expiresAt,
+        })
+        .select()
+        .single()
+      if (error) throw error
+
+      const appOrigin = req.headers.get('origin') ?? 'https://okbrsoomtomexilxxsyd.supabase.co'
+      return jsonResponse({
+        token,
+        url: `${appOrigin}/edit/${token}`,
+        expires_at: expiresAt,
+        edit_mode: mode,
+        id: data.id,
+      })
+    }
+
     // DELETE /share/:tokenId - delete a share token
     const shareDeleteMatch = path.match(/^\/share\/([^/]+)$/)
     if (shareDeleteMatch && req.method === 'DELETE') {
@@ -525,6 +565,164 @@ Deno.serve(async (req: Request) => {
         .single()
       if (error) throw error
       return jsonResponse(data)
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // EDIT PERMISSIONS (player-centric model)
+    // ══════════════════════════════════════════════════════════════
+
+    // POST /characters/:id/edit-permission — grant edit permission
+    const editPermCreateMatch = path.match(/^\/characters\/([^/]+)\/edit-permission$/)
+    if (editPermCreateMatch && req.method === 'POST') {
+      const charId = editPermCreateMatch[1]
+      const body = await req.json()
+      const editMode = body.edit_mode === 'full' ? 'full' : 'standard'
+      const duration = body.duration ?? '24h'
+
+      const durationMs: Record<string, number> = {
+        '24h': 24 * 60 * 60 * 1000,
+        '3d': 3 * 24 * 60 * 60 * 1000,
+        '1w': 7 * 24 * 60 * 60 * 1000,
+      }
+      const ms = durationMs[duration] ?? durationMs['24h']
+      const expiresAt = new Date(Date.now() + ms).toISOString()
+
+      // Get character to find player_id
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('player_id')
+        .eq('id', charId)
+        .single()
+      if (charErr) throw charErr
+      if (!char.player_id) {
+        return new Response(JSON.stringify({ error: 'Character has no assigned player' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Delete existing edit_permissions for this character
+      await supabase
+        .from('edit_permissions')
+        .delete()
+        .eq('character_id', charId)
+
+      // Insert new permission
+      const { data, error } = await supabase
+        .from('edit_permissions')
+        .insert({
+          character_id: charId,
+          player_id: char.player_id,
+          edit_mode: editMode,
+          expires_at: expiresAt,
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // DELETE /characters/:id/edit-permission — revoke edit permission
+    const editPermDeleteMatch = path.match(/^\/characters\/([^/]+)\/edit-permission$/)
+    if (editPermDeleteMatch && req.method === 'DELETE') {
+      const { error } = await supabase
+        .from('edit_permissions')
+        .delete()
+        .eq('character_id', editPermDeleteMatch[1])
+      if (error) throw error
+      return jsonResponse({ deleted: true })
+    }
+
+    // PUT /characters/:id/assign-player — assign character to a player
+    const assignPlayerMatch = path.match(/^\/characters\/([^/]+)\/assign-player$/)
+    if (assignPlayerMatch && req.method === 'PUT') {
+      const charId = assignPlayerMatch[1]
+      const body = await req.json()
+      const { player_id } = body
+      if (!player_id) {
+        return new Response(JSON.stringify({ error: 'player_id required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ player_id })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ADMIN DRAFTS
+    // ══════════════════════════════════════════════════════════════
+
+    // POST /drafts — create a draft character on a player's account
+    if (path === '/drafts' && req.method === 'POST') {
+      const body = await req.json()
+      const { player_id, wizard_data, locked_step, era, method, perks, max_skill_value } = body
+
+      if (!player_id || !wizard_data) {
+        return new Response(JSON.stringify({ error: 'player_id and wizard_data required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Generate invite code in format DRF-XXXX-XXX
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      const rand = (n: number) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+      const code = `DRF-${rand(4)}-${rand(3)}`
+
+      // Create invite code
+      const { data: inviteCode, error: codeErr } = await supabase
+        .from('invite_codes')
+        .insert({
+          code,
+          method: method ?? 'standard',
+          methods: [method ?? 'standard'],
+          era: era ?? '1920s',
+          max_tries: 1,
+          perks: perks ?? [],
+          max_skill_value: max_skill_value ?? 80,
+          is_active: true,
+        })
+        .select()
+        .single()
+      if (codeErr) throw codeErr
+
+      // Create character with draft status
+      const characterInsert: Record<string, unknown> = {
+        ...wizard_data,
+        status: 'draft',
+        created_by: 'admin_draft',
+        draft_locked_step: locked_step ?? null,
+        player_id,
+        invite_code_id: inviteCode.id,
+        perks: perks ?? [],
+        max_skill_value: max_skill_value ?? 80,
+      }
+
+      const { data: character, error: charErr } = await supabase
+        .from('characters')
+        .insert(characterInsert)
+        .select()
+        .single()
+      if (charErr) throw charErr
+
+      // Create player_codes junction
+      const { error: junctionErr } = await supabase
+        .from('player_codes')
+        .insert({
+          player_id,
+          invite_code_id: inviteCode.id,
+        })
+      if (junctionErr) throw junctionErr
+
+      return jsonResponse({ character, invite_code: inviteCode })
     }
 
     return new Response(JSON.stringify({ error: 'Not found' }), {

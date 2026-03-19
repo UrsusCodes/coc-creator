@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { KeyRound, Trash2 } from 'lucide-react'
+import { KeyRound, Trash2, PenLine, ShieldAlert } from 'lucide-react'
 import { Stepper } from '@/components/ui/Stepper'
 import { useCharacterStore } from '@/stores/characterStore'
 import { PL } from '@/data/i18n'
@@ -57,7 +57,12 @@ function buildSteps(hasDrivePillars: boolean) {
   }
 }
 
-export function WizardShell() {
+interface WizardShellProps {
+  /** When true, the shell is in edit mode (loaded from /edit/:token) */
+  editMode?: boolean
+}
+
+export function WizardShell({ editMode = false }: WizardShellProps) {
   const currentStep = useCharacterStore((s) => s.currentStep)
   const timesUsed = useCharacterStore((s) => s.timesUsed)
   const maxTries = useCharacterStore((s) => s.maxTries)
@@ -65,19 +70,26 @@ export function WizardShell() {
   const perks = useCharacterStore((s) => s.perks)
   const setStep = useCharacterStore((s) => s.setStep)
   const abandonCharacter = useCharacterStore((s) => s.abandonCharacter)
+  const storeEditMode = useCharacterStore((s) => s.editMode)
+  const characterName = useCharacterStore((s) => s.name)
+  const isDraftContinuation = useCharacterStore((s) => s.isDraftContinuation)
+  const playerEditMode = useCharacterStore((s) => s.playerEditMode)
 
   const [confirmAbandon, setConfirmAbandon] = useState(false)
 
   const remainingTries = maxTries - timesUsed - 1
-  const showAbandon = currentStep >= 5 && remainingTries > 0
+  const showAbandon = !editMode && currentStep >= 5 && remainingTries > 0
 
   const hasDrivePillars = perks.includes('drive_pillars')
   const { labels: STEP_LABELS, components: STEP_COMPONENTS } = useMemo(() => buildSteps(hasDrivePillars), [hasDrivePillars])
   const StepComponent = STEP_COMPONENTS[currentStep]
 
-  // On mount (page refresh), always start at step 0 (code entry)
+  // In edit mode / draft continuation: step is already set by load action; skip resetting to 0.
+  // In normal mode: always start at step 0 (code entry) on mount.
   useEffect(() => {
-    setStep(0)
+    if (!editMode && !isDraftContinuation && !playerEditMode) {
+      setStep(0)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -94,6 +106,42 @@ export function WizardShell() {
 
   return (
     <div className="space-y-6">
+      {/* Edit mode banner */}
+      {editMode && storeEditMode && !playerEditMode && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-coc-accent/10 border border-coc-accent/30 rounded-lg text-sm">
+          <PenLine className="w-4 h-4 text-coc-accent-light shrink-0" />
+          <span className="text-coc-accent-light font-medium">
+            Edycja postaci: {characterName || '—'}
+          </span>
+          <span className="text-coc-text-muted ml-1">
+            (tryb: {storeEditMode === 'standard' ? 'Standard' : 'Pełny'})
+          </span>
+        </div>
+      )}
+
+      {/* Player edit mode banner */}
+      {playerEditMode && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-coc-accent/10 border border-coc-accent/30 rounded-lg text-sm">
+          <PenLine className="w-4 h-4 text-coc-accent-light shrink-0" />
+          <span className="text-coc-accent-light font-medium">
+            Edycja postaci (uprawnienia gracza): {characterName || '—'}
+          </span>
+          <span className="text-coc-text-muted ml-1">
+            (tryb: {playerEditMode === 'standard' ? 'Standard' : 'Pełny'})
+          </span>
+        </div>
+      )}
+
+      {/* Draft continuation banner */}
+      {isDraftContinuation && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm">
+          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="text-amber-400 font-medium">
+            Kontynuujesz postać założoną przez Strażnika Tajemnic
+          </span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <Stepper steps={STEP_LABELS} currentStep={currentStep} />
         <div className="flex items-center gap-2">
@@ -107,7 +155,7 @@ export function WizardShell() {
               Usuń postać (podejście {timesUsed + 2} z {maxTries})
             </button>
           )}
-          {currentStep > 0 && (
+          {!editMode && !isDraftContinuation && !playerEditMode && currentStep > 0 && (
             <button
               type="button"
               onClick={() => setStep(0)}

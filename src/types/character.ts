@@ -164,6 +164,11 @@ export interface CharacterData {
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
   portrait_crop_data?: PortraitCropData
+  // Player-centric fields
+  draft_locked_step?: number | null
+  created_by?: string
+  perks?: string[]
+  max_skill_value?: number
 }
 
 export interface PortraitCropData {
@@ -202,7 +207,9 @@ export interface ShareToken {
   id: string
   character_id: string
   token: string
-  type: 'view' | 'edit'
+  type: 'view' | 'edit' | 'wizard_edit'
+  edit_mode?: 'standard' | 'full' | null
+  expires_at?: string | null
   created_at: string
 }
 

@@ -16,6 +16,7 @@ export function StepAgeModifiers() {
   const age = store.age ?? 25
   const chars = store.characteristics as Characteristics
   const mods = useMemo(() => getAgeModifications(age), [age])
+  const isEditReadonly = store.editMode === 'standard'
 
   // Persist EDU rolls: if all required rolls are already in the store, they're locked
   const requiredRolls = mods?.eduImprovementChecks ?? 0
@@ -31,6 +32,29 @@ export function StepAgeModifiers() {
 
   const remainingTries = store.maxTries - store.timesUsed - 1
   const canAbandon = remainingTries > 0
+
+  // Standard edit mode: skip this step entirely (age mods already baked into characteristics)
+  if (isEditReadonly) {
+    return (
+      <Card title="Modyfikatory wiekowe">
+        <div className="mb-4 p-3 bg-coc-surface-light border border-coc-border rounded-lg">
+          <p className="text-sm text-coc-text-muted">
+            W trybie Standard modyfikatory wiekowe są tylko do odczytu. Cechy postaci zawierają już zastosowane modyfikatory.
+          </p>
+        </div>
+        {mods && (
+          <div className="mb-4">
+            <Badge>{mods.ageRange.label}</Badge>
+            <p className="text-sm text-coc-text-muted mt-2">{mods.ageRange.deductionDescription}</p>
+          </div>
+        )}
+        <div className="flex justify-between pt-2">
+          <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+          <Button onClick={() => store.nextStep()}>Dalej</Button>
+        </div>
+      </Card>
+    )
+  }
 
   if (!mods) {
     return (
