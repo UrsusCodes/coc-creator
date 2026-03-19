@@ -492,9 +492,9 @@ export const useCharacterStore = create<WizardState>()(
             perks: data.perks,
             maxSkillValue: data.maxSkillValue,
             methods: [data.method as import('@/types/common').CreationMethod],
-            characteristicsLocked: true,
-            ageLocked: true,
-            ageModifiersLocked: true,
+            characteristicsLocked: data.lockedStep >= 0,
+            ageLocked: data.lockedStep >= 2,
+            ageModifiersLocked: data.lockedStep >= 3,
             currentStep: startStep,
             savedStep: startStep,
             // Map character DB fields to wizard store fields
