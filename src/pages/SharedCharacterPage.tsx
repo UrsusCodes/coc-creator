@@ -255,7 +255,7 @@ export function SharedCharacterPage() {
 
       {/* Export */}
       <Card>
-        <ExportButtons character={character} />
+        <ExportButtons character={character as unknown as Parameters<typeof ExportButtons>[0]['character']} />
       </Card>
     </div>
   )

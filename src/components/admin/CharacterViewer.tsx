@@ -320,9 +320,9 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
       {/* Art Prompt & Gallery */}
       <ArtPromptSection
         characterId={char.id}
-        character={char}
-        artPrompt={(char as Record<string, unknown>).art_prompt as string ?? ''}
-        artGallery={((char as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
+        character={char as unknown as Record<string, unknown>}
+        artPrompt={(char as unknown as Record<string, unknown>).art_prompt as string ?? ''}
+        artGallery={((char as unknown as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
         onUpdate={(fields) => onUpdate?.({ id: char.id, ...fields })}
       />
 
@@ -399,7 +399,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
 
       {/* Export buttons */}
       <Card>
-        <ExportButtons character={char} />
+        <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
       </Card>
     </div>
   )

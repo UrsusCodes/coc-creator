@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Copy, Check, RotateCcw, Save, Loader2, Plus, Trash2, ImageIcon } from 'lucide-react'
+import { Copy, Check, RotateCcw, Save, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import { adminUpdateCharacter } from '@/lib/admin'
 import { generateArtPrompt, generateNegativePrompt, generateSDParams } from '@/lib/artPrompt'
@@ -50,7 +50,7 @@ async function resizeImage(file: File): Promise<Blob> {
 export function ArtPromptSection({ characterId, character, artPrompt: savedPrompt, artGallery: savedGallery, onUpdate }: ArtPromptSectionProps) {
   const { password } = useAdminStore()
 
-  const autoPrompt = generateArtPrompt(character as Parameters<typeof generateArtPrompt>[0])
+  const autoPrompt = generateArtPrompt(character as unknown as Parameters<typeof generateArtPrompt>[0])
   const negativePrompt = generateNegativePrompt()
   const sdParams = generateSDParams()
 

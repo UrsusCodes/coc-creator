@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
-import { Upload, X, Loader2, ImageIcon } from 'lucide-react'
+import { X, Loader2, ImageIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/Button'
 
 interface PortraitUploadProps {
   value: string

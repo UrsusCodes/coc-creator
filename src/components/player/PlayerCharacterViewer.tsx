@@ -113,7 +113,7 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
     setError(null)
 
     try {
-      const result = await playerProposeEdit(token, char.id, editData, changeComment)
+      const result = await playerProposeEdit(token, char.id, editData as unknown as Record<string, unknown>, changeComment)
       setPending(result)
       setEditMode(false)
       setChangeComment('')
@@ -294,7 +294,7 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
       {/* Export buttons */}
       {!editMode && (
         <Card>
-          <ExportButtons character={char} />
+          <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
         </Card>
       )}
     </div>
@@ -309,8 +309,8 @@ function PortraitGallery({
   onPortraitChange: (url: string, cropData?: PortraitCropData | null) => void
 }) {
   const { token } = usePlayerStore()
-  const gallery = (character as Record<string, unknown>).art_gallery as { url: string; label: string }[] ?? []
-  const currentCrop = (character as Record<string, unknown>).portrait_crop_data as PortraitCropData | undefined
+  const gallery = (character as unknown as Record<string, unknown>).art_gallery as { url: string; label: string }[] ?? []
+  const currentCrop = (character as unknown as Record<string, unknown>).portrait_crop_data as PortraitCropData | undefined
 
   const [cropModal, setCropModal] = useState<{ url: string; label: string } | null>(null)
   const [feedbackModal, setFeedbackModal] = useState<{ url: string; label: string } | null>(null)

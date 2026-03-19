@@ -245,7 +245,7 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
 
       {/* Export */}
       <div className="border-t border-coc-border pt-4">
-        <ExportButtons character={char} />
+        <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
       </div>
     </div>
   )

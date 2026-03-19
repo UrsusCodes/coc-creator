@@ -37,7 +37,7 @@ interface ExportCharacter {
   invite_code?: string
   positions?: CharacterPosition[]
   contacts?: CharacterContact[]
-  main_position?: MainPosition
+  main_position?: MainPosition | null
   additional_positions?: AdditionalPosition[]
   contacts_v2?: ContactV2[]
   portrait_url?: string

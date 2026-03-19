@@ -27,7 +27,7 @@ interface ExportCharacter {
   invite_code?: string
   positions?: Record<string, unknown>[]
   contacts?: Record<string, unknown>[]
-  main_position?: Record<string, unknown>
+  main_position?: Record<string, unknown> | null
   additional_positions?: Record<string, unknown>[]
   contacts_v2?: Record<string, unknown>[]
 }
