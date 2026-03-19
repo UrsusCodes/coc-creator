@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts'
+import bcryptjs from 'https://esm.sh/bcryptjs@3.0.2'
+const bcryptCompare = (pw: string, hash: string) => bcryptjs.compareSync(pw, hash)
 import { create, verify } from 'https://deno.land/x/djwt@v3.0.2/mod.ts'
 
 const corsHeaders = {
@@ -79,7 +80,7 @@ Deno.serve(async (req: Request) => {
 
       if (error || !player) return errorResponse('Invalid credentials', 401)
 
-      const valid = await bcrypt.compare(password, player.password_hash)
+      const valid = bcryptCompare(password, player.password_hash)
       if (!valid) return errorResponse('Invalid credentials', 401)
 
       const token = await createToken(player.id)

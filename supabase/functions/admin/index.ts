@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts'
+import bcryptjs from 'https://esm.sh/bcryptjs@3.0.2'
+const bcryptHash = (pw: string) => bcryptjs.hashSync(pw, 10)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -270,7 +271,7 @@ Deno.serve(async (req: Request) => {
         })
       }
 
-      const password_hash = await bcrypt.hash(password)
+      const password_hash = bcryptHash(password)
       const { data, error } = await supabase
         .from('players')
         .insert({ name, login, password_hash })
@@ -297,7 +298,7 @@ Deno.serve(async (req: Request) => {
       if (body.login !== undefined) updateData.login = body.login
       if (body.is_active !== undefined) updateData.is_active = body.is_active
       if (body.password) {
-        updateData.password_hash = await bcrypt.hash(body.password)
+        updateData.password_hash = bcryptHash(body.password)
       }
 
       const { data, error } = await supabase
