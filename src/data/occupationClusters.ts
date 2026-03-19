@@ -265,11 +265,11 @@ export const CLUSTER_OPTIONS: Record<string, PositionOption[]> = {
   PRZESTEPCZOSC_ZORGANIZOWANA: [
     {
       id: 'pz_grupka',
-      name: 'Luźna grupka znajomych',
+      name: 'Luźna grupka znajomych kryminalistów',
       organization_size: 'Mikro',
       size_modifier: 20,
       unlock_condition: 'ZAWSZE',
-      placeholder: 'np. Trzech kumpli z dzielnicy. Okazjonalne włamania, drobne napady. Bez hierarchii, bez zasad, bez przyszłości.',
+      placeholder: 'np. Trzech kumpli z półświatka — kombinatorzy, drobni złodzieje, przemytnicy. Nikt nie pyta, nikt nie mówi. Pomagacie sobie nawzajem, kiedy trzeba.',
       category: 'PÓŁŚWIATEK',
     },
     {
