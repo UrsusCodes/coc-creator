@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, RefreshCw, Plus, Trash2, UserPlus, KeyRound, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react'
+import { Loader2, RefreshCw, Plus, Trash2, UserPlus, KeyRound, ChevronDown, ChevronUp, Copy, Check, Users } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import {
   adminGetPlayers, adminCreatePlayer, adminDeletePlayer, adminUpdatePlayer,
-  adminGetPlayerCodes, adminAssignCode, adminUnassignCode, adminGetCodes,
+  adminGetPlayerCodes, adminAssignCode, adminUnassignCode, adminGetCodes, adminGetCharacters,
 } from '@/lib/admin'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -35,6 +35,18 @@ interface AssignedCode {
   invite_codes: CodeRow
 }
 
+interface CharacterRow {
+  id: string
+  name: string
+  status: string
+  occupation_id: string | null
+  age: number | null
+  gender: string
+  era: string
+  created_by: string | null
+  created_at: string
+}
+
 export function PlayerManager() {
   const { password } = useAdminStore()
   const [players, setPlayers] = useState<PlayerRow[]>([])
@@ -55,6 +67,9 @@ export function PlayerManager() {
   const [codesLoading, setCodesLoading] = useState(false)
   const [assignCodeId, setAssignCodeId] = useState('')
   const [copiedLogin, setCopiedLogin] = useState<string | null>(null)
+  const [playerCharacters, setPlayerCharacters] = useState<CharacterRow[]>([])
+  const [showCharacters, setShowCharacters] = useState<string | null>(null)
+  const [allCharacters, setAllCharacters] = useState<CharacterRow[] | null>(null)
 
   const fetchPlayers = useCallback(async () => {
     if (!password) return
@@ -160,6 +175,26 @@ export function PlayerManager() {
     }
   }
 
+  const handleToggleCharacters = async (playerId: string) => {
+    if (showCharacters === playerId) {
+      setShowCharacters(null)
+      return
+    }
+    setShowCharacters(playerId)
+    // Lazy-load all characters once, then filter
+    if (!allCharacters) {
+      try {
+        const chars = await adminGetCharacters(password!)
+        setAllCharacters(chars)
+        setPlayerCharacters(chars.filter((c: CharacterRow & { player_id?: string }) => c.player_id === playerId))
+      } catch {
+        setPlayerCharacters([])
+      }
+    } else {
+      setPlayerCharacters(allCharacters.filter((c: CharacterRow & { player_id?: string }) => (c as CharacterRow & { player_id?: string }).player_id === playerId))
+    }
+  }
+
   const handleCopyLogin = (login: string) => {
     navigator.clipboard.writeText(login)
     setCopiedLogin(login)
@@ -250,6 +285,10 @@ export function PlayerManager() {
                 </div>
               </div>
               <div className="flex gap-1">
+                <Button size="sm" variant="secondary" onClick={() => handleToggleCharacters(player.id)}>
+                  <Users className="w-3.5 h-3.5" />
+                  {showCharacters === player.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
                 <Button size="sm" variant="secondary" onClick={() => handleExpand(player.id)}>
                   <KeyRound className="w-3.5 h-3.5" />
                   {expandedId === player.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -262,6 +301,31 @@ export function PlayerManager() {
                 </Button>
               </div>
             </div>
+
+            {/* Expanded: characters */}
+            {showCharacters === player.id && (
+              <div className="ml-4 mt-1 p-3 bg-coc-surface border border-coc-border rounded-lg space-y-2">
+                <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">Postaci</h4>
+                {playerCharacters.length === 0 && (
+                  <p className="text-sm text-coc-text-muted">Brak postaci.</p>
+                )}
+                {playerCharacters.map((ch) => (
+                  <div key={ch.id} className="flex items-center justify-between text-sm p-2 bg-coc-surface-light rounded border border-coc-border">
+                    <div className="space-y-0.5">
+                      <span className="font-medium">{ch.name || '(bez nazwy)'}</span>
+                      <div className="flex gap-1">
+                        <Badge variant={ch.status === 'submitted' ? 'success' : 'warning'}>
+                          {ch.status === 'draft' ? 'Szkic' : 'Zatwierdzona'}
+                        </Badge>
+                        {ch.occupation_id && <Badge>{ch.occupation_id}</Badge>}
+                        {ch.age && <Badge>{ch.age} lat</Badge>}
+                        {ch.era && <Badge>{ch.era}</Badge>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Expanded: assigned codes */}
             {expandedId === player.id && (
