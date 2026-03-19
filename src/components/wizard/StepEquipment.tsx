@@ -495,7 +495,7 @@ export function StepEquipment() {
                     <div key={item.id} className="flex items-center justify-between px-3 py-1 text-sm hover:bg-coc-surface-light rounded">
                       <span>{item.name} <span className="text-xs text-coc-text-muted">{item.description}</span></span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-coc-text-muted">{formatDollars(item.priceMin)}–{formatDollars(item.priceMax)}</span>
+                        <span className="text-xs font-mono text-coc-text-muted">{formatDollars((item.priceMin + item.priceMax) / 2)}</span>
                         <button onClick={() => addItem(item.name, (item.priceMin + item.priceMax) / 2, '[Czarny rynek]')}
                           className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded cursor-pointer hover:bg-red-500/30">+</button>
                       </div>
