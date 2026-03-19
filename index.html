@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>coc-creator</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Zew Cthulhu — Kreator Badacza</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Force reload if cached version is outdated
+      (function() {
+        var v = '20260320';
+        if (localStorage.getItem('app_version') !== v) {
+          localStorage.setItem('app_version', v);
+          if (performance.navigation && performance.navigation.type !== 1) {
+            location.reload();
+          }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
