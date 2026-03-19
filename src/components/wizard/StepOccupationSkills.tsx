@@ -467,21 +467,25 @@ export function StepOccupationSkills() {
               Majętność musi być w zakresie {occupation.credit_rating.min}–{occupation.credit_rating.max}
             </p>
           )}
-          {creditRatingTotal > 0 && (() => {
-            const bracket = getWealthBracket(era, creditRatingTotal)
-            const wealth = calculateWealth(era, creditRatingTotal)
-            const housingRange = bracket.housingOptions.length > 1
-              ? `${bracket.housingOptions[0].label} – ${bracket.housingOptions[bracket.housingOptions.length - 1].label}`
-              : bracket.housingOptions[0]?.label ?? ''
-            const transportRange = bracket.transportOptions.length > 1
-              ? `${bracket.transportOptions[0].label} – ${bracket.transportOptions[bracket.transportOptions.length - 1].label}`
-              : bracket.transportOptions[0]?.label ?? ''
-            return (
-              <div className="mt-1.5 px-2 py-1.5 bg-coc-surface-light/50 rounded text-xs text-coc-text-muted space-y-0.5">
-                <div>Dobytek: {formatCurrency(era, wealth.assets)} | Mieszkanie: {housingRange}</div>
-                <div>Transport: {transportRange}</div>
-              </div>
-            )
+          {creditRatingTotal > 0 && era && (() => {
+            try {
+              const bracket = getWealthBracket(era, creditRatingTotal)
+              const wealth = calculateWealth(era, creditRatingTotal)
+              const housingRange = bracket.housingOptions?.length > 1
+                ? `${bracket.housingOptions[0].label} – ${bracket.housingOptions[bracket.housingOptions.length - 1].label}`
+                : bracket.housingOptions?.[0]?.label ?? ''
+              const transportRange = bracket.transportOptions?.length > 1
+                ? `${bracket.transportOptions[0].label} – ${bracket.transportOptions[bracket.transportOptions.length - 1].label}`
+                : bracket.transportOptions?.[0]?.label ?? ''
+              return (
+                <div className="mt-1.5 px-2 py-1.5 bg-coc-surface-light/50 rounded text-xs text-coc-text-muted space-y-0.5">
+                  <div>Dobytek: {formatCurrency(era, wealth.assets)} | Mieszkanie: {housingRange}</div>
+                  <div>Transport: {transportRange}</div>
+                </div>
+              )
+            } catch {
+              return null
+            }
           })()}
         </div>
       </div>

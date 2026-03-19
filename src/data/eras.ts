@@ -491,6 +491,7 @@ export const ERAS: Record<Era, EraDefinition> = {
 
 export function getWealthBracket(era: Era, creditRating: number): WealthBracket {
   const eraData = ERAS[era]
+  if (!eraData) return ERAS.classic_1920s.wealthTable[0]
   for (const bracket of eraData.wealthTable) {
     if (creditRating >= bracket.creditRatingMin && creditRating <= bracket.creditRatingMax) {
       return bracket
