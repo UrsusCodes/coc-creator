@@ -8,20 +8,20 @@ interface AdminState {
 }
 
 export const useAdminStore = create<AdminState>()((set) => {
-  // Restore from sessionStorage on init
-  const storedPassword = typeof window !== 'undefined' ? sessionStorage.getItem('admin_password') : null
+  // Restore from localStorage on init (persists across sessions)
+  const storedPassword = typeof window !== 'undefined' ? localStorage.getItem('admin_password') : null
 
   return {
     isAuthenticated: !!storedPassword,
     password: storedPassword,
 
     login: (password: string) => {
-      sessionStorage.setItem('admin_password', password)
+      localStorage.setItem('admin_password', password)
       set({ isAuthenticated: true, password })
     },
 
     logout: () => {
-      sessionStorage.removeItem('admin_password')
+      localStorage.removeItem('admin_password')
       set({ isAuthenticated: false, password: null })
     },
   }
