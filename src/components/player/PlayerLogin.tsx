@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Lock, User, Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { usePlayerStore } from '@/stores/playerStore'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 
 export function PlayerLogin() {
+  const navigate = useNavigate()
   const { login } = usePlayerStore()
   const [loginInput, setLoginInput] = useState('')
   const [password, setPassword] = useState('')
@@ -58,6 +60,16 @@ export function PlayerLogin() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Zaloguj'}
           </Button>
         </form>
+
+        <div className="mt-4 pt-4 border-t border-coc-border">
+          <button
+            type="button"
+            onClick={() => navigate('/create')}
+            className="w-full text-sm text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer py-2"
+          >
+            Kontynuuj bez konta →
+          </button>
+        </div>
       </Card>
     </div>
   )

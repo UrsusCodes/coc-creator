@@ -23,7 +23,7 @@ function App() {
       </div>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/create" replace />} />
+          <Route path="/" element={<Navigate to="/player" replace />} />
           <Route path="/create" element={<CreatePage />} />
           <Route path="/success" element={<SuccessPage />} />
           <Route path="/admin" element={<AdminPage />} />
