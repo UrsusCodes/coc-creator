@@ -571,7 +571,7 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => {
         let state = persisted as Record<string, unknown>
 
@@ -636,11 +636,11 @@ export const useCharacterStore = create<WizardState>()(
             draftLockedStep: null,
           }
         }
-        // Version 6 → 7: server-side draft auto-save
-        if (version < 7) {
+        // Version 6 → 7 → 8: server-side draft auto-save
+        if (version < 8) {
           state = {
             ...state,
-            serverDraftId: null,
+            serverDraftId: (state.serverDraftId as string) ?? null,
           }
         }
         return state as unknown as WizardState

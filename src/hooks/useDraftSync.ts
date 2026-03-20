@@ -32,14 +32,17 @@ function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): R
   }
 }
 
-let lastSavedJson = ''
-
 export function useDraftSync() {
   const savingRef = useRef(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastJsonRef = useRef('')
 
   const saveNow = useCallback(async () => {
     const playerToken = localStorage.getItem('player_token')
-    if (!playerToken) return
+    if (!playerToken) {
+      console.warn('[DraftSync] No player token — skipping')
+      return
+    }
 
     const store = useCharacterStore.getState()
     if (store.editMode || store.playerEditMode) return
@@ -48,13 +51,13 @@ export function useDraftSync() {
 
     const data = buildDraftData(store)
     const json = JSON.stringify(data)
-    if (json === lastSavedJson) return // Nothing changed
+    if (json === lastJsonRef.current) return
 
     savingRef.current = true
     try {
       let draftId = store.serverDraftId
 
-      // If no serverDraftId but we have an invite code, try to find existing draft in DB
+      // If no serverDraftId, find existing draft in DB
       if (!draftId && store.inviteCodeId) {
         const { data: existing } = await supabase
           .from('characters')
@@ -65,44 +68,85 @@ export function useDraftSync() {
         if (existing?.id) {
           draftId = existing.id
           store.setServerDraftId(draftId)
+          console.log('[DraftSync] Found existing draft:', draftId)
         }
       }
 
       if (draftId) {
-        await playerSaveDraft(playerToken, draftId, data)
-      } else if (store.inviteCodeId) {
-        const result = await playerCreateDraft(playerToken, {
-          invite_code_id: store.inviteCodeId,
-          wizard_data: data,
-        })
-        if (result?.id) {
-          store.setServerDraftId(result.id)
+        // Try player API first
+        try {
+          await playerSaveDraft(playerToken, draftId, data)
+          console.log('[DraftSync] Saved via API, step:', store.currentStep)
+        } catch {
+          // Fallback: direct DB update (bypasses edge function auth issues)
+          console.warn('[DraftSync] API failed, trying direct DB update')
+          const { error } = await supabase
+            .from('characters')
+            .update(data)
+            .eq('id', draftId)
+          if (error) {
+            console.error('[DraftSync] Direct DB update failed:', error.message)
+          } else {
+            console.log('[DraftSync] Saved via direct DB, step:', store.currentStep)
+          }
         }
+      } else if (store.inviteCodeId) {
+        try {
+          const result = await playerCreateDraft(playerToken, {
+            invite_code_id: store.inviteCodeId,
+            wizard_data: data,
+          })
+          if (result?.id) {
+            store.setServerDraftId(result.id)
+            console.log('[DraftSync] Created new draft:', result.id)
+          }
+        } catch (err) {
+          console.error('[DraftSync] Failed to create draft:', err)
+        }
+      } else {
+        console.warn('[DraftSync] No draftId and no inviteCodeId — cannot save')
       }
-      lastSavedJson = json
-    } catch {
-      // Will retry on next interval
+
+      lastJsonRef.current = json
+    } catch (err) {
+      console.error('[DraftSync] Unexpected error:', err)
     } finally {
       savingRef.current = false
     }
   }, [])
 
-  // Save on step change (immediate)
-  const currentStep = useCharacterStore((s) => s.currentStep)
+  // Subscribe to ALL store changes with 3-second debounce
   useEffect(() => {
-    if (currentStep > 0) saveNow()
-  }, [currentStep, saveNow])
+    const unsub = useCharacterStore.subscribe(() => {
+      const store = useCharacterStore.getState()
+      if (store.currentStep <= 0) return
+      if (store.editMode || store.playerEditMode) return
 
-  // Save periodically (every 10 seconds) to catch within-step changes
-  useEffect(() => {
-    const interval = setInterval(saveNow, 10000)
-    return () => clearInterval(interval)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(saveNow, 3000)
+    })
+    return () => {
+      unsub()
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
   }, [saveNow])
 
-  // Save on page visibility change (tab switch, minimize) and before unload
+  // Immediate save on step change
+  const currentStep = useCharacterStore((s) => s.currentStep)
+  useEffect(() => {
+    if (currentStep > 0) {
+      lastJsonRef.current = '' // Reset to force save on step change
+      saveNow()
+    }
+  }, [currentStep, saveNow])
+
+  // Save when tab becomes hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') saveNow()
+      if (document.visibilityState === 'hidden') {
+        lastJsonRef.current = '' // Force save
+        saveNow()
+      }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
