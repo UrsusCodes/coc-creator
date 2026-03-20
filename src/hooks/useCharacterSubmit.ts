@@ -41,9 +41,17 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
     setError(null)
 
     try {
-      // Delete any existing character for this invite code (re-roll replaces old)
-      // Skip delete if continuing a draft — we'll update instead
-      if (!state.serverDraftId) {
+      // Check if there's an existing draft for this invite code to update
+      const { data: existingDraft } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('invite_code_id', state.inviteCodeId)
+        .eq('status', 'draft')
+        .maybeSingle()
+      const draftId = state.serverDraftId || existingDraft?.id
+
+      // Delete any existing non-draft character for this invite code (re-roll replaces old)
+      if (!draftId) {
         await supabase
           .from('characters')
           .delete()
@@ -112,12 +120,12 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         insertData.player_id = playerInfo.id
       }
 
-      if (state.serverDraftId) {
+      if (draftId) {
         // Draft continuation: update existing character instead of delete+insert
         const { error: updateError } = await supabase
           .from('characters')
-          .update({ ...insertData, draft_locked_step: null, created_by: 'player' })
-          .eq('id', state.serverDraftId)
+          .update({ ...insertData, draft_locked_step: null, draft_step: null })
+          .eq('id', draftId)
         if (updateError) {
           setError('Błąd zapisu postaci: ' + updateError.message)
           return false
