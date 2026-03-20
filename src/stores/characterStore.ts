@@ -486,11 +486,10 @@ export const useCharacterStore = create<WizardState>()(
       loadDraftForContinuation: (data) =>
         set(() => {
           const char = data.character
-          // For player drafts (lockedStep -1), resume from draft_step or step 1
-          // For admin drafts, start at lockedStep + 1
-          const startStep = data.lockedStep < 0
-            ? Math.max(1, (char.draft_step as number) ?? 1)
-            : data.lockedStep + 1
+          // Resume from the furthest point: either past locked steps or saved draft_step
+          const minStep = data.lockedStep < 0 ? 1 : data.lockedStep + 1
+          const savedStep = (char.draft_step as number) ?? 0
+          const startStep = Math.max(minStep, savedStep)
           return {
             // Reset to clean state first
             ...initialState,
