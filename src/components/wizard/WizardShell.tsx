@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { KeyRound, Trash2, PenLine, ShieldAlert } from 'lucide-react'
 import { Stepper } from '@/components/ui/Stepper'
 import { useCharacterStore } from '@/stores/characterStore'
+import { useDraftSync } from '@/hooks/useDraftSync'
 import { PL } from '@/data/i18n'
 import { supabase } from '@/lib/supabase'
 import { StepInviteCode } from './StepInviteCode'
@@ -76,6 +77,9 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   const playerEditMode = useCharacterStore((s) => s.playerEditMode)
 
   const [confirmAbandon, setConfirmAbandon] = useState(false)
+
+  // Auto-save wizard progress to server for logged-in players
+  useDraftSync()
 
   const remainingTries = maxTries - timesUsed - 1
   const showAbandon = !editMode && currentStep >= 5 && remainingTries > 0

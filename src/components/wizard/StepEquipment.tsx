@@ -32,7 +32,9 @@ export function StepEquipment() {
   const [transportStyleId, setTransportStyleId] = useState(store.transportStyleId || '')
   const [lifestyleId, setLifestyleId] = useState(store.lifestyleId || '')
   const [selectedFormIds, setSelectedFormIds] = useState<string[]>(store.wealthFormIds || [])
-  const [selectedItems, setSelectedItems] = useState<string[]>(store.equipment || [])
+  const [selectedItems, setSelectedItems] = useState<string[]>(
+    (store.equipment || []).filter((e) => !e.startsWith('[Lokum]') && !e.startsWith('[Transport]') && !e.startsWith('[Lifestyle]') && !e.startsWith('[Dobytek]'))
+  )
   const [customItems, setCustomItems] = useState<string[]>(store.customItems || [])
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCat, setExpandedCat] = useState<string | null>(null)

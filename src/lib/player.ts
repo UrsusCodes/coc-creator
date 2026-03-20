@@ -109,6 +109,32 @@ export async function playerGetHistory(token: string, charId: string) {
   return res.json()
 }
 
+// ── Drafts (wizard auto-save) ────────────────────────────────────
+
+export async function playerCreateDraft(token: string, data: { invite_code_id: string; wizard_data: Record<string, unknown> }) {
+  const res = await playerFetch('/drafts', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd tworzenia szkicu' }))
+    throw new Error(err.error ?? 'Błąd tworzenia szkicu')
+  }
+  return res.json()
+}
+
+export async function playerSaveDraft(token: string, charId: string, wizardData: Record<string, unknown>) {
+  const res = await playerFetch(`/characters/${charId}/draft`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ wizard_data: wizardData }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd zapisu postępu' }))
+    throw new Error(err.error ?? 'Błąd zapisu postępu')
+  }
+  return res.json()
+}
+
 // ── Portrait ──────────────────────────────────────────────────────
 
 export async function playerSelectPortrait(

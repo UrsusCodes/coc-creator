@@ -892,6 +892,11 @@ const EKSPLORATORZY_I_PRZYGODNICY: AdditionalPositionOption[] = [
       { type: 'skill', key: 'bron_palna:karabin_strzelba', threshold: 50, weight: 1.5 },
       { type: 'skill', key: 'tresura_zwierzat', threshold: 40, weight: 1.2 },
     ],
+    occupation_group_required: [
+      'lowca_grubego_zwierza', 'traper', 'kowboj', 'farmer', 'odkrywca',
+      'poszukiwacz', 'bogaty_hobbysta', 'dzentelmen', 'wspinacz_wysokogorski',
+      'oficer_wojskowy', 'wojskowy_zolnierz',
+    ],
     flavor: 'Trop, strzał i trofeum: łowcy znają las lepiej niż własne podwórko.',
     placeholder: 'np. Boone and Crockett Club. Polowania na grubego zwierza, wyprawy w góry, rywalizacja o najlepsze trofeum. Roosevelt był członkiem.',
   },

@@ -45,6 +45,7 @@ interface PlayerCharacter {
   invite_code?: string
   created_by?: string
   draft_locked_step?: number | null
+  draft_step?: number | null
   perks?: string[]
   max_skill_value?: number
   invite_code_id?: string
@@ -115,7 +116,7 @@ export function PlayerDashboard() {
   }
 
   const isDraft = (char: PlayerCharacter) =>
-    char.created_by === 'admin_draft' && char.status === 'draft'
+    (char.created_by === 'admin_draft' || char.created_by === 'player') && char.status === 'draft'
 
   const handleEditCharacter = async (char: PlayerCharacter) => {
     if (!token) return
@@ -145,12 +146,16 @@ export function PlayerDashboard() {
     setActionLoading(char.id)
     try {
       const fullChar = await playerGetCharacter(token, char.id)
+      // Player-created drafts: no locked steps, resume from draft_step
+      // Admin-created drafts: lock steps up to draft_locked_step
+      const isPlayerDraft = char.created_by === 'player'
+      const lockedStep = isPlayerDraft ? -1 : (char.draft_locked_step ?? 0)
       loadDraftForContinuation({
         character: fullChar,
         era: char.era,
         perks: char.perks ?? [],
         maxSkillValue: char.max_skill_value ?? 80,
-        lockedStep: char.draft_locked_step ?? 0,
+        lockedStep,
         inviteCodeId: char.invite_code_id ?? '',
         inviteCode: char.invite_code ?? '',
         method: char.method,

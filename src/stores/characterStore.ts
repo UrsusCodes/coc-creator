@@ -111,6 +111,9 @@ export interface WizardState {
   isDraftContinuation: boolean
   draftLockedStep: number | null
 
+  // Server-side draft ID (for wizard auto-save)
+  serverDraftId: string | null
+
   // Action to load character for editing
   loadForEdit: (data: {
     characterId: string
@@ -179,6 +182,8 @@ export interface WizardState {
     lifestyleRating?: number; lifestyleStars?: string; lifestyleLabel?: string;
     spendingFree?: string; catalogsAvailable?: string[]; presetUsed?: string;
   }) => void
+  /** Set the server-side draft ID for auto-save */
+  setServerDraftId: (id: string | null) => void
   /** Update server-side invite code data without resetting character progress */
   updateInviteCodeMeta: (data: { timesUsed: number }) => void
   /** Abandon current character, increment timesUsed, reset character data, go to step 1 */
@@ -195,6 +200,7 @@ const editModeDefaults = {
   playerEditCharacterId: null as string | null,
   isDraftContinuation: false,
   draftLockedStep: null as number | null,
+  serverDraftId: null as string | null,
 }
 
 const characterDataDefaults = {
@@ -293,6 +299,7 @@ export const useCharacterStore = create<WizardState>()(
           timesUsed: data.timesUsed,
           maxSkillValue: data.maxSkillValue,
           savedStep: 0,
+          serverDraftId: null,
           ...characterDataDefaults,
         }),
 
@@ -478,13 +485,18 @@ export const useCharacterStore = create<WizardState>()(
       loadDraftForContinuation: (data) =>
         set(() => {
           const char = data.character
-          const startStep = data.lockedStep + 1
+          // For player drafts (lockedStep -1), resume from draft_step or step 1
+          // For admin drafts, start at lockedStep + 1
+          const startStep = data.lockedStep < 0
+            ? Math.max(1, (char.draft_step as number) ?? 1)
+            : data.lockedStep + 1
           return {
             // Reset to clean state first
             ...initialState,
             // Draft continuation metadata
             isDraftContinuation: true,
             draftLockedStep: data.lockedStep,
+            serverDraftId: (char.id as string) ?? null,
             inviteCodeId: data.inviteCodeId,
             inviteCode: data.inviteCode,
             method: data.method as import('@/types/common').CreationMethod,
@@ -536,6 +548,8 @@ export const useCharacterStore = create<WizardState>()(
           }
         }),
 
+      setServerDraftId: (id) => set({ serverDraftId: id }),
+
       updateInviteCodeMeta: (data) => set({ timesUsed: data.timesUsed }),
 
       abandonCharacter: () =>
@@ -557,7 +571,7 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 6,
+      version: 7,
       migrate: (persisted, version) => {
         // Version 0/1 → 2: combat skills restructured, wealth reworked
         if (version < 2) {
@@ -624,6 +638,14 @@ export const useCharacterStore = create<WizardState>()(
             playerEditCharacterId: null,
             isDraftContinuation: false,
             draftLockedStep: null,
+          }
+        }
+        // Version 6 → 7: server-side draft auto-save
+        if (version < 7) {
+          const old = persisted as Record<string, unknown>
+          return {
+            ...old,
+            serverDraftId: null,
           }
         }
         return persisted as WizardState

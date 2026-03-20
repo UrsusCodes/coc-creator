@@ -459,6 +459,87 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // PLAYER DRAFTS (wizard auto-save)
+    // ══════════════════════════════════════════════════════════════
+
+    // ── POST /drafts — create a new draft character for wizard auto-save ──
+    if (path === '/drafts' && req.method === 'POST') {
+      const body = await req.json()
+      const { invite_code_id, wizard_data } = body
+
+      if (!invite_code_id || !wizard_data) {
+        return errorResponse('invite_code_id and wizard_data required', 400)
+      }
+
+      // Verify invite code exists and is active
+      const { data: inviteCode, error: codeErr } = await supabase
+        .from('invite_codes')
+        .select('id')
+        .eq('id', invite_code_id)
+        .eq('is_active', true)
+        .maybeSingle()
+      if (codeErr) throw codeErr
+      if (!inviteCode) return errorResponse('Invalid invite code', 400)
+
+      // Delete any existing player-created draft for this invite code
+      await supabase
+        .from('characters')
+        .delete()
+        .eq('invite_code_id', invite_code_id)
+        .eq('player_id', playerId)
+        .eq('status', 'draft')
+        .eq('created_by', 'player')
+
+      // Create character with draft status
+      const { data, error } = await supabase
+        .from('characters')
+        .insert({
+          ...wizard_data,
+          invite_code_id,
+          status: 'draft',
+          created_by: 'player',
+          player_id: playerId,
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── PUT /characters/:id/draft — update draft wizard data ──────
+    const draftMatch = path.match(/^\/characters\/([^/]+)\/draft$/)
+    if (draftMatch && req.method === 'PUT') {
+      const charId = draftMatch[1]
+
+      // Verify ownership
+      const { data: char, error: ownerErr } = await supabase
+        .from('characters')
+        .select('id, status, created_by')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      // Only allow updating drafts
+      if (char.status !== 'draft') {
+        return errorResponse('Character is not a draft', 400)
+      }
+
+      const body = await req.json()
+      const { wizard_data } = body
+      if (!wizard_data) return errorResponse('wizard_data required', 400)
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update(wizard_data)
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
     // ── POST /claim — claim character after wizard creation ──────
     if (path === '/claim' && req.method === 'POST') {
       const { invite_code_id } = await req.json()
