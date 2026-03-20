@@ -27,10 +27,13 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
 
     try {
       // Delete any existing character for this invite code (re-roll replaces old)
-      await supabase
-        .from('characters')
-        .delete()
-        .eq('invite_code_id', state.inviteCodeId)
+      // Skip delete if continuing a draft — we'll update instead
+      if (!state.serverDraftId) {
+        await supabase
+          .from('characters')
+          .delete()
+          .eq('invite_code_id', state.inviteCodeId)
+      }
 
       // Build enriched cash/assets strings with lifestyle info
       const era = state.era as Era
@@ -94,11 +97,22 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         insertData.player_id = playerInfo.id
       }
 
-      const { error: insertError } = await supabase.from('characters').insert(insertData)
-
-      if (insertError) {
-        setError('Błąd zapisu postaci: ' + insertError.message)
-        return false
+      if (state.serverDraftId) {
+        // Draft continuation: update existing character instead of delete+insert
+        const { error: updateError } = await supabase
+          .from('characters')
+          .update({ ...insertData, draft_locked_step: null, created_by: 'player' })
+          .eq('id', state.serverDraftId)
+        if (updateError) {
+          setError('Błąd zapisu postaci: ' + updateError.message)
+          return false
+        }
+      } else {
+        const { error: insertError } = await supabase.from('characters').insert(insertData)
+        if (insertError) {
+          setError('Błąd zapisu postaci: ' + insertError.message)
+          return false
+        }
       }
 
       // Increment times_used atomically

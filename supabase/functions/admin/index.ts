@@ -703,6 +703,8 @@ Deno.serve(async (req: Request) => {
         draft_locked_step: locked_step ?? null,
         player_id,
         invite_code_id: inviteCode.id,
+        era: era ?? null,
+        method: method ?? null,
         perks: perks ?? [],
         max_skill_value: max_skill_value ?? 80,
       }
