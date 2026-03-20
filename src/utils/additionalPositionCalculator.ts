@@ -81,15 +81,21 @@ export function isOptionUnlocked(
   character: Record<string, number>,
   occupationId: string,
 ): boolean {
-  // Sprawdź occupation_group jeśli wymagane
-  if (option.occupation_group_required && !option.occupation_group_required.includes(occupationId)) {
-    return false
-  }
-  // Przynajmniej 1 warunek musi być spełniony
-  return option.unlock.some((cond) => {
+  // Check unlock conditions
+  const unlockedConditions = option.unlock.filter((cond) => {
     const val = getCharacterValue(character, cond.type, cond.key)
     return val >= cond.threshold
   })
+  if (unlockedConditions.length === 0) return false
+
+  // If occupation_group required, check if occupation matches OR if a high-weight condition is met
+  // (e.g. tropienie ≥ 40 unlocks Klub łowców regardless of occupation)
+  if (option.occupation_group_required && !option.occupation_group_required.includes(occupationId)) {
+    // Allow if any unlocked condition has weight > 1.5 (very strong thematic fit)
+    return unlockedConditions.some((c) => c.weight > 1.5)
+  }
+
+  return true
 }
 
 /**
