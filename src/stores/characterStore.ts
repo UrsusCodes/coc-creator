@@ -573,34 +573,33 @@ export const useCharacterStore = create<WizardState>()(
       name: 'coc-character-wizard',
       version: 7,
       migrate: (persisted, version) => {
+        let state = persisted as Record<string, unknown>
+
         // Version 0/1 → 2: combat skills restructured, wealth reworked
         if (version < 2) {
-          const old = persisted as Record<string, unknown>
-          return {
+          state = {
             ...initialState,
-            inviteCodeId: old.inviteCodeId ?? null,
-            inviteCode: old.inviteCode ?? null,
-            methods: old.methods ?? [],
-            method: old.method ?? null,
-            era: old.era ?? null,
-            perks: old.perks ?? [],
-            maxTries: old.maxTries ?? 1,
-            timesUsed: old.timesUsed ?? 0,
-            maxSkillValue: old.maxSkillValue ?? 80,
+            inviteCodeId: state.inviteCodeId ?? null,
+            inviteCode: state.inviteCode ?? null,
+            methods: state.methods ?? [],
+            method: state.method ?? null,
+            era: state.era ?? null,
+            perks: state.perks ?? [],
+            maxTries: state.maxTries ?? 1,
+            timesUsed: state.timesUsed ?? 0,
+            maxSkillValue: state.maxSkillValue ?? 80,
             currentStep: 1,
             savedStep: 0,
           }
         }
         // Version 2 → 3: added playerName field
         if (version < 3) {
-          const old = persisted as Record<string, unknown>
-          return { ...old, playerName: (old.playerName as string) ?? '' }
+          state = { ...state, playerName: (state.playerName as string) ?? '' }
         }
         // Version 3 → 4: wealth v2 fields
         if (version < 4) {
-          const old = persisted as Record<string, unknown>
-          return {
-            ...old,
+          state = {
+            ...state,
             lokumOwnership: 'rent',
             lokum2Id: '',
             lokum2Ownership: '',
@@ -616,24 +615,21 @@ export const useCharacterStore = create<WizardState>()(
         }
         // Version 4 → 5: positions v2, contacts v2, clean stale data
         if (version < 5) {
-          const old = persisted as Record<string, unknown>
-          // Remove safe_cash from wealthFormIds if present
-          const wealthFormIds = (old.wealthFormIds as string[] ?? []).filter((id: string) => id !== 'safe_cash')
-          return {
-            ...old,
+          const wealthFormIds = (state.wealthFormIds as string[] ?? []).filter((id: string) => id !== 'safe_cash')
+          state = {
+            ...state,
             wealthFormIds,
             mainPosition: null,
             additionalPositions: [],
             contactsV2: [],
-            residence: (old.residence as string) ?? '',
-            birthplace: (old.birthplace as string) ?? '',
+            residence: (state.residence as string) ?? '',
+            birthplace: (state.birthplace as string) ?? '',
           }
         }
         // Version 5 → 6: player-centric edit fields
         if (version < 6) {
-          const old = persisted as Record<string, unknown>
-          return {
-            ...old,
+          state = {
+            ...state,
             playerEditMode: null,
             playerEditCharacterId: null,
             isDraftContinuation: false,
@@ -642,13 +638,12 @@ export const useCharacterStore = create<WizardState>()(
         }
         // Version 6 → 7: server-side draft auto-save
         if (version < 7) {
-          const old = persisted as Record<string, unknown>
-          return {
-            ...old,
+          state = {
+            ...state,
             serverDraftId: null,
           }
         }
-        return persisted as WizardState
+        return state as unknown as WizardState
       },
     }
   )
