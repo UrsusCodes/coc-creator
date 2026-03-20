@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Unlock, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { Unlock, Plus, Sparkles } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { getSkillBase } from '@/data/skills'
 import { CONTACT_CATEGORIES_NEW } from '@/data/contactCategories'
@@ -127,7 +127,14 @@ export function StepPositionsContacts() {
   const [additionalDescriptions, setAdditionalDescriptions] = useState<string[]>(
     store.additionalPositions.map(p => p.custom_description) || Array(numAdditionalSlots).fill(''),
   )
-  const [expandedPosSection, setExpandedPosSection] = useState(true)
+  const [openPosSlots, setOpenPosSlots] = useState<Set<number>>(() => {
+    // Pre-open slots that already have data from store
+    const set = new Set<number>()
+    if (store.additionalPositions.length > 0) {
+      store.additionalPositions.forEach((p, i) => { if (p.option_name) set.add(i) })
+    }
+    return set
+  })
   const [customPosInputs, setCustomPosInputs] = useState<string[]>(Array(numAdditionalSlots).fill(''))
   const [customPosCats, setCustomPosCats] = useState<string[]>(Array(numAdditionalSlots).fill(''))
 
@@ -199,7 +206,13 @@ export function StepPositionsContacts() {
   const [contacts, setContacts] = useState<(ContactV2 | null)[]>(
     store.contactsV2.length > 0 ? store.contactsV2.map(c => c.subcategory_id ? c : null) : Array(totalContactSlots).fill(null),
   )
-  const [expandedConSection, setExpandedConSection] = useState(true)
+  const [openConSlots, setOpenConSlots] = useState<Set<number>>(() => {
+    const set = new Set<number>()
+    if (store.contactsV2.length > 0) {
+      store.contactsV2.forEach((c, i) => { if (c.subcategory_id) set.add(i) })
+    }
+    return set
+  })
   const [customConInputs, setCustomConInputs] = useState<string[]>(Array(totalContactSlots).fill(''))
   const [customConCategories, setCustomConCategories] = useState<string[]>(Array(totalContactSlots).fill(''))
 
@@ -338,48 +351,54 @@ export function StepPositionsContacts() {
         </div>
       </section>
 
-      {/* ── Section 2: Additional Positions (1-2 slots) ── */}
+      {/* ── Section 2: Additional Positions (add on demand) ── */}
       <section className="mb-6">
-        <button type="button" onClick={() => setExpandedPosSection(!expandedPosSection)}
-          className="flex items-center justify-between w-full mb-2 cursor-pointer">
-          <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">
-            Pozycje dodatkowe ({numAdditionalSlots} {numAdditionalSlots === 1 ? 'slot' : 'sloty'})
-          </h3>
-          {expandedPosSection ? <ChevronUp className="w-4 h-4 text-coc-text-muted" /> : <ChevronDown className="w-4 h-4 text-coc-text-muted" />}
-        </button>
+        <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">
+          Pozycje dodatkowe <span className="text-coc-accent-light">{additionalPositions.filter(Boolean).length}/{numAdditionalSlots}</span>
+        </h3>
         <p className="text-xs text-coc-text-muted mb-3">Pozazawodowe organizacje, kluby i stowarzyszenia dopasowane do twojej postaci.</p>
 
-        {expandedPosSection && (
-          <div className="space-y-4">
-            {Array.from({ length: numAdditionalSlots }, (_, slotIdx) => {
-              const selected = additionalPositions[slotIdx]
-              const options = additionalOptions[slotIdx] ?? []
+        <div className="space-y-3">
+          {/* Render filled slots and open (unfilled) slots */}
+          {Array.from({ length: numAdditionalSlots }, (_, slotIdx) => {
+            const selected = additionalPositions[slotIdx]
+            const isOpen = openPosSlots.has(slotIdx)
 
-              return (
-                <div key={slotIdx} className="bg-coc-surface-light/30 rounded-lg p-3">
-                  <div className="text-xs text-coc-text-muted mb-2 font-medium">Slot {slotIdx + 1}</div>
+            if (!selected && !isOpen) return null
 
-                  {selected ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-sm font-medium">
-                            {weightStars(selected.weight)} {selected.option_name}
-                          </span>
-                          <span className="text-xs text-coc-text-muted ml-2">[{selected.roll_value}%]</span>
-                          {selected.is_attribute_special && <Sparkles className="w-3 h-3 text-yellow-400 inline ml-1" />}
-                          {selected.pending_st_approval && <span className="text-yellow-500 text-xs ml-1">[ST]</span>}
-                        </div>
-                        <button type="button" onClick={() => { const u = [...additionalPositions]; u[slotIdx] = null; setAdditionalPositions(u) }}
-                          className="text-xs text-coc-danger cursor-pointer">×</button>
+            const options = additionalOptions[slotIdx] ?? []
+
+            return (
+              <div key={slotIdx} className="bg-coc-surface-light/30 rounded-lg p-3">
+                {selected ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-medium">
+                          {weightStars(selected.weight)} {selected.option_name}
+                        </span>
+                        <span className="text-xs text-coc-text-muted ml-2">[{selected.roll_value}%]</span>
+                        {selected.is_attribute_special && <Sparkles className="w-3 h-3 text-yellow-400 inline ml-1" />}
+                        {selected.pending_st_approval && <span className="text-yellow-500 text-xs ml-1">[ST]</span>}
                       </div>
-                      {selected.unlocked_by && <div className="text-xs text-coc-text-muted">Odblokowane przez: {selected.unlocked_by}</div>}
-                      <textarea value={additionalDescriptions[slotIdx] ?? ''} onChange={(e) => { const d = [...additionalDescriptions]; d[slotIdx] = e.target.value; setAdditionalDescriptions(d) }}
-                        placeholder="Opis (opcjonalnie)..."
-                        className="w-full px-2 py-1 bg-coc-surface-light border border-coc-border rounded text-xs text-coc-text placeholder:text-coc-text-muted/50 min-h-[40px] resize-y" />
+                      <button type="button" onClick={() => {
+                        const u = [...additionalPositions]; u[slotIdx] = null; setAdditionalPositions(u)
+                        setOpenPosSlots(prev => { const s = new Set(prev); s.delete(slotIdx); return s })
+                      }}
+                        className="text-xs text-coc-danger cursor-pointer">×</button>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
+                    {selected.unlocked_by && <div className="text-xs text-coc-text-muted">Odblokowane przez: {selected.unlocked_by}</div>}
+                    <textarea value={additionalDescriptions[slotIdx] ?? ''} onChange={(e) => { const d = [...additionalDescriptions]; d[slotIdx] = e.target.value; setAdditionalDescriptions(d) }}
+                      placeholder="Opis (opcjonalnie)..."
+                      className="w-full px-2 py-1 bg-coc-surface-light border border-coc-border rounded text-xs text-coc-text placeholder:text-coc-text-muted/50 min-h-[40px] resize-y" />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {options.length === 0 ? (
+                      <p className="text-xs text-yellow-500/80 italic py-1">
+                        System nie ma sugestii. Mozesz wpisac wlasne, ale wymaga to zatwierdzenia przez Straznika Tajemnic.
+                      </p>
+                    ) : (
                       <div className="grid grid-cols-1 gap-1.5">
                         {options.map((opt) => {
                           const w = calculatePositionWeight(opt, characterMap)
@@ -401,77 +420,108 @@ export function StepPositionsContacts() {
                           )
                         })}
                       </div>
-                      <div className="flex gap-1 mt-1">
-                        <input type="text" value={customPosInputs[slotIdx]} onChange={(e) => { const i = [...customPosInputs]; i[slotIdx] = e.target.value; setCustomPosInputs(i) }}
-                          onKeyDown={(e) => e.key === 'Enter' && addCustomAdditionalPosition(slotIdx)}
-                          placeholder="Własne..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
-                        <select value={customPosCats[slotIdx]} onChange={(e) => { const c = [...customPosCats]; c[slotIdx] = e.target.value; setCustomPosCats(c) }}
-                          className="px-1 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text">
-                          <option value="">Kategoria (ST)</option>
-                          {ADDITIONAL_POS_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-                        </select>
-                      </div>
+                    )}
+                    <div className="flex gap-1 mt-1">
+                      <input type="text" value={customPosInputs[slotIdx]} onChange={(e) => { const i = [...customPosInputs]; i[slotIdx] = e.target.value; setCustomPosInputs(i) }}
+                        onKeyDown={(e) => e.key === 'Enter' && addCustomAdditionalPosition(slotIdx)}
+                        placeholder="Własne..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
+                      <select value={customPosCats[slotIdx]} onChange={(e) => { const c = [...customPosCats]; c[slotIdx] = e.target.value; setCustomPosCats(c) }}
+                        className="px-1 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text">
+                        <option value="">Kategoria (ST)</option>
+                        {ADDITIONAL_POS_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+                    {customPosInputs[slotIdx]?.trim() && (
+                      <p className="text-xs text-yellow-500/80 italic">
+                        Wlasne wpisy wymagaja zatwierdzenia przez Straznika Tajemnic.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Add button - visible when not all slots are filled */}
+          {additionalPositions.filter(Boolean).length < numAdditionalSlots && openPosSlots.size <= additionalPositions.filter(Boolean).length && (
+            <button type="button" onClick={() => {
+              // Find the first available (unfilled & not open) slot index
+              for (let i = 0; i < numAdditionalSlots; i++) {
+                if (!additionalPositions[i] && !openPosSlots.has(i)) {
+                  setOpenPosSlots(prev => new Set(prev).add(i))
+                  break
+                }
+              }
+            }}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-coc-accent-light hover:text-coc-accent border border-dashed border-coc-border hover:border-coc-accent/30 rounded-lg cursor-pointer transition-colors w-full justify-center">
+              <Plus className="w-4 h-4" />
+              Dodaj pozycje
+            </button>
+          )}
+        </div>
       </section>
 
-      {/* ── Section 3: Contacts ── */}
+      {/* ── Section 3: Contacts (add on demand) ── */}
       <section className="mb-6">
-        <button type="button" onClick={() => setExpandedConSection(!expandedConSection)}
-          className="flex items-center justify-between w-full mb-2 cursor-pointer">
-          <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">
-            Kontakty ({totalContactSlots} {totalContactSlots === 1 ? 'slot' : totalContactSlots < 5 ? 'sloty' : 'slotów'})
-          </h3>
-          {expandedConSection ? <ChevronUp className="w-4 h-4 text-coc-text-muted" /> : <ChevronDown className="w-4 h-4 text-coc-text-muted" />}
-        </button>
+        <h3 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">
+          Kontakty <span className="text-coc-accent-light">{contacts.filter(Boolean).length}/{totalContactSlots}</span>
+        </h3>
         <p className="text-xs text-coc-text-muted mb-3">
           Środowiska w których twój Badacz ma kontakty. Sloty 1-{occContactSlots}: zawodowe, reszta: dodatkowe.
         </p>
 
-        {expandedConSection && (
-          <div className="space-y-3">
-            {contactsWithSynergy.some((c) => c.synergy_bonus > 0) && (
-              <div className="text-xs text-coc-accent-light bg-coc-accent/10 rounded-lg px-3 py-1.5">
-                ✨ Synergia: kontakty w tej samej kategorii wzmacniają się nawzajem
-              </div>
-            )}
-            {Array.from({ length: totalContactSlots }, (_, slotIdx) => {
-              const selected = contacts[slotIdx]
-              const synContact = contactsWithSynergy.find((c) => c.slot_index === slotIdx)
-              const options = contactOptions[slotIdx] ?? []
-              const isOccSlot = slotIdx < occContactSlots
-              const synergyPreview = (sub: { category_id: string }) =>
-                getSynergyPreview(sub.category_id, contacts.filter(Boolean) as ContactV2[])
+        <div className="space-y-3">
+          {contactsWithSynergy.some((c) => c.synergy_bonus > 0) && (
+            <div className="text-xs text-coc-accent-light bg-coc-accent/10 rounded-lg px-3 py-1.5">
+              Synergia: kontakty w tej samej kategorii wzmacniaja sie nawzajem
+            </div>
+          )}
 
-              return (
-                <div key={slotIdx} className={`rounded-lg p-2 ${isOccSlot ? 'bg-coc-surface-light/30' : 'bg-coc-surface-light/15 border border-dashed border-coc-border'}`}>
-                  <div className="text-xs text-coc-text-muted mb-1">
-                    Slot {slotIdx + 1} <span className="text-coc-text-muted/60">({isOccSlot ? 'zawodowy' : 'dodatkowy'})</span>
-                  </div>
-                  {selected ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between px-2 py-1">
-                        <div>
-                          <span className="text-xs text-coc-text-muted">{synContact?.category_name ?? selected.category_name}</span>
-                          <div className="text-sm font-medium">
-                            {strengthDiamonds(synContact?.strength ?? selected.strength)}{' '}
-                            {selected.subcategory_name}{' '}
-                            <span className="font-mono">[{synContact?.roll_value ?? selected.roll_value}%]</span>
-                            {(synContact?.synergy_bonus ?? 0) > 0 && <span className="ml-1">✨</span>}
-                            {selected.pending_st_approval && <span className="text-yellow-500 ml-1">[ST]</span>}
-                          </div>
+          {/* Render filled slots and open (unfilled) slots */}
+          {Array.from({ length: totalContactSlots }, (_, slotIdx) => {
+            const selected = contacts[slotIdx]
+            const isOpen = openConSlots.has(slotIdx)
+
+            if (!selected && !isOpen) return null
+
+            const synContact = contactsWithSynergy.find((c) => c.slot_index === slotIdx)
+            const options = contactOptions[slotIdx] ?? []
+            const isOccSlot = slotIdx < occContactSlots
+            const synergyPreview = (sub: { category_id: string }) =>
+              getSynergyPreview(sub.category_id, contacts.filter(Boolean) as ContactV2[])
+
+            return (
+              <div key={slotIdx} className={`rounded-lg p-2 ${isOccSlot ? 'bg-coc-surface-light/30' : 'bg-coc-surface-light/15 border border-dashed border-coc-border'}`}>
+                {selected ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <div>
+                        <span className="text-xs text-coc-text-muted">{synContact?.category_name ?? selected.category_name}</span>
+                        <div className="text-sm font-medium">
+                          {strengthDiamonds(synContact?.strength ?? selected.strength)}{' '}
+                          {selected.subcategory_name}{' '}
+                          <span className="font-mono">[{synContact?.roll_value ?? selected.roll_value}%]</span>
+                          {(synContact?.synergy_bonus ?? 0) > 0 && <span className="ml-1">+</span>}
+                          {selected.pending_st_approval && <span className="text-yellow-500 ml-1">[ST]</span>}
                         </div>
-                        <button type="button" onClick={() => { const u = [...contacts]; u[slotIdx] = null; setContacts(u) }}
-                          className="text-xs text-coc-danger cursor-pointer">×</button>
                       </div>
+                      <button type="button" onClick={() => {
+                        const u = [...contacts]; u[slotIdx] = null; setContacts(u)
+                        setOpenConSlots(prev => { const s = new Set(prev); s.delete(slotIdx); return s })
+                      }}
+                        className="text-xs text-coc-danger cursor-pointer">×</button>
                     </div>
-                  ) : (
-                    <>
+                  </div>
+                ) : (
+                  <div className="space-y-2 p-1">
+                    <div className="text-xs text-coc-text-muted mb-1">
+                      <span className="text-coc-text-muted/60">({isOccSlot ? 'zawodowy' : 'dodatkowy'})</span>
+                    </div>
+                    {options.length === 0 ? (
+                      <p className="text-xs text-yellow-500/80 italic py-1">
+                        System nie ma sugestii. Mozesz wpisac wlasne, ale wymaga to zatwierdzenia przez Straznika Tajemnic.
+                      </p>
+                    ) : (
                       <div className="grid grid-cols-1 gap-1">
                         {options.map((sub) => {
                           const base = calculateBaseStrength(sub.id, jobId, characterMap)
@@ -488,30 +538,51 @@ export function StepPositionsContacts() {
                                 </div>
                                 <div className="text-right ml-2">
                                   <div className="text-xs font-mono">{strengthDiamonds(modified)} {roll}%</div>
-                                  {synPreview && <div className="text-xs text-coc-accent-light">✨</div>}
+                                  {synPreview && <div className="text-xs text-coc-accent-light">+syn</div>}
                                 </div>
                               </div>
                             </button>
                           )
                         })}
                       </div>
-                      <div className="mt-1 flex gap-1">
-                        <input type="text" value={customConInputs[slotIdx]} onChange={(e) => { const i = [...customConInputs]; i[slotIdx] = e.target.value; setCustomConInputs(i) }}
-                          onKeyDown={(e) => e.key === 'Enter' && addCustomContact(slotIdx)}
-                          placeholder="Własne środowisko..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
-                        <select value={customConCategories[slotIdx]} onChange={(e) => { const c = [...customConCategories]; c[slotIdx] = e.target.value; setCustomConCategories(c) }}
-                          className="px-1 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text">
-                          <option value="">Kategoria (ST)</option>
-                          {CONTACT_CATEGORIES_NEW.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+                    )}
+                    <div className="mt-1 flex gap-1">
+                      <input type="text" value={customConInputs[slotIdx]} onChange={(e) => { const i = [...customConInputs]; i[slotIdx] = e.target.value; setCustomConInputs(i) }}
+                        onKeyDown={(e) => e.key === 'Enter' && addCustomContact(slotIdx)}
+                        placeholder="Własne środowisko..." className="flex-1 px-2 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text placeholder:text-coc-text-muted/50" />
+                      <select value={customConCategories[slotIdx]} onChange={(e) => { const c = [...customConCategories]; c[slotIdx] = e.target.value; setCustomConCategories(c) }}
+                        className="px-1 py-1 text-xs bg-coc-surface-light border border-coc-border rounded text-coc-text">
+                        <option value="">Kategoria (ST)</option>
+                        {CONTACT_CATEGORIES_NEW.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                      </select>
+                    </div>
+                    {customConInputs[slotIdx]?.trim() && (
+                      <p className="text-xs text-yellow-500/80 italic">
+                        Wlasne wpisy wymagaja zatwierdzenia przez Straznika Tajemnic.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Add button - visible when not all slots are filled */}
+          {contacts.filter(Boolean).length < totalContactSlots && openConSlots.size <= contacts.filter(Boolean).length && (
+            <button type="button" onClick={() => {
+              for (let i = 0; i < totalContactSlots; i++) {
+                if (!contacts[i] && !openConSlots.has(i)) {
+                  setOpenConSlots(prev => new Set(prev).add(i))
+                  break
+                }
+              }
+            }}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-coc-accent-light hover:text-coc-accent border border-dashed border-coc-border hover:border-coc-accent/30 rounded-lg cursor-pointer transition-colors w-full justify-center">
+              <Plus className="w-4 h-4" />
+              Dodaj kontakt
+            </button>
+          )}
+        </div>
       </section>
 
       <div className="flex justify-between pt-4">

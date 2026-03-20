@@ -108,7 +108,8 @@ export function generateOptions(
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score)
 
-  // Wybierz 3 z różnych kategorii, unikaj kategorii pozycji głównej
+  // Wybierz max 3 z różnych kategorii, unikaj kategorii pozycji głównej
+  // NIE dopychaj do 3 — jeśli brak pasujących, zwróć mniej (nawet 0)
   const result: AdditionalPositionOption[] = []
   const usedCategories = new Set<string>()
 
@@ -118,12 +119,6 @@ export function generateOptions(
     if (opt.category === mainPositionCategory && !opt.is_attribute_special) continue
     result.push(opt)
     usedCategories.add(opt.category)
-  }
-
-  // Uzupełnij do 3 jeśli mało opcji
-  for (const { opt } of candidates) {
-    if (result.length >= 3) break
-    if (!result.find((r) => r.id === opt.id)) result.push(opt)
   }
 
   return result

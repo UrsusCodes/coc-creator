@@ -1,4 +1,4 @@
-import { findSubcategory, getAllSubcategories, type ContactSubcategoryData } from '@/data/contactCategories'
+import { findSubcategory, type ContactSubcategoryData } from '@/data/contactCategories'
 import { OCCUPATION_CONTACT_MAP } from '@/data/occupationContactMap'
 import type { ContactV2 } from '@/types/character'
 
@@ -130,16 +130,13 @@ export function generateContactOptions(
     .filter((s): s is ContactSubcategoryData => s !== null)
     .filter((s) => !existingContactIds.includes(s.id))
 
-  const wild = getAllSubcategories()
-    .filter((s) => !profile.natural_subcategories.includes(s.id))
-    .filter((s) => !existingContactIds.includes(s.id))
-
-  // Occupation slots: natural first. Additional slots: bonus + wild.
+  // Occupation slots: ONLY natural. Additional slots: ONLY bonus from skills.
+  // NIE dopychaj do 3 — jeśli brak pasujących, zwróć mniej (nawet 0)
   const pool = slotIndex < occSlots
-    ? [...natural, ...wild]
-    : [...getBonusSubcategories(character).filter((s) => !existingContactIds.includes(s.id)), ...wild]
+    ? natural
+    : getBonusSubcategories(character).filter((s) => !existingContactIds.includes(s.id))
 
-  // 3 z różnych kategorii
+  // Max 3 z różnych kategorii
   const result: ContactSubcategoryData[] = []
   const usedCategories = new Set<string>()
 
@@ -148,11 +145,6 @@ export function generateContactOptions(
     if (usedCategories.has(sub.category_id)) continue
     result.push(sub)
     usedCategories.add(sub.category_id)
-  }
-
-  for (const sub of pool) {
-    if (result.length >= 3) break
-    if (!result.find((r) => r.id === sub.id)) result.push(sub)
   }
 
   return result
