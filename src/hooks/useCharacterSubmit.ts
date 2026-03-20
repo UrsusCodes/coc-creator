@@ -17,7 +17,22 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
   const [error, setError] = useState<string | null>(null)
 
   const submit = async (state: WizardState): Promise<boolean> => {
-    if (!state.inviteCodeId || !state.era || !state.method) {
+    // For draft continuations, era/method may be missing from old localStorage
+    // Try to recover from invite code
+    let era = state.era
+    let method = state.method
+    if ((!era || !method) && state.inviteCodeId) {
+      const { data: code } = await supabase
+        .from('invite_codes')
+        .select('era, methods')
+        .eq('id', state.inviteCodeId)
+        .single()
+      if (code) {
+        if (!era) era = code.era as Era
+        if (!method) method = (code.methods as string[])?.[0] as import('@/types/common').CreationMethod ?? 'direct'
+      }
+    }
+    if (!state.inviteCodeId || !era || !method) {
       setError('Brak danych kodu zaproszenia.')
       return false
     }
@@ -36,23 +51,23 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
       }
 
       // Build enriched cash/assets strings with lifestyle info
-      const era = state.era as Era
+      const finalEra = era as Era
       const creditRating = (state.occupationSkillPoints['majetnosc'] ?? 0) +
         (typeof getSkillById('majetnosc')?.base === 'number' ? (getSkillById('majetnosc')?.base as number) : 0)
-      const bracket = getWealthBracket(era, creditRating)
-      const wealth = calculateWealth(era, creditRating)
+      const bracket = getWealthBracket(finalEra, creditRating)
+      const wealth = calculateWealth(finalEra, creditRating)
       const housing = bracket.housingOptions.find((h) => h.id === state.housingId)
       const transport = bracket.transportOptions.find((t) => t.id === state.transportId)
       const lifestyle = bracket.lifestyleOptions.find((l) => l.id === state.lifestyleId)
 
-      const selectedForms = WEALTH_FORMS[era].filter((f) => state.wealthFormIds.includes(f.id))
+      const selectedForms = WEALTH_FORMS[finalEra].filter((f) => state.wealthFormIds.includes(f.id))
 
       const cashDisplay = [
-        `Gotówka: ${formatCurrency(era, state.cashOnHand)}`,
+        `Gotówka: ${formatCurrency(finalEra, state.cashOnHand)}`,
         selectedForms.length > 0 ? `Dobytek: ${selectedForms.map((f) => f.label).join(', ')}` : '',
       ].filter(Boolean).join(' | ')
 
-      const assetsDisplay = formatCurrency(era, wealth.assets)
+      const assetsDisplay = formatCurrency(finalEra, wealth.assets)
 
       // Insert the new character
       const insertData: Record<string, unknown> = {
@@ -81,8 +96,8 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
         cash: cashDisplay,
         assets: assetsDisplay,
         spending_level: state.spendingLevel,
-        era: state.era,
-        method: state.method,
+        era: finalEra,
+        method,
         main_position: state.mainPosition ?? null,
         additional_positions: state.additionalPositions ?? [],
         contacts_v2: state.contactsV2 ?? [],
