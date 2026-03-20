@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { playerSaveDraft, playerCreateDraft } from '@/lib/player'
+import { supabase } from '@/lib/supabase'
 
 function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): Record<string, unknown> {
   return {
@@ -51,7 +52,22 @@ export function useDraftSync() {
 
     savingRef.current = true
     try {
-      const draftId = store.serverDraftId
+      let draftId = store.serverDraftId
+
+      // If no serverDraftId but we have an invite code, try to find existing draft in DB
+      if (!draftId && store.inviteCodeId) {
+        const { data: existing } = await supabase
+          .from('characters')
+          .select('id')
+          .eq('invite_code_id', store.inviteCodeId)
+          .eq('status', 'draft')
+          .maybeSingle()
+        if (existing?.id) {
+          draftId = existing.id
+          store.setServerDraftId(draftId)
+        }
+      }
+
       if (draftId) {
         await playerSaveDraft(playerToken, draftId, data)
       } else if (store.inviteCodeId) {
