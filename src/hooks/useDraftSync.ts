@@ -37,7 +37,7 @@ export function useDraftSync() {
   const savingRef = useRef(false)
 
   const saveNow = useCallback(async () => {
-    const playerToken = sessionStorage.getItem('player_token')
+    const playerToken = localStorage.getItem('player_token')
     if (!playerToken) return
 
     const store = useCharacterStore.getState()

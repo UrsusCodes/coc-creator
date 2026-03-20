@@ -16,15 +16,15 @@ interface PlayerState {
 }
 
 export const usePlayerStore = create<PlayerState>((set) => ({
-  isAuthenticated: !!sessionStorage.getItem('player_token'),
-  token: sessionStorage.getItem('player_token'),
-  player: JSON.parse(sessionStorage.getItem('player_info') ?? 'null'),
+  isAuthenticated: !!localStorage.getItem('player_token'),
+  token: localStorage.getItem('player_token'),
+  player: JSON.parse(localStorage.getItem('player_info') ?? 'null'),
 
   login: async (login: string, password: string) => {
     try {
       const result = await apiLogin(login, password)
-      sessionStorage.setItem('player_token', result.token)
-      sessionStorage.setItem('player_info', JSON.stringify(result.player))
+      localStorage.setItem('player_token', result.token)
+      localStorage.setItem('player_info', JSON.stringify(result.player))
       set({ isAuthenticated: true, token: result.token, player: result.player })
       return true
     } catch {
@@ -33,8 +33,8 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   },
 
   logout: () => {
-    sessionStorage.removeItem('player_token')
-    sessionStorage.removeItem('player_info')
+    localStorage.removeItem('player_token')
+    localStorage.removeItem('player_info')
     set({ isAuthenticated: false, token: null, player: null })
   },
 }))

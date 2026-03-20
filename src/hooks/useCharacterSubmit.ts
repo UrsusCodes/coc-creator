@@ -115,7 +115,7 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
       }
 
       // Attach player_id if player is logged in
-      const playerInfo = JSON.parse(sessionStorage.getItem('player_info') ?? 'null')
+      const playerInfo = JSON.parse(localStorage.getItem('player_info') ?? 'null')
       if (playerInfo?.id) {
         insertData.player_id = playerInfo.id
       }
@@ -142,7 +142,7 @@ export function useCharacterSubmit(): UseCharacterSubmitReturn {
       await supabase.rpc('increment_times_used', { code_id: state.inviteCodeId })
 
       // If player is logged in, claim the character
-      const playerToken = sessionStorage.getItem('player_token')
+      const playerToken = localStorage.getItem('player_token')
       if (playerToken) {
         try {
           await playerClaimCharacter(playerToken, state.inviteCodeId)

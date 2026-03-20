@@ -74,7 +74,7 @@ export function useEditSubmit(): UseEditSubmitReturn {
 
   const submitEdit = async (state: WizardState, changeComment: string): Promise<boolean> => {
     // Player-centric edit path: use player API
-    const playerToken = sessionStorage.getItem('player_token')
+    const playerToken = localStorage.getItem('player_token')
     if (state.playerEditCharacterId && playerToken) {
       setLoading(true)
       setError(null)
