@@ -19,11 +19,11 @@ export interface Tier {
 
 export const TIERS: Tier[] = [
   { id: 'A', label: 'Bezdomny',       min: 0,  max: 0,  spending: 0.5,  assetMult: 0,    cashMult: 0,   cashFixed: 1 },
-  { id: 'B', label: 'Ubogi',          min: 1,  max: 9,  spending: 2,    assetMult: 5,    cashMult: 2 },
-  { id: 'C', label: 'Przeciętny',     min: 10, max: 30, spending: 7,    assetMult: 50,   cashMult: 10 },
-  { id: 'D', label: 'Zamożny',        min: 31, max: 50, spending: 25,   assetMult: 200,  cashMult: 50 },
-  { id: 'E', label: 'Bardzo zamożny', min: 51, max: 70, spending: 80,   assetMult: 500,  cashMult: 200 },
-  { id: 'F', label: 'Bogaty',         min: 71, max: 80, spending: 300,  assetMult: 2000, cashMult: 500 },
+  { id: 'B', label: 'Ubogi',          min: 1,  max: 9,  spending: 2,    assetMult: 5,    cashMult: 1 },
+  { id: 'C', label: 'Przeciętny',     min: 10, max: 30, spending: 7,    assetMult: 50,   cashMult: 2 },
+  { id: 'D', label: 'Zamożny',        min: 31, max: 50, spending: 25,   assetMult: 200,  cashMult: 2 },
+  { id: 'E', label: 'Bardzo zamożny', min: 51, max: 70, spending: 80,   assetMult: 500,  cashMult: 5 },
+  { id: 'F', label: 'Bogaty',         min: 71, max: 80, spending: 300,  assetMult: 2000, cashMult: 5 },
 ]
 
 export function getTier(majetnosc: number): Tier {
