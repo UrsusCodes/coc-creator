@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { playerSaveDraft, playerCreateDraft } from '@/lib/player'
 
@@ -31,56 +31,73 @@ function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): R
   }
 }
 
-export function useDraftSync() {
-  const currentStep = useCharacterStore((s) => s.currentStep)
-  const editMode = useCharacterStore((s) => s.editMode)
-  const playerEditMode = useCharacterStore((s) => s.playerEditMode)
-  const inviteCodeId = useCharacterStore((s) => s.inviteCodeId)
-  const serverDraftId = useCharacterStore((s) => s.serverDraftId)
-  const setServerDraftId = useCharacterStore((s) => s.setServerDraftId)
+let lastSavedJson = ''
 
-  const lastStepRef = useRef(currentStep)
+export function useDraftSync() {
   const savingRef = useRef(false)
 
-  useEffect(() => {
+  const saveNow = useCallback(async () => {
     const playerToken = sessionStorage.getItem('player_token')
-    if (!playerToken) return // Not logged in, skip server sync
-    if (editMode || playerEditMode) return // Edit mode, not draft creation
-    if (currentStep <= 0) return // Still on invite code step
-    if (currentStep === lastStepRef.current) return // Step didn't change
+    if (!playerToken) return
 
-    lastStepRef.current = currentStep
-
-    // Avoid concurrent saves
+    const store = useCharacterStore.getState()
+    if (store.editMode || store.playerEditMode) return
+    if (store.currentStep <= 0) return
     if (savingRef.current) return
+
+    const data = buildDraftData(store)
+    const json = JSON.stringify(data)
+    if (json === lastSavedJson) return // Nothing changed
+
     savingRef.current = true
-
-    const saveToServer = async () => {
-      try {
-        const store = useCharacterStore.getState()
-        const data = buildDraftData(store)
-        const draftId = store.serverDraftId
-
-        if (draftId) {
-          // Update existing draft
-          await playerSaveDraft(playerToken, draftId, data)
-        } else if (store.inviteCodeId) {
-          // Create new draft
-          const result = await playerCreateDraft(playerToken, {
-            invite_code_id: store.inviteCodeId,
-            wizard_data: data,
-          })
-          if (result?.id) {
-            setServerDraftId(result.id)
-          }
+    try {
+      const draftId = store.serverDraftId
+      if (draftId) {
+        await playerSaveDraft(playerToken, draftId, data)
+      } else if (store.inviteCodeId) {
+        const result = await playerCreateDraft(playerToken, {
+          invite_code_id: store.inviteCodeId,
+          wizard_data: data,
+        })
+        if (result?.id) {
+          store.setServerDraftId(result.id)
         }
-      } catch {
-        // Silent fail — localStorage is the fallback
-      } finally {
-        savingRef.current = false
       }
+      lastSavedJson = json
+    } catch {
+      // Will retry on next interval
+    } finally {
+      savingRef.current = false
     }
+  }, [])
 
-    saveToServer()
-  }, [currentStep, editMode, playerEditMode, inviteCodeId, serverDraftId, setServerDraftId])
+  // Save on step change (immediate)
+  const currentStep = useCharacterStore((s) => s.currentStep)
+  useEffect(() => {
+    if (currentStep > 0) saveNow()
+  }, [currentStep, saveNow])
+
+  // Save periodically (every 10 seconds) to catch within-step changes
+  useEffect(() => {
+    const interval = setInterval(saveNow, 10000)
+    return () => clearInterval(interval)
+  }, [saveNow])
+
+  // Save on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const playerToken = sessionStorage.getItem('player_token')
+      if (!playerToken) return
+      const store = useCharacterStore.getState()
+      if (store.currentStep <= 0 || store.editMode || store.playerEditMode) return
+      const draftId = store.serverDraftId
+      if (!draftId) return
+      const data = buildDraftData(store)
+      // Use sendBeacon for reliable save on page close
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/player/characters/${draftId}/draft`
+      navigator.sendBeacon(url, new Blob([JSON.stringify({ wizard_data: data })], { type: 'application/json' }))
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
 }
