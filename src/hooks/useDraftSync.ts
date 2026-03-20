@@ -83,21 +83,12 @@ export function useDraftSync() {
     return () => clearInterval(interval)
   }, [saveNow])
 
-  // Save on page unload
+  // Save on page visibility change (tab switch, minimize) and before unload
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      const playerToken = sessionStorage.getItem('player_token')
-      if (!playerToken) return
-      const store = useCharacterStore.getState()
-      if (store.currentStep <= 0 || store.editMode || store.playerEditMode) return
-      const draftId = store.serverDraftId
-      if (!draftId) return
-      const data = buildDraftData(store)
-      // Use sendBeacon for reliable save on page close
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/player/characters/${draftId}/draft`
-      navigator.sendBeacon(url, new Blob([JSON.stringify({ wizard_data: data })], { type: 'application/json' }))
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') saveNow()
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [saveNow])
 }

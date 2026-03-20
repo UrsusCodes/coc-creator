@@ -88,11 +88,14 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   const { labels: STEP_LABELS, components: STEP_COMPONENTS } = useMemo(() => buildSteps(hasDrivePillars), [hasDrivePillars])
   const StepComponent = STEP_COMPONENTS[currentStep]
 
-  // In edit mode / draft continuation: step is already set by load action; skip resetting to 0.
-  // In normal mode: always start at step 0 (code entry) on mount.
+  // In edit/draft mode: step is already set by load action; skip resetting.
+  // In normal mode: only reset to step 0 if there's no saved progress.
   useEffect(() => {
     if (!editMode && !isDraftContinuation && !playerEditMode) {
-      setStep(0)
+      // Only reset if no invite code is loaded (truly fresh start)
+      if (!inviteCodeId) {
+        setStep(0)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
