@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { createClient } from '@supabase/supabase-js'
 import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 import type { Era, CreationMethod, CharacteristicKey } from '@/types/common'
 
@@ -704,12 +705,11 @@ async function _syncDraftToServer() {
     let draftId = s.serverDraftId
 
     // Find existing draft if serverDraftId is lost
+    const sb = createClient(
+      import.meta.env.VITE_SUPABASE_URL ?? '',
+      import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+    )
     if (!draftId && s.inviteCodeId) {
-      const { createClient } = await import('@supabase/supabase-js')
-      const sb = createClient(
-        import.meta.env.VITE_SUPABASE_URL ?? '',
-        import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
-      )
       const { data: existing } = await sb
         .from('characters')
         .select('id')
@@ -719,16 +719,11 @@ async function _syncDraftToServer() {
       if (existing?.id) {
         draftId = existing.id
         useCharacterStore.getState().setServerDraftId(draftId)
+        console.log('[DraftSync] Found draft:', draftId)
       }
     }
 
     if (draftId) {
-      // Direct DB update — no edge function, no auth issues
-      const { createClient } = await import('@supabase/supabase-js')
-      const sb = createClient(
-        import.meta.env.VITE_SUPABASE_URL ?? '',
-        import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
-      )
       const { error } = await sb
         .from('characters')
         .update(data)
