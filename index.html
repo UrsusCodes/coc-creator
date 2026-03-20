@@ -12,11 +12,13 @@
   <body>
     <div id="root"></div>
     <script>
-      // Force reload if cached version is outdated
+      // Force reload + fix broken state if cached version is outdated
       (function() {
-        var v = '20260320c';
+        var v = '20260320d';
         if (localStorage.getItem('app_version') !== v) {
           localStorage.setItem('app_version', v);
+          // Clear broken wizard state from old versions
+          localStorage.removeItem('coc-character-wizard');
           if (performance.navigation && performance.navigation.type !== 1) {
             location.reload();
           }
