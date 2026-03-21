@@ -96,6 +96,19 @@ export function StepEquipment() {
     setSelectedItems((prev) => prev.filter((_, i) => i !== index))
   }
 
+  // Group duplicate items for display: "Item x3" instead of 3 separate entries
+  const groupedItems = (() => {
+    const counts = new Map<string, number>()
+    for (const item of selectedItems) {
+      counts.set(item, (counts.get(item) ?? 0) + 1)
+    }
+    return Array.from(counts.entries()).map(([item, count]) => ({
+      item,
+      count,
+      label: count > 1 ? `${item} [x${count}]` : item,
+    }))
+  })()
+
   // ── Save & Next ──
   const handleNext = () => {
     const assetBreakdown = selectedFormIds.map((id) => {
@@ -109,7 +122,7 @@ export function StepEquipment() {
       ...(hasLokum2 && lokum2 ? [`[Lokum] ${lokum2.label} (${lokum2Ownership === 'own' ? 'własność, dodatkowy' : 'wynajem, dodatkowy'})`] : []),
       `[Transport] ${transport.label}`,
       `[Lifestyle] ${stars} ${ratingLabel(rating)}`,
-      ...selectedItems,
+      ...groupedItems.map(({ label }) => label),
       ...customItems.filter(Boolean).map((item) => `[Ekwipunek] ${item}`),
       ...assetBreakdown.map((a) => `[Dobytek] ${a.type}: ${formatDollars(a.value)}`),
     ]
@@ -557,10 +570,14 @@ export function StepEquipment() {
                 <ShoppingCart className="w-4 h-4 text-coc-text-muted" />
                 <span className="text-sm font-medium text-coc-text-muted">Koszyk ({selectedItems.length + customItems.length})</span>
               </div>
-              {selectedItems.map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-sm px-2 py-0.5 bg-coc-surface-light rounded">
-                  <span className="truncate">{item}</span>
-                  <button onClick={() => removeItem(i)} className="text-coc-danger text-xs ml-2 cursor-pointer">×</button>
+              {groupedItems.map(({ item, count, label }) => (
+                <div key={item} className="flex items-center justify-between text-sm px-2 py-0.5 bg-coc-surface-light rounded">
+                  <span className="truncate">{label}</span>
+                  <button onClick={() => {
+                    // Remove one instance of this item
+                    const idx = selectedItems.indexOf(item)
+                    if (idx >= 0) removeItem(idx)
+                  }} className="text-coc-danger text-xs ml-2 cursor-pointer">{count > 1 ? `−1` : '×'}</button>
                 </div>
               ))}
               {customItems.map((item, i) => (
