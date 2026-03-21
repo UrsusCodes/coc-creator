@@ -65,7 +65,7 @@ const BOJOWE_I_FIZYCZNE: AdditionalPositionOption[] = [
     category: 'BOJOWE I FIZYCZNE',
     organization_size: 'Mała',
     unlock: [
-      { type: 'skill', key: 'walka_wrecz:miecz', threshold: 50, weight: 2.0 },
+      { type: 'skill', key: 'walka_wrecz:dluga_ostra', threshold: 50, weight: 2.0 },
     ],
     flavor: 'Elegancja klingi i tradycja pojedynku: szermierka to sztuka, nie bójka.',
     placeholder: 'np. Fencing Academy of New York. Ekskluzywne treningi z europejskimi mistrzami. Biała broń i dobre maniery.',

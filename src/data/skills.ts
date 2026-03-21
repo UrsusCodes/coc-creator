@@ -363,13 +363,9 @@ export const SKILLS: Skill[] = [
     category: 'combat_melee',
     combatSpecializations: [
       { id: 'bijatyka', name: 'Bijatyka', base: 25 },
-      { id: 'miecz', name: 'Miecz', base: 20 },
+      { id: 'dluga_ostra', name: 'Długa Ostra', base: 15 },
       { id: 'bron_obuchowa', name: 'Broń Obuchowa', base: 10 },
-      { id: 'topor', name: 'Topór/Siekiera', base: 15 },
-      { id: 'wlocznia', name: 'Włócznia', base: 20 },
-      { id: 'bicz', name: 'Bicz', base: 5, rare: true },
-      { id: 'garota', name: 'Garota', base: 15, rare: true },
-      { id: 'pila', name: 'Piła Łańcuchowa', base: 10, rare: true, era: ['modern'] },
+      { id: 'skrytobojstwo', name: 'Skrytobójstwo', base: 20, rare: true },
     ],
   },
   {
@@ -426,7 +422,7 @@ export function getSpecialization(key: string): string | null {
 }
 
 /** Get the base value for a skill, handling combat specialization composite keys.
- *  'walka_wrecz:bijatyka' → 25, 'walka_wrecz:miecz' → 20, 'nauka:Fizyka' → 1 */
+ *  'walka_wrecz:bijatyka' → 25, 'walka_wrecz:dluga_ostra' → 15, 'nauka:Fizyka' → 1 */
 export function getSkillBase(compositeKey: string): number | 'half_dex' | 'edu' {
   const baseId = getBaseSkillId(compositeKey)
   const spec = getSpecialization(compositeKey)
