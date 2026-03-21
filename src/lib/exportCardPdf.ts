@@ -96,8 +96,9 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'damage_bonus') return String(derived.db)
   if (id === 'build') return String(derived.build)
   if (id === 'dodge') return String(derived.dodge)
-  if (id === 'spending_level') return char.spending_level
+  if (id === 'spending_level') return char.spending_level ?? ''
   if (id === 'cash') {
+    if (!char.cash) return ''
     const match = char.cash.match(/Gotówka:\s*(.+?)(?:\s*\||$)/)
     return match ? match[1].trim() : char.cash
   }
