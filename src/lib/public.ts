@@ -17,9 +17,9 @@ async function publicFetch(path: string, options: RequestInit = {}): Promise<Res
 
 export async function publicGetCharacter(token: string): Promise<{
   character: CharacterData
-  tokenType: 'view' | 'edit' | 'wizard_edit'
+  tokenType: 'view' | 'edit'
   tokenId: string
-  editMode: 'standard' | 'full' | null
+  editMode: 'lore' | 'standard' | 'full' | null
   expiresAt: string | null
 }> {
   const res = await publicFetch(`/character/${token}`)

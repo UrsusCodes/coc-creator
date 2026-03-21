@@ -21,7 +21,7 @@ export function SharedCharacterPage() {
   const { token } = useParams<{ token: string }>()
 
   const [character, setCharacter] = useState<CharacterSheetData | null>(null)
-  const [tokenType, setTokenType] = useState<'view' | 'edit' | 'wizard_edit'>('view')
+  const [tokenType, setTokenType] = useState<'view' | 'edit'>('view')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

@@ -207,8 +207,8 @@ export interface ShareToken {
   id: string
   character_id: string
   token: string
-  type: 'view' | 'edit' | 'wizard_edit'
-  edit_mode?: 'standard' | 'full' | null
+  type: 'view' | 'edit'
+  edit_mode?: 'lore' | 'standard' | 'full' | null
   expires_at?: string | null
   created_at: string
 }
