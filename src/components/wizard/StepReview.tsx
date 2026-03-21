@@ -367,9 +367,17 @@ export function StepReview() {
           )
         })()}
         <ul className="text-sm space-y-0.5">
-          {[...store.equipment, ...store.customItems].map((item, i) => (
-            <li key={i} className="text-coc-text-muted">• {item}</li>
-          ))}
+          {(() => {
+            const all = [...store.equipment, ...store.customItems]
+            const counts = new Map<string, number>()
+            for (const item of all) {
+              if (/\[x\d+\]$/.test(item)) { counts.set(item, 1); continue }
+              counts.set(item, (counts.get(item) ?? 0) + 1)
+            }
+            return Array.from(counts.entries()).map(([item, count]) => (
+              <li key={item} className="text-coc-text-muted">• {count > 1 ? `${item} [x${count}]` : item}</li>
+            ))
+          })()}
         </ul>
       </Section>
 
