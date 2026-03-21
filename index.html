@@ -14,12 +14,12 @@
     <script>
       // Force reload + fix broken state if cached version is outdated
       (function() {
-        var v = '20260321b';
+        var v = '20260321c';
         if (localStorage.getItem('app_version') !== v) {
+          // Clear corrupted wizard state — server drafts are safe
+          localStorage.removeItem('coc-character-wizard');
           localStorage.setItem('app_version', v);
-          if (performance.navigation && performance.navigation.type !== 1) {
-            location.reload();
-          }
+          location.reload();
         }
       })();
     </script>
