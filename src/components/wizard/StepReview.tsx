@@ -391,9 +391,12 @@ export function StepReview() {
                 <Send className="w-4 h-4" />
                 Propozycja zmian wysłana!
               </div>
-              <p className="text-sm text-coc-text-muted">
+              <p className="text-sm text-coc-text-muted mb-3">
                 Strażnik Tajemnic otrzymał Twoją propozycję zmian i zatwierdzi je lub odrzuci.
               </p>
+              <Button variant="secondary" onClick={() => { store.reset(); navigate('/player') }}>
+                Powrót do panelu gracza
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">

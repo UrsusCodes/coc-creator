@@ -369,8 +369,8 @@ Deno.serve(async (req: Request) => {
         .from('edit_permissions')
         .select('id, character_id, edit_mode, expires_at, characters(name)')
         .eq('player_id', playerId)
-        .gt('expires_at', new Date().toISOString())
-        .order('expires_at', { ascending: true })
+        .or(`expires_at.gt.${new Date().toISOString()},expires_at.is.null`)
+        .order('expires_at', { ascending: true, nullsFirst: false })
       if (error) throw error
 
       const result = (data ?? []).map((row: Record<string, unknown>) => ({
@@ -401,7 +401,7 @@ Deno.serve(async (req: Request) => {
         .from('edit_permissions')
         .select('id, character_id, edit_mode, expires_at')
         .eq('character_id', charId)
-        .gt('expires_at', new Date().toISOString())
+        .or(`expires_at.gt.${new Date().toISOString()},expires_at.is.null`)
         .maybeSingle()
       if (error) throw error
       return jsonResponse(data)
@@ -427,7 +427,7 @@ Deno.serve(async (req: Request) => {
         .select('id, edit_mode')
         .eq('character_id', charId)
         .eq('player_id', playerId)
-        .gt('expires_at', new Date().toISOString())
+        .or(`expires_at.gt.${new Date().toISOString()},expires_at.is.null`)
         .maybeSingle()
       if (permErr) throw permErr
       if (!perm) return errorResponse('No active edit permission', 403)

@@ -133,46 +133,6 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
-    // POST /characters/:id/edit-token - create a time-limited wizard edit token
-    const editTokenMatch = path.match(/^\/characters\/([^/]+)\/edit-token$/)
-    if (editTokenMatch && req.method === 'POST') {
-      const charId = editTokenMatch[1]
-      const body = await req.json()
-      const mode = body.mode === 'full' ? 'full' : 'standard'
-
-      // Delete any existing edit tokens for this character
-      await supabase
-        .from('share_tokens')
-        .delete()
-        .eq('character_id', charId)
-        .eq('type', 'wizard_edit')
-
-      const token = crypto.randomUUID()
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-
-      const { data, error } = await supabase
-        .from('share_tokens')
-        .insert({
-          character_id: charId,
-          token,
-          type: 'wizard_edit',
-          edit_mode: mode,
-          expires_at: expiresAt,
-        })
-        .select()
-        .single()
-      if (error) throw error
-
-      const appOrigin = req.headers.get('origin') ?? 'https://okbrsoomtomexilxxsyd.supabase.co'
-      return jsonResponse({
-        token,
-        url: `${appOrigin}/edit/${token}`,
-        expires_at: expiresAt,
-        edit_mode: mode,
-        id: data.id,
-      })
-    }
-
     // DELETE /share/:tokenId - delete a share token
     const shareDeleteMatch = path.match(/^\/share\/([^/]+)$/)
     if (shareDeleteMatch && req.method === 'DELETE') {
@@ -577,7 +537,8 @@ Deno.serve(async (req: Request) => {
     if (editPermCreateMatch && req.method === 'POST') {
       const charId = editPermCreateMatch[1]
       const body = await req.json()
-      const editMode = body.edit_mode === 'full' ? 'full' : 'standard'
+      const validModes = ['lore', 'standard', 'full']
+      const editMode = validModes.includes(body.edit_mode) ? body.edit_mode : 'standard'
       const duration = body.duration ?? '24h'
 
       const durationMs: Record<string, number> = {
@@ -585,8 +546,9 @@ Deno.serve(async (req: Request) => {
         '3d': 3 * 24 * 60 * 60 * 1000,
         '1w': 7 * 24 * 60 * 60 * 1000,
       }
-      const ms = durationMs[duration] ?? durationMs['24h']
-      const expiresAt = new Date(Date.now() + ms).toISOString()
+      const expiresAt = duration === 'until_disabled'
+        ? null
+        : new Date(Date.now() + (durationMs[duration] ?? durationMs['24h'])).toISOString()
 
       // Get character to find player_id
       const { data: char, error: charErr } = await supabase

@@ -115,62 +115,6 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
-    // POST /character/:token/propose-edit - player proposes changes via wizard edit token
-    const proposeMatch = path.match(/^\/character\/([^/]+)\/propose-edit$/)
-    if (proposeMatch && req.method === 'POST') {
-      const tokenStr = proposeMatch[1]
-
-      const { data: tokenRow, error: tokenErr } = await supabase
-        .from('share_tokens')
-        .select('*')
-        .eq('token', tokenStr)
-        .single()
-      if (tokenErr || !tokenRow) {
-        return new Response(JSON.stringify({ error: 'Token nie istnieje' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      if (tokenRow.type !== 'wizard_edit') {
-        return new Response(JSON.stringify({ error: 'Nieprawidłowy typ tokenu' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) {
-        return new Response(JSON.stringify({ error: 'Token wygasł' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      const body = await req.json()
-      const { proposed_data, change_comment } = body
-
-      // Delete any existing pending edit for this character (only one at a time)
-      await supabase
-        .from('pending_edits')
-        .delete()
-        .eq('character_id', tokenRow.character_id)
-        .eq('status', 'pending')
-
-      const { data: pendingEdit, error: insertErr } = await supabase
-        .from('pending_edits')
-        .insert({
-          character_id: tokenRow.character_id,
-          proposed_data,
-          change_comment: change_comment ?? '',
-          status: 'pending',
-        })
-        .select()
-        .single()
-      if (insertErr) throw insertErr
-
-      return jsonResponse(pendingEdit)
-    }
-
     // GET /character/:token/history - history via share token
     const historyMatch = path.match(/^\/character\/([^/]+)\/history$/)
     if (historyMatch && req.method === 'GET') {

@@ -31,25 +31,6 @@ export async function publicGetCharacter(token: string): Promise<{
   return res.json()
 }
 
-export async function publicProposeEdit(
-  token: string,
-  proposedData: Record<string, unknown>,
-  changeComment: string
-): Promise<{ id: string; status: string }> {
-  const res = await publicFetch(`/character/${token}/propose-edit`, {
-    method: 'POST',
-    body: JSON.stringify({ proposed_data: proposedData, change_comment: changeComment }),
-  })
-  if (!res.ok) {
-    if (res.status === 403) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error ?? 'Token wygasł lub jest nieprawidłowy')
-    }
-    throw new Error('Błąd wysyłania propozycji zmian')
-  }
-  return res.json()
-}
-
 export async function publicUpdateCharacter(
   token: string,
   data: Record<string, unknown>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Search, ChevronDown, ChevronRight } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { OCCUPATIONS, OCCUPATION_CATEGORIES, getOccupationsForEra } from '@/data/occupations'
@@ -17,9 +17,13 @@ export function StepOccupation() {
   const store = useCharacterStore()
   const era = store.era as Era
   const chars = store.characteristics as Characteristics
+  const isEditMode = !!(store.editMode || store.playerEditMode)
+  const originalOccupationId = useRef(store.occupationId)
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(store.occupationId)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set(OCCUPATION_CATEGORIES.map(c => c.id)))
+  const [showCascadeWarning, setShowCascadeWarning] = useState(false)
+  const [pendingOccupationId, setPendingOccupationId] = useState<string | null>(null)
 
   const eraOccs = useMemo(() => getOccupationsForEra(era), [era])
 
@@ -76,10 +80,32 @@ export function StepOccupation() {
   )
 
   const handleNext = () => {
-    if (selectedId) {
-      store.setOccupation(selectedId)
-      store.nextStep()
+    if (!selectedId) return
+    // In edit mode, warn if changing occupation (causes cascade reset)
+    if (isEditMode && selectedId !== originalOccupationId.current) {
+      setPendingOccupationId(selectedId)
+      setShowCascadeWarning(true)
+      return
     }
+    store.setOccupation(selectedId)
+    store.nextStep()
+  }
+
+  const handleCascadeConfirm = () => {
+    if (pendingOccupationId) {
+      store.setOccupation(pendingOccupationId)
+      store.setMainPosition(null as unknown as Parameters<typeof store.setMainPosition>[0])
+      store.setPositionsAndContactsV2([], [])
+    }
+    setShowCascadeWarning(false)
+    setPendingOccupationId(null)
+    store.nextStep()
+  }
+
+  const handleCascadeCancel = () => {
+    setSelectedId(originalOccupationId.current)
+    setShowCascadeWarning(false)
+    setPendingOccupationId(null)
   }
 
   const renderOccItem = (occ: Occupation) => {
@@ -222,6 +248,19 @@ export function StepOccupation() {
               <strong>Kontakty:</strong> {selected.contacts}
             </p>
           )}
+        </div>
+      )}
+
+      {/* Cascade warning dialog for edit mode */}
+      {showCascadeWarning && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
+          <p className="text-sm text-amber-400 mb-3">
+            Zmiana zawodu spowoduje reset umiejętności zawodowych, osobistych, pozycji i kontaktów. Kontynuować?
+          </p>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={handleCascadeCancel}>Anuluj</Button>
+            <Button onClick={handleCascadeConfirm}>Tak, zmień zawód</Button>
+          </div>
         </div>
       )}
 

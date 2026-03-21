@@ -100,13 +100,12 @@ export interface WizardState {
   presetUsed: string
 
   // Edit mode fields
-  editMode: 'standard' | 'full' | null
+  editMode: 'lore' | 'standard' | 'full' | null
   editCharacterId: string | null
-  editToken: string | null
   originalSnapshot: Record<string, unknown> | null
 
   // Player-centric edit fields
-  playerEditMode: 'standard' | 'full' | null
+  playerEditMode: 'lore' | 'standard' | 'full' | null
   playerEditCharacterId: string | null
   isDraftContinuation: boolean
   draftLockedStep: number | null
@@ -114,21 +113,10 @@ export interface WizardState {
   // Server-side draft ID (for wizard auto-save)
   serverDraftId: string | null
 
-  // Action to load character for editing
-  loadForEdit: (data: {
-    characterId: string
-    token: string
-    editMode: 'standard' | 'full'
-    character: Record<string, unknown>
-    era: string
-    perks: string[]
-    maxSkillValue: number
-  }) => void
-
   // Action to load character for player-centric editing
   loadForPlayerEdit: (data: {
     characterId: string
-    editMode: 'standard' | 'full'
+    editMode: 'lore' | 'standard' | 'full'
     character: Record<string, unknown>
     era: string
     perks: string[]
@@ -192,11 +180,10 @@ export interface WizardState {
 }
 
 const editModeDefaults = {
-  editMode: null as 'standard' | 'full' | null,
+  editMode: null as 'lore' | 'standard' | 'full' | null,
   editCharacterId: null as string | null,
-  editToken: null as string | null,
   originalSnapshot: null as Record<string, unknown> | null,
-  playerEditMode: null as 'standard' | 'full' | null,
+  playerEditMode: null as 'lore' | 'standard' | 'full' | null,
   playerEditCharacterId: null as string | null,
   isDraftContinuation: false,
   draftLockedStep: null as number | null,
@@ -270,6 +257,12 @@ const initialState = {
   ...characterDataDefaults,
 }
 
+export function getAllowedSteps(level: 'lore' | 'standard' | 'full'): number[] {
+  if (level === 'lore') return [10, 11, 12]
+  if (level === 'standard') return [5, 6, 7, 8, 9, 10, 11, 12]
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+}
+
 export const useCharacterStore = create<WizardState>()(
   persist(
     (set) => ({
@@ -280,8 +273,24 @@ export const useCharacterStore = create<WizardState>()(
         // When navigating away from step 0, save the step for resume
         savedStep: step > 0 ? step : s.savedStep,
       })),
-      nextStep: () => set((s) => ({ currentStep: s.currentStep + 1, savedStep: s.currentStep + 1 })),
+      nextStep: () => set((s) => {
+        const level = s.playerEditMode ?? s.editMode
+        if (level) {
+          const allowed = getAllowedSteps(level)
+          const next = allowed.find(step => step > s.currentStep)
+          if (next !== undefined) return { currentStep: next, savedStep: next }
+          return {}
+        }
+        return { currentStep: s.currentStep + 1, savedStep: s.currentStep + 1 }
+      }),
       prevStep: () => set((s) => {
+        const level = s.playerEditMode ?? s.editMode
+        if (level) {
+          const allowed = getAllowedSteps(level)
+          const prev = [...allowed].reverse().find(step => step < s.currentStep)
+          if (prev !== undefined) return { currentStep: prev, savedStep: prev }
+          return {}
+        }
         const minStep = s.isDraftContinuation && s.draftLockedStep != null ? s.draftLockedStep + 1 : 0
         const prev = Math.max(minStep, s.currentStep - 1)
         return { currentStep: prev, savedStep: prev > 0 ? prev : s.savedStep }
@@ -355,73 +364,11 @@ export const useCharacterStore = create<WizardState>()(
           ...(data.presetUsed !== undefined && { presetUsed: data.presetUsed }),
         }),
 
-      loadForEdit: (data) =>
-        set(() => {
-          const char = data.character
-          const isStandard = data.editMode === 'standard'
-          return {
-            // Reset to clean state first
-            ...initialState,
-            // Edit mode metadata
-            editMode: data.editMode,
-            editCharacterId: data.characterId,
-            editToken: data.token,
-            originalSnapshot: char,
-            // Wizard navigation: skip step 0
-            currentStep: 1,
-            savedStep: 1,
-            // Invite-code-equivalent fields from character
-            era: (char.era as import('@/types/common').Era) ?? null,
-            perks: (char.perks as string[]) ?? data.perks,
-            maxSkillValue: data.maxSkillValue,
-            method: (char.method as import('@/types/common').CreationMethod) ?? 'direct',
-            // Map character DB fields to wizard store fields
-            playerName: (char.player_name as string) ?? '',
-            name: (char.name as string) ?? '',
-            age: (char.age as number) ?? null,
-            gender: (char.gender as string) ?? '',
-            appearance: (char.appearance as string) ?? '',
-            residence: (char.residence as string) ?? '',
-            birthplace: (char.birthplace as string) ?? '',
-            characteristics: (char.characteristics as import('@/types/character').Characteristics) ?? {},
-            luck: (char.luck as number) ?? null,
-            derived: (char.derived as import('@/types/character').DerivedAttributes) ?? null,
-            occupationId: (char.occupation_id as string) ?? null,
-            occupationSkillPoints: (char.occupation_skill_points as Record<string, number>) ?? {},
-            personalSkillPoints: (char.personal_skill_points as Record<string, number>) ?? {},
-            backstory: (char.backstory as import('@/types/character').Backstory) ?? {},
-            mainPosition: (char.main_position as import('@/types/character').MainPosition) ?? null,
-            additionalPositions: (char.additional_positions as import('@/types/character').AdditionalPosition[]) ?? [],
-            contactsV2: (char.contacts_v2 as import('@/types/character').ContactV2[]) ?? [],
-            portraitUrl: (char.portrait_url as string) ?? '',
-            // Equipment: strip system-prefixed items, keep regular ones
-            equipment: ((char.equipment as string[]) ?? []).filter(
-              (e: string) => !e.startsWith('[Mieszkanie]') && !e.startsWith('[Transport]') && !e.startsWith('[Styl życia]')
-            ),
-            customItems: [],
-            // Wealth fields from DB
-            lifestyleRating: (char.lifestyle_rating as number) ?? 0,
-            lifestyleStars: (char.lifestyle_stars as string) ?? '',
-            lifestyleLabel: (char.lifestyle_label as string) ?? '',
-            spendingLevel: (char.spending_level as string) ?? '',
-            spendingFree: (char.spending_free as string) ?? '',
-            cash: (char.cash as string) ?? '',
-            assets: (char.assets as string) ?? '',
-            // Locks: standard mode locks steps 1-3, full mode leaves them open
-            characteristicsLocked: isStandard,
-            ageLocked: isStandard,
-            ageModifiersLocked: isStandard,
-            // Age deductions already baked into characteristics in DB
-            ageDeductions: {},
-            eduRolls: [],
-            eduAfterRolls: null,
-          }
-        }),
-
       loadForPlayerEdit: (data) =>
         set(() => {
           const char = data.character
-          const isStandard = data.editMode === 'standard'
+          const lockChars = data.editMode === 'standard' || data.editMode === 'lore'
+          const startStep = data.editMode === 'lore' ? 10 : data.editMode === 'standard' ? 5 : 1
           return {
             // Reset to clean state first
             ...initialState,
@@ -431,9 +378,9 @@ export const useCharacterStore = create<WizardState>()(
             editMode: data.editMode,
             editCharacterId: data.characterId,
             originalSnapshot: char,
-            // Wizard navigation: skip step 0
-            currentStep: 1,
-            savedStep: 1,
+            // Wizard navigation: start at the appropriate step for edit level
+            currentStep: startStep,
+            savedStep: startStep,
             // Invite-code-equivalent fields from character
             era: (char.era as import('@/types/common').Era) ?? null,
             perks: (char.perks as string[]) ?? data.perks,
@@ -471,10 +418,10 @@ export const useCharacterStore = create<WizardState>()(
             spendingFree: (char.spending_free as string) ?? '',
             cash: (char.cash as string) ?? '',
             assets: (char.assets as string) ?? '',
-            // Locks: standard mode locks steps 1-3, full mode leaves them open
-            characteristicsLocked: isStandard,
-            ageLocked: isStandard,
-            ageModifiersLocked: isStandard,
+            // Locks: lore and standard modes lock characteristics/age, full mode leaves them open
+            characteristicsLocked: lockChars,
+            ageLocked: lockChars,
+            ageModifiersLocked: lockChars,
             // Age deductions already baked into characteristics in DB
             ageDeductions: {},
             eduRolls: [],
@@ -570,7 +517,7 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 8,
+      version: 9,
       migrate: (persisted, version) => {
         let state = persisted as Record<string, unknown>
 
@@ -641,6 +588,11 @@ export const useCharacterStore = create<WizardState>()(
             ...state,
             serverDraftId: (state.serverDraftId as string) ?? null,
           }
+        }
+        // Version 8 → 9: remove editToken (edit system v2)
+        if (version < 9) {
+          state = { ...state }
+          delete (state as Record<string, unknown>).editToken
         }
         return state as unknown as WizardState
       },

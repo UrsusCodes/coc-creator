@@ -54,8 +54,8 @@ interface PlayerCharacter {
 interface EditPermission {
   id: string
   character_id: string
-  edit_mode: 'standard' | 'full'
-  expires_at: string
+  edit_mode: 'lore' | 'standard' | 'full'
+  expires_at: string | null  // null = until disabled
   character_name?: string
 }
 
@@ -102,17 +102,30 @@ export function PlayerDashboard() {
 
   const getEditPermission = (charId: string) => {
     return editPermissions.find(
-      (p) => p.character_id === charId && new Date(p.expires_at) > new Date()
+      (p) => p.character_id === charId && (p.expires_at === null || new Date(p.expires_at) > new Date())
     )
   }
 
-  const formatTimeLeft = (expiresAt: string) => {
+  const formatTimeLeft = (expiresAt: string | null) => {
+    if (expiresAt === null) return 'do odwołania'
     const diff = new Date(expiresAt).getTime() - Date.now()
     if (diff <= 0) return 'wygasło'
     const hours = Math.floor(diff / (1000 * 60 * 60))
     if (hours < 24) return `${hours}h`
     const days = Math.floor(hours / 24)
     return `${days}d`
+  }
+
+  const getEditLevelLabel = (mode: 'lore' | 'standard' | 'full') => {
+    if (mode === 'lore') return 'Lore'
+    if (mode === 'standard') return 'Standard'
+    return 'Pełny'
+  }
+
+  const hasPendingEdit = (charId: string) => {
+    return characters.some(
+      (c) => c.id === charId && (c as unknown as Record<string, unknown>).pending_edit === true
+    )
   }
 
   const isDraft = (char: PlayerCharacter) =>
@@ -285,9 +298,14 @@ export function PlayerDashboard() {
                     <Badge>{ERA_LABELS[char.era as keyof typeof ERA_LABELS] ?? char.era}</Badge>
                     {char.occupation_id && <Badge variant="default">{char.occupation_id}</Badge>}
                     {perm && (
-                      <Badge variant="warning">
-                        Edycja: jeszcze {formatTimeLeft(perm.expires_at)}
-                      </Badge>
+                      <>
+                        <Badge variant="warning">
+                          Edycja: jeszcze {formatTimeLeft(perm.expires_at)}
+                        </Badge>
+                        <Badge variant="default">
+                          {getEditLevelLabel(perm.edit_mode)}
+                        </Badge>
+                      </>
                     )}
                   </div>
                   <div className="text-xs text-coc-text-muted">
@@ -307,15 +325,19 @@ export function PlayerDashboard() {
                     </Button>
                   )}
                   {perm && !charIsDraft && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleEditCharacter(char)}
-                      disabled={isActionLoading}
-                    >
-                      {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
-                      Edytuj
-                    </Button>
+                    hasPendingEdit(char.id) ? (
+                      <Badge variant="warning">Zmiana oczekuje na zatwierdzenie</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleEditCharacter(char)}
+                        disabled={isActionLoading}
+                      >
+                        {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
+                        Edytuj
+                      </Button>
+                    )
                   )}
                   <Button size="sm" variant="secondary" onClick={() => setViewingId(char.id)}>
                     <Eye className="w-3.5 h-3.5" /> Podgląd

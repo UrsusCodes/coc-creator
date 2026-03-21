@@ -76,19 +76,6 @@ export async function adminGetCharacterHistory(password: string, charId: string)
   return res.json()
 }
 
-export async function adminCreateEditToken(
-  password: string,
-  charId: string,
-  mode: 'standard' | 'full'
-): Promise<{ token: string; url: string; expires_at: string; edit_mode: string; id: string }> {
-  const res = await adminFetch(`/characters/${charId}/edit-token`, password, {
-    method: 'POST',
-    body: JSON.stringify({ mode }),
-  })
-  if (!res.ok) throw new Error('Błąd tworzenia tokenu edycji')
-  return res.json()
-}
-
 export async function adminCreateShareToken(password: string, charId: string, type: 'view' | 'edit') {
   const res = await adminFetch(`/characters/${charId}/share`, password, {
     method: 'POST',

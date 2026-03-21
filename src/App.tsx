@@ -7,7 +7,6 @@ import { SuccessPage } from '@/pages/SuccessPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { SharedCharacterPage } from '@/pages/SharedCharacterPage'
 import { PlayerPage } from '@/pages/PlayerPage'
-import { EditCharacterPage } from '@/pages/EditCharacterPage'
 import { AdminDraftPage } from '@/pages/AdminDraftPage'
 
 const TestPdfPage = lazy(() => import('@/pages/TestPdfPage').then(m => ({ default: m.TestPdfPage })))
@@ -30,7 +29,6 @@ function App() {
           <Route path="/admin/draft" element={<AdminDraftPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/c/:token" element={<SharedCharacterPage />} />
-          <Route path="/edit/:token" element={<EditCharacterPage />} />
           <Route path="/test-pdf" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestPdfPage /></Suspense>} />
           <Route path="/test-roll" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestRollPage /></Suspense>} />
           <Route path="/card-editor" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><CardEditorPage /></Suspense>} />

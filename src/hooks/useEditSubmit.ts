@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { publicProposeEdit } from '@/lib/public'
 import { playerSubmitEdit } from '@/lib/player'
 import type { WizardState } from '@/stores/characterStore'
 import { getWealthBracket, calculateWealth, formatCurrency, WEALTH_FORMS } from '@/data/eras'
@@ -73,35 +72,17 @@ export function useEditSubmit(): UseEditSubmitReturn {
   const [error, setError] = useState<string | null>(null)
 
   const submitEdit = async (state: WizardState, changeComment: string): Promise<boolean> => {
-    // Player-centric edit path: use player API
     const playerToken = localStorage.getItem('player_token')
-    if (state.playerEditCharacterId && playerToken) {
-      setLoading(true)
-      setError(null)
-      try {
-        const proposedData = buildProposedData(state)
-        await playerSubmitEdit(playerToken, state.playerEditCharacterId, proposedData, changeComment)
-        return true
-      } catch (err) {
-        setError((err as Error).message ?? 'Błąd wysyłania propozycji zmian.')
-        return false
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    // Token-based edit path (fallback)
-    if (!state.editToken) {
-      setError('Brak tokenu edycji.')
+    if (!state.playerEditCharacterId || !playerToken) {
+      setError('Brak uprawnień do edycji.')
       return false
     }
 
     setLoading(true)
     setError(null)
-
     try {
       const proposedData = buildProposedData(state)
-      await publicProposeEdit(state.editToken, proposedData, changeComment)
+      await playerSubmitEdit(playerToken, state.playerEditCharacterId, proposedData, changeComment)
       return true
     } catch (err) {
       setError((err as Error).message ?? 'Błąd wysyłania propozycji zmian.')

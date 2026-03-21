@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { KeyRound, Trash2, PenLine, ShieldAlert } from 'lucide-react'
 import { Stepper } from '@/components/ui/Stepper'
-import { useCharacterStore } from '@/stores/characterStore'
+import { useCharacterStore, getAllowedSteps } from '@/stores/characterStore'
 import { useDraftSync } from '@/hooks/useDraftSync'
 import { PL } from '@/data/i18n'
 import { supabase } from '@/lib/supabase'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { StepInviteCode } from './StepInviteCode'
 import { StepCharacteristics } from './StepCharacteristics'
 import { StepAge } from './StepAge'
@@ -75,6 +78,11 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   const characterName = useCharacterStore((s) => s.name)
   const isDraftContinuation = useCharacterStore((s) => s.isDraftContinuation)
   const playerEditMode = useCharacterStore((s) => s.playerEditMode)
+  const store = useCharacterStore()
+  const navigate = useNavigate()
+
+  const editLevel = playerEditMode ?? storeEditMode
+  const allowedSteps = editLevel ? getAllowedSteps(editLevel) : null
 
   const [confirmAbandon, setConfirmAbandon] = useState(false)
 
@@ -87,6 +95,18 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   const hasDrivePillars = perks.includes('drive_pillars')
   const { labels: STEP_LABELS, components: STEP_COMPONENTS } = useMemo(() => buildSteps(hasDrivePillars), [hasDrivePillars])
   const StepComponent = STEP_COMPONENTS[currentStep]
+
+  // Filter stepper labels for edit mode — only show allowed steps
+  const filteredLabels = useMemo(() => {
+    if (!allowedSteps) return STEP_LABELS
+    return STEP_LABELS.filter((_, i) => allowedSteps.includes(i))
+  }, [STEP_LABELS, allowedSteps])
+
+  // Map currentStep to index within filtered labels
+  const stepperIndex = useMemo(() => {
+    if (!allowedSteps) return currentStep
+    return allowedSteps.indexOf(currentStep)
+  }, [allowedSteps, currentStep])
 
   // In edit/draft mode: step is already set by load action; skip resetting.
   // In normal mode: only reset to step 0 if there's no saved progress.
@@ -114,28 +134,13 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   return (
     <div className="space-y-6">
       {/* Edit mode banner */}
-      {editMode && storeEditMode && !playerEditMode && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-coc-accent/10 border border-coc-accent/30 rounded-lg text-sm">
-          <PenLine className="w-4 h-4 text-coc-accent-light shrink-0" />
-          <span className="text-coc-accent-light font-medium">
-            Edycja postaci: {characterName || '—'}
-          </span>
-          <span className="text-coc-text-muted ml-1">
-            (tryb: {storeEditMode === 'standard' ? 'Standard' : 'Pełny'})
-          </span>
-        </div>
-      )}
-
-      {/* Player edit mode banner */}
-      {playerEditMode && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-coc-accent/10 border border-coc-accent/30 rounded-lg text-sm">
-          <PenLine className="w-4 h-4 text-coc-accent-light shrink-0" />
-          <span className="text-coc-accent-light font-medium">
-            Edycja postaci (uprawnienia gracza): {characterName || '—'}
-          </span>
-          <span className="text-coc-text-muted ml-1">
-            (tryb: {playerEditMode === 'standard' ? 'Standard' : 'Pełny'})
-          </span>
+      {editLevel && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-2 text-sm text-blue-400 flex items-center gap-2">
+          <PenLine className="w-4 h-4" />
+          Edycja postaci: {characterName || '—'}
+          <Badge variant="default">
+            {editLevel === 'lore' ? 'Lore' : editLevel === 'standard' ? 'Standard' : 'Pełny'}
+          </Badge>
         </div>
       )}
 
@@ -150,7 +155,7 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
       )}
 
       <div className="flex items-center justify-between">
-        <Stepper steps={STEP_LABELS} currentStep={currentStep} />
+        <Stepper steps={filteredLabels} currentStep={stepperIndex} />
         <div className="flex items-center gap-2">
           {showAbandon && !confirmAbandon && (
             <button
@@ -162,7 +167,12 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
               Usuń postać (podejście {timesUsed + 2} z {maxTries})
             </button>
           )}
-          {!editMode && !isDraftContinuation && !playerEditMode && currentStep > 0 && (
+          {editLevel && (
+            <Button variant="ghost" size="sm" onClick={() => { store.reset(); navigate('/player') }}>
+              Powrót do panelu
+            </Button>
+          )}
+          {!editMode && !isDraftContinuation && !playerEditMode && !editLevel && currentStep > 0 && (
             <button
               type="button"
               onClick={() => setStep(0)}

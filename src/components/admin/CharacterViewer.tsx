@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History, PenLine, Clock, UserPlus, Shield } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History, Clock, UserPlus, Shield } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import {
   adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens,
-  adminDeleteShareToken, adminCreateEditToken, adminCreateEditPermission, adminRevokeEditPermission,
+  adminDeleteShareToken, adminCreateEditPermission, adminRevokeEditPermission,
   adminAssignCharacterToPlayer, adminGetPlayers,
 } from '@/lib/admin'
 import { getSkillBase } from '@/data/skills'
@@ -50,11 +50,6 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
   const [historyLoading, setHistoryLoading] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
-  // Edit token generation
-  const [editTokenMode, setEditTokenMode] = useState<'standard' | 'full'>('standard')
-  const [editTokenResult, setEditTokenResult] = useState<{ url: string; expires_at: string } | null>(null)
-  const [editTokenCopied, setEditTokenCopied] = useState(false)
-  const [editTokenLoading, setEditTokenLoading] = useState(false)
 
   // Admin notes (independent of edit mode)
   const [notes, setNotes] = useState(char.admin_notes ?? '')
@@ -63,9 +58,9 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
 
   // Edit permissions (player-centric)
   const [showEditPermissions, setShowEditPermissions] = useState(false)
-  const [editPermMode, setEditPermMode] = useState<'standard' | 'full'>('standard')
+  const [editPermMode, setEditPermMode] = useState<'lore' | 'standard' | 'full'>('standard')
   const [editPermDuration, setEditPermDuration] = useState<string>('24h')
-  const [editPermResult, setEditPermResult] = useState<{ edit_mode: string; expires_at: string } | null>(null)
+  const [editPermResult, setEditPermResult] = useState<{ edit_mode: string; expires_at: string | null } | null>(null)
   const [editPermLoading, setEditPermLoading] = useState(false)
 
   // Player assignment
@@ -237,28 +232,6 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
     setShowHistory(!showHistory)
   }
 
-  // --- Edit token ---
-
-  const handleGenerateEditToken = async () => {
-    if (!password) return
-    setEditTokenLoading(true)
-    setEditTokenResult(null)
-    try {
-      const result = await adminCreateEditToken(password, char.id, editTokenMode)
-      setEditTokenResult({ url: result.url, expires_at: result.expires_at })
-    } catch {
-      // error silently
-    } finally {
-      setEditTokenLoading(false)
-    }
-  }
-
-  const handleCopyEditToken = () => {
-    if (!editTokenResult) return
-    navigator.clipboard.writeText(editTokenResult.url)
-    setEditTokenCopied(true)
-    setTimeout(() => setEditTokenCopied(false), 2000)
-  }
 
   // --- Edit permissions ---
 
@@ -461,10 +434,11 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
                   <label className="text-sm text-coc-text-muted">Tryb:</label>
                   <select
                     value={editPermMode}
-                    onChange={(e) => { setEditPermMode(e.target.value as 'standard' | 'full'); setEditPermResult(null) }}
+                    onChange={(e) => { setEditPermMode(e.target.value as 'lore' | 'standard' | 'full'); setEditPermResult(null) }}
                     className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
                   >
-                    <option value="standard">Standard (cechy/wiek tylko do odczytu)</option>
+                    <option value="lore">Lore (tylko historia i dane podstawowe)</option>
+                    <option value="standard">Standard (od zawodu wzwyż)</option>
                     <option value="full">Pełny (edycja wszystkiego)</option>
                   </select>
                   <label className="text-sm text-coc-text-muted">Czas:</label>
@@ -474,8 +448,8 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
                     className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
                   >
                     <option value="24h">24 godziny</option>
-                    <option value="3d">3 dni</option>
                     <option value="1w">1 tydzień</option>
+                    <option value="until_disabled">Do odwołania</option>
                   </select>
                   <Button
                     variant="secondary"
@@ -493,7 +467,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
                       <div className="flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5 text-coc-text-muted shrink-0" />
                         <span className="text-xs text-coc-text-muted">
-                          Aktywne uprawnienie ({editPermResult.edit_mode}) — wygasa: {new Date(editPermResult.expires_at).toLocaleString('pl-PL')}
+                          Aktywne uprawnienie ({editPermResult.edit_mode}) — {editPermResult.expires_at ? `wygasa: ${new Date(editPermResult.expires_at).toLocaleString('pl-PL')}` : 'Bezterminowo'}
                         </span>
                       </div>
                       <Button
@@ -509,58 +483,9 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
                 )}
               </>
             ) : (
-              <>
-                {/* Fallback: token-based edit link for characters without player */}
-                <p className="text-xs text-amber-400 mb-2">
-                  Przypisz postać do gracza, aby użyć uprawnień edycji.
-                </p>
-                <p className="text-xs text-coc-text-muted">
-                  Alternatywnie: wygeneruj jednorazowy link do edycji (24h).
-                </p>
-                <div className="flex items-center gap-3">
-                  <label className="text-sm text-coc-text-muted">Tryb:</label>
-                  <select
-                    value={editTokenMode}
-                    onChange={(e) => { setEditTokenMode(e.target.value as 'standard' | 'full'); setEditTokenResult(null) }}
-                    className="px-3 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
-                  >
-                    <option value="standard">Standard (cechy/wiek tylko do odczytu)</option>
-                    <option value="full">Pełny (edycja wszystkiego)</option>
-                  </select>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleGenerateEditToken}
-                    disabled={editTokenLoading}
-                  >
-                    {editTokenLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
-                    Generuj link (24h)
-                  </Button>
-                </div>
-                {editTokenResult && (
-                  <div className="bg-coc-surface-light border border-coc-accent/30 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-coc-text-muted shrink-0" />
-                      <span className="text-xs text-coc-text-muted">
-                        Wygasa: {new Date(editTokenResult.expires_at).toLocaleString('pl-PL')}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-coc-accent-light truncate flex-1 min-w-0">
-                        {editTokenResult.url}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyEditToken}
-                        className="p-1 text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer shrink-0"
-                        title="Kopiuj link"
-                      >
-                        {editTokenCopied ? <Check className="w-3.5 h-3.5 text-coc-accent-light" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
+              <p className="text-xs text-amber-400">
+                Przypisz postać do gracza aby włączyć edycję.
+              </p>
             )}
           </div>
         )}
