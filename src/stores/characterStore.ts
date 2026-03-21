@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { createClient } from '@supabase/supabase-js'
 import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 import type { Era, CreationMethod, CharacteristicKey } from '@/types/common'
 
@@ -290,6 +289,8 @@ export const useCharacterStore = create<WizardState>()(
 
       setInviteCode: (data) =>
         set({
+          ...editModeDefaults,
+          ...characterDataDefaults,
           inviteCodeId: data.id,
           inviteCode: data.code,
           methods: data.methods,
@@ -300,8 +301,6 @@ export const useCharacterStore = create<WizardState>()(
           timesUsed: data.timesUsed,
           maxSkillValue: data.maxSkillValue,
           savedStep: 0,
-          serverDraftId: null,
-          ...characterDataDefaults,
         }),
 
       setMethod: (method) => set({ method }),
@@ -649,111 +648,4 @@ export const useCharacterStore = create<WizardState>()(
   )
 )
 
-// ══════════════════════════════════════════════════════════════
-// SERVER DRAFT SYNC — runs at store level, independent of React
-// ══════════════════════════════════════════════════════════════
-
-let _syncTimer: ReturnType<typeof setTimeout> | null = null
-let _syncing = false
-let _lastSyncJson = ''
-
-function _buildSyncData(s: WizardState): Record<string, unknown> {
-  return {
-    characteristics: s.characteristics,
-    luck: s.luck,
-    age: s.age,
-    gender: s.gender,
-    name: s.name,
-    player_name: s.playerName,
-    appearance: s.appearance,
-    residence: s.residence,
-    birthplace: s.birthplace,
-    occupation_id: s.occupationId,
-    occupation_skill_points: s.occupationSkillPoints,
-    personal_skill_points: s.personalSkillPoints,
-    backstory: s.backstory,
-    main_position: s.mainPosition,
-    additional_positions: s.additionalPositions,
-    contacts_v2: s.contactsV2,
-    portrait_url: s.portraitUrl,
-    equipment: s.equipment,
-    derived: s.derived,
-    era: s.era,
-    method: s.method,
-    perks: s.perks,
-    max_skill_value: s.maxSkillValue,
-    draft_step: s.currentStep,
-  }
-}
-
-async function _syncDraftToServer() {
-  if (_syncing) return
-  const token = localStorage.getItem('player_token')
-  if (!token) return
-
-  const s = useCharacterStore.getState()
-  if (s.currentStep <= 0) return
-  if (s.editMode || s.playerEditMode) return
-
-  const data = _buildSyncData(s)
-  const json = JSON.stringify(data)
-  if (json === _lastSyncJson) return
-
-  _syncing = true
-  try {
-    let draftId = s.serverDraftId
-
-    // Find existing draft if serverDraftId is lost
-    const sb = createClient(
-      import.meta.env.VITE_SUPABASE_URL ?? '',
-      import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
-    )
-    if (!draftId && s.inviteCodeId) {
-      const { data: existing } = await sb
-        .from('characters')
-        .select('id')
-        .eq('invite_code_id', s.inviteCodeId)
-        .eq('status', 'draft')
-        .maybeSingle()
-      if (existing?.id) {
-        draftId = existing.id
-        useCharacterStore.getState().setServerDraftId(draftId)
-        console.log('[DraftSync] Found draft:', draftId)
-      }
-    }
-
-    if (draftId) {
-      const { error } = await sb
-        .from('characters')
-        .update(data)
-        .eq('id', draftId)
-      if (!error) {
-        _lastSyncJson = json
-        console.log('[DraftSync] Saved, step:', s.currentStep, 'occ:', s.occupationId)
-      } else {
-        console.error('[DraftSync] DB error:', error.message)
-      }
-    }
-  } catch (err) {
-    console.error('[DraftSync] Error:', err)
-  } finally {
-    _syncing = false
-  }
-}
-
-// Subscribe to store changes — debounced 3s save
-useCharacterStore.subscribe((state, prev) => {
-  if (state.currentStep <= 0) return
-  if (state.editMode || state.playerEditMode) return
-
-  // Immediate save on step change
-  if (state.currentStep !== prev.currentStep) {
-    _lastSyncJson = '' // Force save
-    _syncDraftToServer()
-    return
-  }
-
-  // Debounced save on any data change
-  if (_syncTimer) clearTimeout(_syncTimer)
-  _syncTimer = setTimeout(_syncDraftToServer, 3000)
-})
+// Draft sync is handled by useDraftSync hook in WizardShell (safe, with ownership checks)
