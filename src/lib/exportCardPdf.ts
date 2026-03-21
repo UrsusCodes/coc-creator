@@ -322,12 +322,24 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     result[`weap${n}_malf`] = w.malf
   }
 
-  // Fill equipment (left col 1-12, right col 1-12)
-  for (let i = 0; i < Math.min(equip.length, 12); i++) {
-    result[`equip_l_${i + 1}`] = equip[i]
+  // Group duplicate equipment items: ["Ammo", "Ammo", "Ammo"] → ["Ammo [x3]"]
+  const groupedEquip: string[] = []
+  const equipCounts = new Map<string, number>()
+  for (const item of equip) {
+    // Skip items already grouped (have [xN] suffix)
+    if (/\[x\d+\]$/.test(item)) { groupedEquip.push(item); continue }
+    equipCounts.set(item, (equipCounts.get(item) ?? 0) + 1)
   }
-  for (let i = 12; i < Math.min(equip.length, 24); i++) {
-    result[`equip_r_${i - 11}`] = equip[i]
+  for (const [item, count] of equipCounts) {
+    groupedEquip.push(count > 1 ? `${item} [x${count}]` : item)
+  }
+
+  // Fill equipment (left col 1-12, right col 1-12)
+  for (let i = 0; i < Math.min(groupedEquip.length, 12); i++) {
+    result[`equip_l_${i + 1}`] = groupedEquip[i]
+  }
+  for (let i = 12; i < Math.min(groupedEquip.length, 24); i++) {
+    result[`equip_r_${i - 11}`] = groupedEquip[i]
   }
 
   // Fill assets (up to 12)
