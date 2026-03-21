@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { KeyRound, Loader2, RotateCcw, PlayCircle } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
@@ -39,9 +39,50 @@ export function StepInviteCode() {
 
   // Auto-validate if code comes from URL param
   const urlCode = searchParams.get('code')
+  const autoValidated = useRef(false)
   useEffect(() => {
-    if (urlCode && !store.inviteCode && !inviteCode) {
-      validate(urlCode)
+    if (urlCode && !autoValidated.current && !inviteCode) {
+      autoValidated.current = true
+      setCode(urlCode)
+      // Use handleValidate flow (not raw validate) to properly reset store
+      const runAutoValidate = async () => {
+        setSubmittedCharacter(null)
+        const result = await validate(urlCode)
+        if (result) {
+          const { data: existingChar } = await supabase
+            .from('characters')
+            .select('*')
+            .eq('invite_code_id', result.id)
+            .eq('status', 'submitted')
+            .maybeSingle()
+          if (existingChar) {
+            setSubmittedCharacter(existingChar as CharacterData)
+          }
+          const isSameCode = result.id === store.inviteCodeId
+          const methods = result.methods ?? [result.method]
+          const autoMethod = methods.length === 1 ? methods[0] : null
+          if (isSameCode && store.savedStep > 0) {
+            setResumeAvailable(true)
+            setSelectedMethod(store.method ?? autoMethod)
+            store.updateInviteCodeMeta({ timesUsed: result.times_used })
+          } else {
+            setResumeAvailable(false)
+            setSelectedMethod(autoMethod)
+            store.setInviteCode({
+              id: result.id,
+              code: result.code,
+              methods,
+              method: autoMethod,
+              era: result.era,
+              perks: result.perks ?? [],
+              maxTries: result.max_tries,
+              timesUsed: result.times_used,
+              maxSkillValue: result.max_skill_value ?? 80,
+            })
+          }
+        }
+      }
+      runAutoValidate()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
