@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, RefreshCw, Plus, Trash2, UserPlus, KeyRound, ChevronDown, ChevronUp, Copy, Check, Users } from 'lucide-react'
+import { Loader2, RefreshCw, Plus, Trash2, UserPlus, KeyRound, ChevronDown, ChevronUp, Copy, Check, Users, Eye } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import {
   adminGetPlayers, adminCreatePlayer, adminDeletePlayer, adminUpdatePlayer,
@@ -8,6 +8,8 @@ import {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { CharacterViewer } from './CharacterViewer'
+import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 
 interface PlayerRow {
   id: string
@@ -70,6 +72,7 @@ export function PlayerManager() {
   const [playerCharacters, setPlayerCharacters] = useState<CharacterRow[]>([])
   const [showCharacters, setShowCharacters] = useState<string | null>(null)
   const [allCharacters, setAllCharacters] = useState<CharacterRow[] | null>(null)
+  const [viewingCharacter, setViewingCharacter] = useState<CharacterSheetData | null>(null)
 
   const fetchPlayers = useCallback(async () => {
     if (!password) return
@@ -195,6 +198,13 @@ export function PlayerManager() {
     }
   }
 
+  const handleViewCharacter = (char: CharacterRow) => {
+    const full = allCharacters?.find((c) => c.id === char.id)
+    if (full) {
+      setViewingCharacter(full as unknown as CharacterSheetData)
+    }
+  }
+
   const handleCopyLogin = (login: string) => {
     navigator.clipboard.writeText(login)
     setCopiedLogin(login)
@@ -204,6 +214,21 @@ export function PlayerManager() {
   // Filter unassigned codes for dropdown
   const assignedCodeIds = new Set(assignedCodes.map((c) => c.invite_code_id))
   const availableCodes = allCodes.filter((c) => !assignedCodeIds.has(c.id))
+
+  // Show CharacterViewer if viewing a character
+  if (viewingCharacter) {
+    return (
+      <CharacterViewer
+        character={viewingCharacter}
+        onBack={() => setViewingCharacter(null)}
+        onUpdate={(updated) => {
+          setViewingCharacter((prev) => prev ? { ...prev, ...updated } as CharacterSheetData : null)
+          // Refresh allCharacters cache
+          setAllCharacters(null)
+        }}
+      />
+    )
+  }
 
   return (
     <Card>
@@ -322,6 +347,9 @@ export function PlayerManager() {
                         {ch.era && <Badge>{ch.era}</Badge>}
                       </div>
                     </div>
+                    <Button size="sm" variant="secondary" onClick={() => handleViewCharacter(ch)}>
+                      <Eye className="w-3.5 h-3.5" /> Podgląd
+                    </Button>
                   </div>
                 ))}
               </div>
