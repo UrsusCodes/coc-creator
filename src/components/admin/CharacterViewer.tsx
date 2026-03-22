@@ -95,18 +95,55 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
     }))
   }
 
-  const handleSkillChange = (skillId: string, totalValue: number) => {
+  const resolveBase = (skillId: string) => {
     const base = getSkillBase(skillId)
-    let baseVal: number
-    if (base === 'half_dex') baseVal = Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
-    else if (base === 'edu') baseVal = editData.characteristics['EDU'] ?? 0
-    else baseVal = base
+    if (base === 'half_dex') return Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
+    if (base === 'edu') return editData.characteristics['EDU'] ?? 0
+    return base
+  }
+
+  const handleSkillChange = (skillId: string, totalValue: number) => {
+    const baseVal = resolveBase(skillId)
     const points = Math.max(0, totalValue - baseVal)
     setEditData((prev) => ({
       ...prev,
       occupation_skill_points: { ...prev.occupation_skill_points, [skillId]: points },
       personal_skill_points: { ...prev.personal_skill_points },
     }))
+  }
+
+  const handleSkillDelete = (skillId: string) => {
+    setEditData((prev) => {
+      const { [skillId]: _occ, ...restOcc } = prev.occupation_skill_points
+      const { [skillId]: _per, ...restPer } = prev.personal_skill_points
+      return { ...prev, occupation_skill_points: restOcc, personal_skill_points: restPer }
+    })
+  }
+
+  const handleSkillTransfer = (fromId: string, toId: string, points: number) => {
+    setEditData((prev) => {
+      const fromOcc = prev.occupation_skill_points[fromId] ?? 0
+      const fromPer = prev.personal_skill_points[fromId] ?? 0
+      const fromTotal = fromOcc + fromPer
+      const transfer = Math.min(points, fromTotal)
+      const remaining = fromTotal - transfer
+
+      const newOcc = { ...prev.occupation_skill_points }
+      const newPer = { ...prev.personal_skill_points }
+
+      // Source: consolidate remaining into occupation, clear personal
+      if (remaining > 0) {
+        newOcc[fromId] = remaining
+      } else {
+        delete newOcc[fromId]
+      }
+      delete newPer[fromId]
+
+      // Target: add transferred points to occupation
+      newOcc[toId] = (newOcc[toId] ?? 0) + transfer
+
+      return { ...prev, occupation_skill_points: newOcc, personal_skill_points: newPer }
+    })
   }
 
   const handleBackstoryChange = (key: string, value: unknown) => {
@@ -351,6 +388,8 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
               personalSkillPoints={editData.personal_skill_points}
               characteristics={editData.characteristics}
               onChange={handleSkillChange}
+              onDelete={handleSkillDelete}
+              onTransfer={handleSkillTransfer}
             />
             <BackstoryEditor
               backstory={editData.backstory}
