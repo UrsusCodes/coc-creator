@@ -7,8 +7,8 @@ interface SkillsEditorProps {
   personalSkillPoints: Record<string, number>
   characteristics: Record<string, number>
   onChange: (skillId: string, totalValue: number) => void
-  onDelete: (skillId: string) => void
-  onTransfer: (fromSkillId: string, toSkillId: string, points: number) => void
+  onDelete?: (skillId: string) => void
+  onTransfer?: (fromSkillId: string, toSkillId: string, points: number) => void
 }
 
 export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, characteristics, onChange, onDelete, onTransfer }: SkillsEditorProps) {
@@ -110,7 +110,7 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
 
   const handleTransfer = () => {
     if (!transferFrom || !transferTo || transferPoints <= 0 || transferFrom === transferTo) return
-    onTransfer(transferFrom, transferTo, transferPoints)
+    onTransfer?.(transferFrom, transferTo, transferPoints)
     setTransferFrom('')
     setTransferTo('')
     setTransferPoints(0)
@@ -123,24 +123,26 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">Umiejętności</h4>
-        <div className="flex gap-1">
-          <button
-            type="button"
-            onClick={() => { setShowAdd(!showAdd); setShowTransfer(false) }}
-            className={`p-1 rounded transition-colors cursor-pointer ${showAdd ? 'text-coc-accent-light bg-coc-accent/10' : 'text-coc-text-muted hover:text-coc-text'}`}
-            title="Dodaj umiejętność"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowTransfer(!showTransfer); setShowAdd(false) }}
-            className={`p-1 rounded transition-colors cursor-pointer ${showTransfer ? 'text-coc-accent-light bg-coc-accent/10' : 'text-coc-text-muted hover:text-coc-text'}`}
-            title="Przenieś punkty"
-          >
-            <ArrowRightLeft className="w-4 h-4" />
-          </button>
-        </div>
+        {(onDelete || onTransfer) && (
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => { setShowAdd(!showAdd); setShowTransfer(false) }}
+              className={`p-1 rounded transition-colors cursor-pointer ${showAdd ? 'text-coc-accent-light bg-coc-accent/10' : 'text-coc-text-muted hover:text-coc-text'}`}
+              title="Dodaj umiejętność"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowTransfer(!showTransfer); setShowAdd(false) }}
+              className={`p-1 rounded transition-colors cursor-pointer ${showTransfer ? 'text-coc-accent-light bg-coc-accent/10' : 'text-coc-text-muted hover:text-coc-text'}`}
+              title="Przenieś punkty"
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add skill panel */}
@@ -251,14 +253,16 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
                 max={99}
                 className="w-14 text-center px-1 py-0.5 bg-coc-surface-light border border-coc-border rounded text-coc-text font-mono font-bold ml-2 focus:outline-none focus:border-coc-accent-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <button
-                type="button"
-                onClick={() => onDelete(skillId)}
-                className="p-0.5 text-coc-text-muted/40 hover:text-coc-danger transition-colors cursor-pointer ml-0.5 shrink-0"
-                title="Usuń umiejętność"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(skillId)}
+                  className="p-0.5 text-coc-text-muted/40 hover:text-coc-danger transition-colors cursor-pointer ml-0.5 shrink-0"
+                  title="Usuń umiejętność"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           )
         })}
