@@ -145,7 +145,11 @@ export function StepOccupationSkills() {
     }
 
     const current = skillPoints[skillId] ?? 0
-    const newVal = Math.max(0, current + effectiveDelta)
+    const base = getBaseValue(skillId, chars)
+    const maxForSkill = skillId === 'majetnosc'
+      ? Math.max(0, (occupation?.credit_rating.max ?? maxSkillValue) - base)
+      : Math.max(0, maxSkillValue - base)
+    const newVal = Math.min(maxForSkill, Math.max(0, current + effectiveDelta))
     const newPoints = { ...skillPoints, [skillId]: newVal }
     if (newVal === 0) delete newPoints[skillId]
     setSkillPoints(newPoints)

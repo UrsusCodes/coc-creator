@@ -113,7 +113,10 @@ export function StepPersonalSkills() {
     }
 
     const current = personalPoints[skillId] ?? 0
-    const newVal = Math.max(0, current + effectiveDelta)
+    const occPts = store.occupationSkillPoints[skillId] ?? 0
+    const base = getBaseValue(skillId, chars) + occPts
+    const maxForSkill = Math.max(0, maxSkillValue - base)
+    const newVal = Math.min(maxForSkill, Math.max(0, current + effectiveDelta))
 
     const newPoints = { ...personalPoints, [skillId]: newVal }
     if (newVal === 0) delete newPoints[skillId]
