@@ -1,6 +1,8 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { playerSaveDraft, playerCreateDraft } from '@/lib/player'
+
+export type DraftSyncStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): Record<string, unknown> {
   return {
@@ -40,11 +42,15 @@ function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): R
  * - Validates serverDraftId belongs to current inviteCodeId before saving
  * - Resets serverDraftId on inviteCodeId change
  */
-export function useDraftSync() {
+export function useDraftSync(): { status: DraftSyncStatus; retry: () => void } {
   const savingRef = useRef(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastJsonRef = useRef('')
   const lastInviteCodeRef = useRef<string | null>(null)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [status, setStatus] = useState<DraftSyncStatus>('idle')
+
+  const isLoggedIn = !!localStorage.getItem('player_token')
 
   const saveNow = useCallback(async () => {
     const playerToken = localStorage.getItem('player_token')
@@ -59,7 +65,6 @@ export function useDraftSync() {
     if (lastInviteCodeRef.current !== null && store.inviteCodeId !== lastInviteCodeRef.current) {
       store.setServerDraftId(null)
       lastJsonRef.current = ''
-      console.log('[DraftSync] InviteCode changed, cleared serverDraftId')
     }
     lastInviteCodeRef.current = store.inviteCodeId
 
@@ -68,36 +73,41 @@ export function useDraftSync() {
     if (json === lastJsonRef.current) return
 
     savingRef.current = true
+    setStatus('saving')
     try {
       const draftId = store.serverDraftId
 
       if (draftId) {
-        // SECURITY: Save through player edge function — it verifies player_id ownership
         await playerSaveDraft(playerToken, draftId, data)
         lastJsonRef.current = json
-        console.log('[DraftSync] Saved via API, step:', store.currentStep)
       } else if (store.inviteCodeId) {
-        // No existing draft — create one through player edge function
-        try {
-          const result = await playerCreateDraft(playerToken, {
-            invite_code_id: store.inviteCodeId,
-            wizard_data: data,
-          })
-          if (result?.id) {
-            store.setServerDraftId(result.id)
-            lastJsonRef.current = json
-            console.log('[DraftSync] Created draft:', result.id)
-          }
-        } catch (err) {
-          console.warn('[DraftSync] Create draft failed:', err)
+        const result = await playerCreateDraft(playerToken, {
+          invite_code_id: store.inviteCodeId,
+          wizard_data: data,
+        })
+        if (result?.id) {
+          store.setServerDraftId(result.id)
+          lastJsonRef.current = json
+        } else {
+          throw new Error('No draft ID returned')
         }
       }
+
+      setStatus('saved')
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+      savedTimerRef.current = setTimeout(() => setStatus('idle'), 2500)
     } catch (err) {
       console.warn('[DraftSync] Save failed:', err)
+      setStatus('error')
     } finally {
       savingRef.current = false
     }
   }, [])
+
+  const retry = useCallback(() => {
+    lastJsonRef.current = '' // Force save
+    saveNow()
+  }, [saveNow])
 
   // Subscribe to ALL store changes with 5s debounce
   useEffect(() => {
@@ -134,4 +144,16 @@ export function useDraftSync() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [saveNow])
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+    }
+  }, [])
+
+  // If not logged in, no sync — always idle
+  if (!isLoggedIn) return { status: 'idle', retry }
+
+  return { status, retry }
 }

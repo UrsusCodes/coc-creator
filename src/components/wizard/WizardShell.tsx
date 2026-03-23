@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { KeyRound, Trash2, PenLine, ShieldAlert } from 'lucide-react'
+import { KeyRound, Trash2, PenLine, ShieldAlert, Check, AlertTriangle, Loader2 } from 'lucide-react'
 import { Stepper } from '@/components/ui/Stepper'
 import { useCharacterStore, getAllowedSteps } from '@/stores/characterStore'
 import { useDraftSync } from '@/hooks/useDraftSync'
@@ -87,7 +87,7 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
   const [confirmAbandon, setConfirmAbandon] = useState(false)
 
   // Auto-save wizard progress to server (safe, with ownership checks)
-  useDraftSync()
+  const { status: syncStatus, retry: retrySync } = useDraftSync()
 
   const remainingTries = maxTries - timesUsed - 1
   const showAbandon = !editMode && currentStep >= 5 && remainingTries > 0
@@ -184,6 +184,33 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
           )}
         </div>
       </div>
+
+      {/* Save status indicator */}
+      {syncStatus === 'saved' && (
+        <div className="flex items-center gap-1.5 text-xs text-green-400 animate-in fade-in duration-300">
+          <Check className="w-3.5 h-3.5" />
+          Zapisano
+        </div>
+      )}
+      {syncStatus === 'saving' && (
+        <div className="flex items-center gap-1.5 text-xs text-coc-text-muted">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Zapisywanie...
+        </div>
+      )}
+      {syncStatus === 'error' && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="text-amber-400">Nie udało się zapisać. Nie zamykaj przeglądarki.</span>
+          <button
+            type="button"
+            onClick={retrySync}
+            className="ml-auto px-3 py-1 text-xs font-medium text-amber-400 border border-amber-500/40 rounded hover:bg-amber-500/20 transition-colors cursor-pointer shrink-0"
+          >
+            Spróbuj ponownie
+          </button>
+        </div>
+      )}
 
       {confirmAbandon && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
