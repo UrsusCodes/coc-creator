@@ -47,7 +47,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Detektyw agencji',
     description: 'Detektyw pracujący dla prywatnej agencji śledczej, specjalista od inwigilacji.',
     category: 'law_enforcement',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'korzystanie_z_bibliotek',
@@ -59,15 +59,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 20, max: 45 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'detektyw_policyjny',
     name: 'Detektyw policyjny',
     description: 'Doświadczony śledczy policyjny prowadzący dochodzenia kryminalne.',
     category: 'law_enforcement',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'choice:1:charakteryzacja,sztuka_rzemioslo',
@@ -79,15 +77,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 20, max: 50 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'lowca_nagrod',
     name: 'Łowca nagród',
     description: 'Samotny tropiciel ścigający zbiegów i poszukiwanych za wyznaczoną nagrodę.',
     category: 'law_enforcement',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy,walka_wrecz:bijatyka,walka_wrecz:dluga_ostra,walka_wrecz:bron_obuchowa,walka_wrecz:skrytobojstwo',
       'choice:1:elektronika,elektryka',
@@ -99,15 +95,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'oficer_policji',
     name: 'Oficer policji',
     description: 'Funkcjonariusz policji patrolujący ulice i utrzymujący porządek publiczny.',
     category: 'law_enforcement',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'walka_wrecz:bijatyka',
@@ -119,8 +113,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:jezdziectwo,prowadzenie_samochodu',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'prawnik',
@@ -144,7 +136,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Prywatny detektyw',
     description: 'Niezależny śledczy wynajmowany do spraw, których policja nie chce ruszyć.',
     category: 'law_enforcement',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'charakteryzacja',
       'korzystanie_z_bibliotek',
@@ -156,8 +148,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'sedzia',
@@ -221,7 +211,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Oficer wojskowy',
     description: 'Oficer dowodzący żołnierzami, strateg i taktyk na polu bitwy.',
     category: 'military',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'ksiegowosc',
@@ -232,15 +222,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 20, max: 70 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'wojskowy_zolnierz',
     name: 'Wojskowy/Żołnierz',
     description: 'Szeregowy żołnierz wyszkolony w walce i dyscyplinie wojskowej.',
     category: 'military',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'choice:1:plywanie,wspinaczka',
@@ -251,15 +239,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:2:jezyk_obcy,mechanika,pierwsza_pomoc',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'strazak',
     name: 'Strażak',
     description: 'Odważny strażak gaszący pożary i ratujący ludzi z niebezpieczeństw.',
     category: 'military',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'mechanika',
       'obsluga_ciezkiego_sprzetu',
@@ -271,15 +257,13 @@ export const OCCUPATIONS: Occupation[] = [
       'wspinaczka',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'szpieg',
     name: 'Szpieg',
     description: 'Agent wywiadu infiltrujący wrogie organizacje i zbierający informacje.',
     category: 'military',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'choice:1:charakteryzacja,sztuka_rzemioslo',
@@ -291,8 +275,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 20, max: 60 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'pilot_akrobacyjny',
@@ -392,7 +374,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Sanitariusz w szpitalu psychiatrycznym',
     description: 'Pracownik szpitala psychiatrycznego pilnujący pacjentów z zaburzeniami.',
     category: 'medical',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'nasluchiwanie',
       'pierwsza_pomoc',
@@ -403,8 +385,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:2:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 8, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'salowy',
@@ -689,7 +669,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Artysta',
     description: 'Twórca dzieł sztuki wyrażający swoją wizję świata pędzlem lub dłutem.',
     category: 'arts_entertainment',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'POW'] },
     skills: [
       'choice:1:historia,wiedza_o_naturze',
       'jezyk_obcy',
@@ -701,8 +681,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 50 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub POW) × 2',
   },
   {
     id: 'artysta_estradowy',
@@ -815,7 +793,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Muzyk',
     description: 'Instrumentalista lub wokalista poruszający serca swoją muzyką.',
     category: 'arts_entertainment',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'nasluchiwanie',
       'psychologia',
@@ -827,8 +805,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'pisarz',
@@ -889,7 +865,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Fanatyk',
     description: 'Zagorzały wyznawca idei gotowy na wszystko dla swoich przekonań.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'POW'] },
     skills: [
       'historia',
       'psychologia',
@@ -900,15 +876,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 0, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub POW) × 2',
   },
 {
     id: 'hazardzista',
     name: 'Hazardzista',
     description: 'Gracz hazardowy żyjący z ryzyka, kart i szczęścia przy ruletce.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'ksiegowosc',
       'nasluchiwanie',
@@ -919,8 +893,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:2:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 8, max: 50 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'prostytutka',
@@ -944,7 +916,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Przestępca',
     description: 'Złodziej, włamywacz lub oszust żyjący z przestępczego procederu.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy,walka_wrecz:bijatyka,walka_wrecz:dluga_ostra,walka_wrecz:bron_obuchowa,walka_wrecz:skrytobojstwo',
       'choice:1:charakteryzacja,sztuka_rzemioslo',
@@ -956,15 +928,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 5, max: 65 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub APP) × 2',
   },
 {
     id: 'szmugler',
     name: 'Szmugler',
     description: 'Przemytnik przewożący towary przez granicę z naruszeniem prawa.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'nasluchiwanie',
@@ -976,8 +946,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 20, max: 60 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'gangster_przywodca',
@@ -1001,7 +969,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Gangster — Podwładny',
     description: 'Szeregowy członek gangu wykonujący polecenia szefa.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'prowadzenie_samochodu',
@@ -1012,8 +980,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'dziewczyna_gangstera',
@@ -1102,8 +1068,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:2:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 5, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (STR lub SIŁ) × 2',
   },
   {
     id: 'rabus',
@@ -1122,15 +1086,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 5, max: 75 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (STR lub SIŁ) × 2',
   },
   {
     id: 'uliczny_chuligan',
     name: 'Uliczny chuligan',
     description: 'Młody opryszek z ulicy żyjący z drobnych przestępstw.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'rzucanie',
@@ -1142,15 +1104,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 3, max: 10 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'wlamywacz',
     name: 'Włamywacz',
     description: 'Specjalista od włamań potrafiący otworzyć każdy zamek i sejf.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:elektryka,mechanika',
       'nasluchiwanie',
@@ -1162,15 +1122,13 @@ export const OCCUPATIONS: Occupation[] = [
       'zreczne_palce',
     ],
     credit_rating: { min: 5, max: 40 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'zabojca',
     name: 'Zabójca',
     description: 'Płatny morderca wykonujący zlecenia z zimną precyzją.',
     category: 'crime_underworld',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'charakteryzacja',
@@ -1182,8 +1140,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:walka_wrecz:bijatyka,walka_wrecz:dluga_ostra,walka_wrecz:bron_obuchowa,walka_wrecz:skrytobojstwo',
     ],
     credit_rating: { min: 30, max: 60 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
 
   // === Przyroda i podróże ===
@@ -1192,7 +1148,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Człowiek plemienny',
     description: 'Przedstawiciel ludu żyjącego blisko natury, znający tradycyjne rzemiosła.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'STR'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'nasluchiwanie',
       'okultyzm',
@@ -1204,15 +1160,13 @@ export const OCCUPATIONS: Occupation[] = [
       'wspinaczka',
     ],
     credit_rating: { min: 0, max: 15 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (STR lub DEX) × 2',
   },
   {
     id: 'farmer',
     name: 'Farmer',
     description: 'Właściciel gospodarstwa rolnego uprawiający ziemię i hodujący zwierzęta.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'mechanika',
       'obsluga_ciezkiego_sprzetu',
@@ -1224,15 +1178,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'kierowca',
     name: 'Kierowca',
     description: 'Zawodowy kierowca znający się na pojazdach i trasach.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'ksiegowosc',
       'mechanika',
@@ -1244,15 +1196,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'kowboj',
     name: 'Kowboj',
     description: 'Jeździec z Dzikiego Zachodu obeznany z bronią i życiem na ranczu.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy,walka_wrecz:bijatyka,walka_wrecz:dluga_ostra,walka_wrecz:bron_obuchowa,walka_wrecz:skrytobojstwo',
       'jezdziectwo',
@@ -1264,15 +1214,13 @@ export const OCCUPATIONS: Occupation[] = [
       'unik',
     ],
     credit_rating: { min: 9, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'lowca_grubego_zwierza',
     name: 'Łowca grubego zwierza',
     description: 'Myśliwy polujący na wielką zwierzynę w egzotycznych krainach.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'choice:1:jezyk_obcy,sztuka_przetrwania',
@@ -1284,15 +1232,13 @@ export const OCCUPATIONS: Occupation[] = [
       'wiedza_o_naturze',
     ],
     credit_rating: { min: 20, max: 50 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'marynarz',
     name: 'Marynarz',
     description: 'Żeglarz pływający po morzach i oceanach, obeznany z życiem na statku.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'mechanika',
       'nawigacja',
@@ -1304,8 +1250,6 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:1:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 20, max: 40 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'nurek',
@@ -1330,7 +1274,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Odkrywca',
     description: 'Śmiały podróżnik eksplorujący nieznane ziemie w poszukiwaniu przygód.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'historia',
@@ -1343,8 +1287,6 @@ export const OCCUPATIONS: Occupation[] = [
     ],
     credit_rating: { min: 55, max: 80 },
     era: ['classic_1920s', 'gaslight'],
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP, DEX lub STR) × 2',
   },
   {
     id: 'pilot',
@@ -1369,7 +1311,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Poszukiwacz',
     description: 'Poszukiwacz skarbów i złóż penetrujący dzikie tereny.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'historia',
       'mechanika',
@@ -1381,15 +1323,13 @@ export const OCCUPATIONS: Occupation[] = [
       'wspinaczka',
     ],
     credit_rating: { min: 0, max: 10 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'traper',
     name: 'Traper',
     description: 'Łowca futer żyjący na odludziu, znający ścieżki dzikiej przyrody.',
     category: 'nature_travel',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'choice:1:bron_palna:krotka,bron_palna:karabin_strzelba,bron_palna:pistolet_maszynowy',
       'nasluchiwanie',
@@ -1401,8 +1341,6 @@ export const OCCUPATIONS: Occupation[] = [
       'wiedza_o_naturze',
     ],
     credit_rating: { min: 5, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'wspinacz_wysokogorski',
@@ -1483,7 +1421,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Kamerdyner/Lokaj/Pokojówka',
     description: 'Służba domowa dbająca o dom i komfort zamożnych pracodawców.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'choice:1:ksiegowosc,wycena',
       'nasluchiwanie',
@@ -1495,15 +1433,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 40 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub APP) × 2',
   },
   {
     id: 'kelner',
     name: 'Kelner',
     description: 'Pracownik restauracji obsługujący gości z klasą i dyskrecją.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'ksiegowosc',
       'nasluchiwanie',
@@ -1514,8 +1450,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub ZRĘ) × 2',
   },
   {
     id: 'komiwojazer',
@@ -1539,7 +1473,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Opiekun zwierząt w zoo',
     description: 'Pracownik ogrodu zoologicznego opiekujący się egzotycznymi zwierzętami.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'POW'] },
     skills: [
       'tresura_zwierzat',
       'wiedza_o_naturze',
@@ -1551,8 +1485,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 20 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub POW) × 2.',
   },
   {
     id: 'przedsiebiorca_pogrzebowy',
@@ -1577,7 +1509,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Sklepikarz',
     description: 'Właściciel sklepu prowadzący handel detaliczny w swojej okolicy.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'elektryka',
       'ksiegowosc',
@@ -1588,15 +1520,13 @@ export const OCCUPATIONS: Occupation[] = [
       'choice:2:perswazja,gadanina,urok_osobisty,zastraszanie',
     ],
     credit_rating: { min: 20, max: 40 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub ZRĘ) × 2',
   },
   {
     id: 'tramp',
     name: 'Tramp',
     description: 'Bezdomny wędrowiec żyjący z dnia na dzień na marginesie społeczeństwa.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'gadanina',
       'nasluchiwanie',
@@ -1608,15 +1538,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 0, max: 5 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'treser',
     name: 'Treser',
     description: 'Specjalista od tresury zwierząt, pracujący w cyrku lub na arenie.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'POW'] },
     skills: [
       'nasluchiwanie',
       'nauka:Zoologia',
@@ -1628,15 +1556,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub POW) × 2',
   },
   {
     id: 'wloczega',
     name: 'Włóczęga',
     description: 'Wieczny tułacz bez stałego adresu, znający uliczne sztuczki przetrwania.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'APP'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['APP', 'DEX'] },
     skills: [
       'gadanina',
       'nasluchiwanie',
@@ -1648,8 +1574,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 0, max: 5 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (APP lub DEX) × 2',
   },
   {
     id: 'handlarz_antykami',
@@ -1673,7 +1597,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Szofer',
     description: 'Prywatny kierowca zamożnego klienta, dyskretny i niezawodny.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'mechanika',
       'nasluchiwanie',
@@ -1684,15 +1608,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 10, max: 40 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'taksowkarz',
     name: 'Taksówkarz',
     description: 'Licencjonowany taksówkarz znający miasto jak własną kieszeń.',
     category: 'trade_services',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'elektryka',
       'gadanina',
@@ -1704,8 +1626,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
 
   // === Administracja i biuro ===
@@ -1934,7 +1854,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Sportowiec',
     description: 'Profesjonalny atleta rywalizujący w dyscyplinach sportowych.',
     category: 'sports_action',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'walka_wrecz:bijatyka',
       'jezdziectwo',
@@ -1946,8 +1866,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 70 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
 
   // === Technika i rzemiosło ===
@@ -1992,7 +1910,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Pracownik fizyczny',
     description: 'Robotnik wykonujący ciężką pracę manualną na budowie lub w fabryce.',
     category: 'technical',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'prowadzenie_samochodu',
       'walka_wrecz:bijatyka',
@@ -2004,8 +1922,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 5, max: 15 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'programista_haker',
@@ -2069,7 +1985,7 @@ export const OCCUPATIONS: Occupation[] = [
     name: 'Drwal',
     description: 'Robotnik leśny ścinający drzewa i pracujący w tartaku.',
     category: 'technical',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'mechanika',
       'choice:1:nauka:Biologia,nauka:Botanika,wiedza_o_naturze',
@@ -2081,15 +1997,13 @@ export const OCCUPATIONS: Occupation[] = [
       'wspinaczka',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'gornik',
     name: 'Górnik',
     description: 'Robotnik wydobywający surowce mineralne w kopalniach.',
     category: 'technical',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'nauka:Geologia',
       'mechanika',
@@ -2101,15 +2015,13 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
   {
     id: 'pracownik_fizyczny_niewykwalifikowany',
     name: 'Pracownik fizyczny — Niewykwalifikowany',
     description: 'Robotnik niewykwalifikowany wykonujący proste prace fizyczne.',
     category: 'technical',
-    skill_formula: { characteristics: ['EDU', 'DEX'], multiplier: 2 },
+    skill_formula: { characteristics: ['EDU'], multiplier: 2, alternatives: ['DEX', 'STR'] },
     skills: [
       'elektryka',
       'mechanika',
@@ -2121,8 +2033,6 @@ export const OCCUPATIONS: Occupation[] = [
       'any',
     ],
     credit_rating: { min: 9, max: 30 },
-    suggested_skills_note:
-      'Formuła: EDU×2 + najlepsza z (DEX lub STR) × 2',
   },
 ]
 

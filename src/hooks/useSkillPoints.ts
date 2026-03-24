@@ -1,25 +1,50 @@
 import { useMemo } from 'react'
 import type { Characteristics } from '@/types/character'
 import type { Occupation } from '@/types/occupation'
+import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 
 /**
  * Calculate total occupation skill points from the occupation formula.
- * Single stat formula: stat × multiplier
- * Two stat formula: stat1 × multiplier + stat2 × multiplier
+ * Supports optional `alternatives` — picks the best stat from the group.
  */
 export function calculateOccupationPoints(
   occupation: Occupation,
   characteristics: Partial<Characteristics>
 ): number {
-  const { characteristics: formulaStats, multiplier } = occupation.skill_formula
+  const { characteristics: fixedStats, multiplier, alternatives } = occupation.skill_formula
   let total = 0
 
-  for (const stat of formulaStats) {
-    const value = characteristics[stat] ?? 0
-    total += value * multiplier
+  for (const stat of fixedStats) {
+    total += (characteristics[stat] ?? 0) * multiplier
+  }
+
+  if (alternatives && alternatives.length > 0) {
+    const best = Math.max(...alternatives.map(s => characteristics[s] ?? 0))
+    total += best * multiplier
   }
 
   return total
+}
+
+/**
+ * Build a display label for the occupation formula badge.
+ * E.g. "WYK + najl.(ZRĘ, SIŁ) × 2 = 280 pkt"
+ */
+export function getFormulaDisplay(
+  occupation: Occupation,
+  characteristics: Partial<Characteristics>
+): string {
+  const { characteristics: fixedStats, multiplier, alternatives } = occupation.skill_formula
+  const total = calculateOccupationPoints(occupation, characteristics)
+
+  const parts: string[] = fixedStats.map(c => CHARACTERISTIC_MAP[c].abbreviation)
+
+  if (alternatives && alternatives.length > 0) {
+    const altLabels = alternatives.map(c => CHARACTERISTIC_MAP[c].abbreviation).join(', ')
+    parts.push(`najl.(${altLabels})`)
+  }
+
+  return `${parts.join(' + ')} \u00d7 ${multiplier} = ${total} pkt`
 }
 
 /**

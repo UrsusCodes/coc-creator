@@ -5,7 +5,7 @@ import { OCCUPATIONS, OCCUPATION_CATEGORIES, getOccupationsForEra } from '@/data
 import { getSkillDisplayName } from '@/data/skills'
 import { parseSkillSlot } from '@/data/occupations'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
-import { calculateOccupationPoints } from '@/hooks/useSkillPoints'
+import { calculateOccupationPoints, getFormulaDisplay } from '@/hooks/useSkillPoints'
 import type { Occupation } from '@/types/occupation'
 import type { Characteristics } from '@/types/character'
 import type { Era } from '@/types/common'
@@ -209,9 +209,7 @@ export function StepOccupation() {
 
           <div className="flex flex-wrap gap-2 mb-3">
             <Badge variant="success">
-              {selected.skill_formula.characteristics.map((c) => CHARACTERISTIC_MAP[c].abbreviation).join(' + ')}
-              {' × '}{selected.skill_formula.multiplier}
-              {' = '}{calculateOccupationPoints(selected, chars)} pkt
+              {getFormulaDisplay(selected, chars)}
             </Badge>
             <Badge>
               Majętność: {selected.credit_rating.min}–{selected.credit_rating.max}
