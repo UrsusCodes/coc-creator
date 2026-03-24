@@ -291,21 +291,46 @@ export function StepPositionsContacts() {
     }
     store.setMainPosition(mainPos)
 
-    const filledPositions = additionalPositions.slice(0, numAdditionalSlots).map((p, i) =>
-      p ?? { slot_index: i, option_id: '', option_name: '', organization_size: '', category: '', custom_description: '', weight: 1 as const, roll_value: 25, is_custom: false, pending_st_approval: false, unlocked_by: '', is_attribute_special: false },
-    )
-    filledPositions.forEach((p, i) => { if (p.option_name && additionalDescriptions[i]) p.custom_description = additionalDescriptions[i] })
-
-    const synced = contactsWithSynergy.length > 0 ? contactsWithSynergy : contacts.filter(Boolean) as ContactV2[]
-    const filledContacts = synced.map((c, i) => ({ ...c, slot_index: i }))
-    while (filledContacts.length < totalContactSlots) {
-      filledContacts.push({
-        slot_index: filledContacts.length, subcategory_id: '', subcategory_name: '',
-        category_id: '', category_name: '', base_strength: 1, strength: 1,
-        roll_value: 30, synergy_bonus: 0, custom_description: '', custom_name: '',
-        is_custom: false, pending_st_approval: false, slot_source: 'additional',
-      } as ContactV2)
+    // Auto-submit any pending custom position inputs before saving
+    const finalPositions = [...additionalPositions]
+    for (let i = 0; i < numAdditionalSlots; i++) {
+      if (!finalPositions[i] && customPosInputs[i]?.trim()) {
+        const text = customPosInputs[i].trim()
+        const category = customPosCats[i] || ''
+        finalPositions[i] = {
+          slot_index: i, option_id: `custom_${i}`, option_name: text,
+          organization_size: 'Mikro', category, custom_description: '',
+          weight: 1, roll_value: 25, is_custom: true,
+          pending_st_approval: !category, unlocked_by: '', is_attribute_special: false,
+        }
+      }
     }
+
+    const filledPositions = finalPositions.slice(0, numAdditionalSlots).filter((p): p is AdditionalPosition => !!p && !!p.option_name)
+    filledPositions.forEach((p, i) => { p.slot_index = i; if (additionalDescriptions[finalPositions.indexOf(p)] !== undefined) p.custom_description = additionalDescriptions[finalPositions.indexOf(p)] || p.custom_description })
+
+    // Auto-submit any pending custom contact inputs before saving
+    const finalContacts = [...contacts]
+    for (let i = 0; i < totalContactSlots; i++) {
+      if (!finalContacts[i] && customConInputs[i]?.trim()) {
+        const text = customConInputs[i].trim()
+        const categoryId = customConCategories[i] || ''
+        const catData = CONTACT_CATEGORIES_NEW.find(c => c.id === categoryId)
+        const defaultStr = categoryId ? (CUSTOM_CATEGORY_DEFAULT_STRENGTH[categoryId] ?? 1) : 1
+        finalContacts[i] = {
+          slot_index: i, subcategory_id: `custom_${i}`, subcategory_name: text,
+          category_id: categoryId, category_name: catData?.name ?? '',
+          base_strength: defaultStr as 1|2|3, strength: defaultStr as 1|2|3,
+          roll_value: (defaultStr * 30) as 30|60|90, synergy_bonus: 0,
+          custom_description: '', custom_name: text, is_custom: true,
+          pending_st_approval: !categoryId, slot_source: i < occContactSlots ? 'occupation' : 'additional',
+        }
+      }
+    }
+
+    const filled = finalContacts.filter(Boolean) as ContactV2[]
+    const synced = filled.length >= 2 ? applySynergyContacts(filled) : filled
+    const filledContacts = synced.map((c, i) => ({ ...c, slot_index: i }))
 
     store.setPositionsAndContactsV2(filledPositions, filledContacts)
     store.nextStep()
