@@ -73,9 +73,12 @@ export function PlayerDashboard() {
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
   const fetchData = useCallback(async () => {
     if (!token) return
     setLoading(true)
+    setFetchError(null)
     try {
       const [codesData, charsData, permsData] = await Promise.all([
         playerGetCodes(token),
@@ -85,12 +88,18 @@ export function PlayerDashboard() {
       setCodes(codesData)
       setCharacters(charsData)
       setEditPermissions(permsData)
-    } catch {
-      // error silently
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Błąd połączenia'
+      // Token expired or invalid → auto-logout
+      if (msg.includes('401') || msg.includes('expired') || msg.includes('Unauthorized')) {
+        logout()
+        return
+      }
+      setFetchError(msg)
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, logout])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -205,6 +214,12 @@ export function PlayerDashboard() {
       </div>
 
       {loading && <Loader2 className="w-6 h-6 animate-spin mx-auto" />}
+
+      {fetchError && (
+        <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg text-sm text-red-300">
+          Błąd ładowania danych: {fetchError}
+        </div>
+      )}
 
       {/* Assigned codes */}
       <Card>

@@ -15,6 +15,23 @@ interface PlayerState {
   logout: () => void
 }
 
+// Check if stored JWT is expired by decoding payload
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
+// Clear expired tokens on startup
+const storedToken = localStorage.getItem('player_token')
+if (storedToken && isTokenExpired(storedToken)) {
+  localStorage.removeItem('player_token')
+  localStorage.removeItem('player_info')
+}
+
 export const usePlayerStore = create<PlayerState>((set) => ({
   isAuthenticated: !!localStorage.getItem('player_token'),
   token: localStorage.getItem('player_token'),

@@ -7,7 +7,7 @@ async function playerFetch(
   options: RequestInit = {}
 ): Promise<Response> {
   const url = `${SUPABASE_URL}/functions/v1/player${path}`
-  return fetch(url, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -16,6 +16,10 @@ async function playerFetch(
       ...options.headers,
     },
   })
+  if (res.status === 401) {
+    throw new Error('401: Sesja wygasła')
+  }
+  return res
 }
 
 export async function playerLogin(
