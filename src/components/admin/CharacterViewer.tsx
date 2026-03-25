@@ -105,11 +105,15 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
   const handleSkillChange = (skillId: string, totalValue: number) => {
     const baseVal = resolveBase(skillId)
     const points = Math.max(0, totalValue - baseVal)
-    setEditData((prev) => ({
-      ...prev,
-      occupation_skill_points: { ...prev.occupation_skill_points, [skillId]: points },
-      personal_skill_points: { ...prev.personal_skill_points },
-    }))
+    setEditData((prev) => {
+      // Remove personal contribution so total = base + occupation only
+      const { [skillId]: _per, ...restPer } = prev.personal_skill_points
+      return {
+        ...prev,
+        occupation_skill_points: { ...prev.occupation_skill_points, [skillId]: points },
+        personal_skill_points: restPer,
+      }
+    })
   }
 
   const handleSkillDelete = (skillId: string) => {

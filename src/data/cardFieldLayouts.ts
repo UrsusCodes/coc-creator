@@ -119,11 +119,11 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'spec_pilotaz_1', label: 'Pilotaż spec.1', x: 41.85, y: 60.56, w: 10, h: 1.2, fontSize: 7 },
   { id: 'spec_pilotaz_2', label: 'Pilotaż spec.2', x: 41.71, y: 62.99, w: 10, h: 1.2, fontSize: 7 },
   // Kolumna 3: Szt./Rzem. ×3, Walka Wręcz ×2
-  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 73.73, y: 36.76, w: 10, h: 1.2, fontSize: 7 },
-  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 73.73, y: 39.09, w: 10, h: 1.2, fontSize: 7 },
-  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 73.60, y: 41.43, w: 10, h: 1.2, fontSize: 7 },
-  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 74.27, y: 60.46, w: 10, h: 1.2, fontSize: 7 },
-  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 74.54, y: 62.89, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_sztuka_1', label: 'Szt./Rzem. spec.1', x: 75.23, y: 36.76, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_sztuka_2', label: 'Szt./Rzem. spec.2', x: 75.23, y: 39.09, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_sztuka_3', label: 'Szt./Rzem. spec.3', x: 75.10, y: 41.43, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_walka_1', label: 'Walka Wr. spec.1', x: 75.77, y: 60.46, w: 10, h: 1.2, fontSize: 7 },
+  { id: 'spec_walka_2', label: 'Walka Wr. spec.2', x: 76.04, y: 62.89, w: 10, h: 1.2, fontSize: 7 },
 
   // ── Uzbrojenie — 5 rzędów × kolumny ──
   // Nagłówki: BROŃ | NORMA | ½ | ⅕ | OBRAŻENIA | ZASIĘG | ATAKI | AMU. | KAW.
@@ -184,7 +184,7 @@ export const FRONT_FIELDS: FieldBox[] = [
 
   // ── Walka (prawa dolna) ──
   { id: 'damage_bonus', label: 'Mod obrażeń', x: 69.19, y: 85.24, w: 4.89, h: 1.99, fontSize: 10, align: 'center', bold: true },
-  { id: 'build', label: 'Krzepa', x: 69.60, y: 88.98, w: 4.35, h: 1.90, fontSize: 10, align: 'center', bold: true },
+  { id: 'build', label: 'Krzepa', x: 69.19, y: 88.98, w: 4.89, h: 1.90, fontSize: 10, align: 'center', bold: true },
   { id: 'dodge', label: 'Unik', x: 69.33, y: 92.45, w: 4.62, h: 1.8, fontSize: 10, align: 'center', bold: true },
 
   // ── Zasoby (prawa dolna) ──
