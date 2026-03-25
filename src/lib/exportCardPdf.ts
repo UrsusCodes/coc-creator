@@ -402,7 +402,8 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   const result: Record<string, string> = {}
   const equip: string[] = []
   const assets: string[] = []
-  const lifestyle: string[] = []
+  const lifestyleV2: string[] = []
+  const lifestyleV1: string[] = []
   const weapons: ParsedEquipment['weapons'] = []
 
   // Merge skill points for weapon skill lookup
@@ -417,12 +418,12 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     // v2 tags
     if (item.startsWith('[Lokum]')) { assets.push(stripped); continue }
     if (item.startsWith('[Transport]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Lifestyle]')) { lifestyle.push(`Styl życia: ${stripped}`); continue }
+    if (item.startsWith('[Lifestyle]')) { lifestyleV2.push(`Styl życia: ${stripped}`); continue }
     if (item.startsWith('[Dobytek]')) { assets.push(stripped); continue }
 
     // Legacy tags (v1 compat)
     if (item.startsWith('[Mieszkanie]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Styl życia]')) { lifestyle.push(`Styl życia: ${stripped}`); continue }
+    if (item.startsWith('[Styl życia]')) { lifestyleV1.push(`Styl życia: ${stripped}`); continue }
 
     // Tagged weapons (including black market and military)
     if (item.startsWith('[Broń]') || item.startsWith('[Czarny rynek]') || item.startsWith('[Wojsko]')) {
@@ -530,6 +531,8 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   }
 
   // Fill positions (up to 6): lifestyle first, then main_position, then additional
+  // Prefer v2 [Lifestyle] over legacy [Styl życia] if both exist
+  const lifestyle = lifestyleV2.length > 0 ? lifestyleV2 : lifestyleV1
   const allPositions: string[] = []
   allPositions.push(...lifestyle)
   if (char.main_position?.option_name) {
