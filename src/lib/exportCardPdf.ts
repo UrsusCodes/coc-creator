@@ -269,7 +269,10 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'luck') return String(char.luck)
   if (id === 'damage_bonus') return String(derived.db)
   if (id === 'build') return String(derived.build)
-  if (id === 'dodge') return String(derived.dodge)
+  if (id === 'dodge') {
+    const unikPoints = (char.occupation_skill_points['unik'] ?? 0) + (char.personal_skill_points['unik'] ?? 0)
+    return String(derived.dodge + unikPoints)
+  }
   if (id === 'spending_level') {
     const v = char.spending_level ?? ''
     return v.startsWith('$') ? v.slice(1) + '$' : v
