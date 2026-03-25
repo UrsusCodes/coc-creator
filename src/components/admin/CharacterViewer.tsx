@@ -449,6 +449,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
         character={char as unknown as Record<string, unknown>}
         artPrompt={(char as unknown as Record<string, unknown>).art_prompt as string ?? ''}
         artGallery={((char as unknown as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
+        portraitUrl={(char as unknown as Record<string, unknown>).portrait_url as string ?? undefined}
         onUpdate={(fields) => onUpdate?.({ id: char.id, ...fields })}
       />
 

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Copy, Check, RotateCcw, Save, Loader2, Plus, Trash2 } from 'lucide-react'
+import { Copy, Check, RotateCcw, Save, Loader2, Plus, Trash2, ImageIcon } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import { adminUpdateCharacter } from '@/lib/admin'
 import { generateArtPrompt, generateNegativePrompt, generateSDParams } from '@/lib/artPrompt'
@@ -18,6 +18,7 @@ interface ArtPromptSectionProps {
   character: Record<string, unknown>
   artPrompt: string
   artGallery: GalleryItem[]
+  portraitUrl?: string
   onUpdate: (fields: Record<string, unknown>) => void
 }
 
@@ -47,7 +48,7 @@ async function resizeImage(file: File): Promise<Blob> {
   })
 }
 
-export function ArtPromptSection({ characterId, character, artPrompt: savedPrompt, artGallery: savedGallery, onUpdate }: ArtPromptSectionProps) {
+export function ArtPromptSection({ characterId, character, artPrompt: savedPrompt, artGallery: savedGallery, portraitUrl: savedPortraitUrl, onUpdate }: ArtPromptSectionProps) {
   const { password } = useAdminStore()
 
   const autoPrompt = generateArtPrompt(character as unknown as Parameters<typeof generateArtPrompt>[0])
@@ -56,10 +57,12 @@ export function ArtPromptSection({ characterId, character, artPrompt: savedPromp
 
   const [prompt, setPrompt] = useState(savedPrompt || autoPrompt)
   const [gallery, setGallery] = useState<GalleryItem[]>(savedGallery ?? [])
+  const [portraitUrl, setPortraitUrl] = useState<string | null>(savedPortraitUrl ?? null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [settingPortrait, setSettingPortrait] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -127,6 +130,21 @@ export function ArtPromptSection({ characterId, character, artPrompt: savedPromp
     setGallery((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  const handleSetPortrait = async (url: string) => {
+    if (!password) return
+    setSettingPortrait(true)
+    setError(null)
+    try {
+      await adminUpdateCharacter(password, characterId, { portrait_url: url })
+      setPortraitUrl(url)
+      onUpdate({ portrait_url: url })
+    } catch {
+      setError('Błąd ustawienia portretu')
+    } finally {
+      setSettingPortrait(false)
+    }
+  }
+
   const fullPrompt = `${prompt}\n\nNegative prompt: ${negativePrompt}\n\nSteps: ${sdParams.steps}, CFG: ${sdParams.cfg}, Size: ${sdParams.width}x${sdParams.height}`
 
   return (
@@ -171,23 +189,40 @@ export function ArtPromptSection({ characterId, character, artPrompt: savedPromp
 
         {gallery.length > 0 && (
           <div className="grid grid-cols-4 gap-2">
-            {gallery.map((item, idx) => (
-              <div key={idx} className="relative group">
-                <img
-                  src={item.url}
-                  alt={item.label}
-                  className="w-full aspect-square object-cover rounded-lg border border-coc-border"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveGalleryItem(idx)}
-                  className="absolute top-1 right-1 p-1 bg-coc-surface/80 rounded-full text-coc-text-muted hover:text-coc-danger transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-                <div className="text-[10px] text-coc-text-muted text-center mt-0.5 truncate">{item.label}</div>
-              </div>
-            ))}
+            {gallery.map((item, idx) => {
+              const isActive = item.url === portraitUrl
+              return (
+                <div key={idx} className="relative group">
+                  <img
+                    src={item.url}
+                    alt={item.label}
+                    className={`w-full aspect-square object-cover rounded-lg border-2 transition-colors ${isActive ? 'border-coc-accent-light' : 'border-coc-border'}`}
+                  />
+                  {isActive && (
+                    <div className="absolute top-1 left-1 p-0.5 bg-coc-accent-light rounded-full">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGalleryItem(idx)}
+                    className="absolute top-1 right-1 p-1 bg-coc-surface/80 rounded-full text-coc-text-muted hover:text-coc-danger transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetPortrait(item.url)}
+                    disabled={settingPortrait || isActive}
+                    className="absolute bottom-1 left-1 right-1 flex items-center justify-center gap-1 py-0.5 bg-coc-surface/90 rounded text-[9px] text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer opacity-0 group-hover:opacity-100 disabled:cursor-default disabled:opacity-50"
+                  >
+                    <ImageIcon className="w-2.5 h-2.5" />
+                    {isActive ? 'Portret' : 'Ustaw portret'}
+                  </button>
+                  <div className="text-[10px] text-coc-text-muted text-center mt-0.5 truncate">{item.label}</div>
+                </div>
+              )
+            })}
           </div>
         )}
 

@@ -48,6 +48,180 @@ type Derived = { hp: number; mp: number; san: number; db: string; build: number;
 // Fields that should render bold text before the colon
 const BOLD_BEFORE_COLON_FIELDS = new Set(['drive', 'sources'])
 
+// ── Helpers ──
+
+// Ręcznie skrócone nazwy pozycji na kartę PDF (max ~20 znaków)
+const POSITION_SHORT_NAMES: Record<string, string> = {
+  // Policja / służby
+  sp_posterunek:    'Posterunek policji',
+  sp_wydzial:       'Wydz. śledczy',
+  sp_federalna:     'Agencja federalna',
+  sp_tajna:         'Tajna służba',
+  sp_urzad:         'Urząd miejski',
+  sp_antykorupcja:  'Antykorupcja',
+  sp_niezalezny:    'Śledczy rządowy',
+  // Detektyw
+  dw_wlasna:        'Własna agencja det.',
+  dw_lokalna:       'Agencja det. lok.',
+  dw_pinkerton:     'Agencja Pinkerton',
+  dw_wolny:         'Wolny strzelec',
+  dw_wywiad:        'Wywiad wojsk./rząd.',
+  dw_ubezpieczenia: 'Agencja ubezp.',
+  dw_zagraniczna:   'Sieć wywiad. zagr.',
+  // Przestępczość
+  pz_grupka:        'Grupka przestępców',
+  pz_lokalny:       'Gang uliczny lok.',
+  pz_istotny:       'Gang miejski',
+  pz_wielostanowy:  'Org. wielostanowa',
+  pz_przemyt:       'Przemyt alkoholu',
+  pz_import:        'Przemyt (import)',
+  pz_syndykat:      'Syndykat między.',
+  pz_wlasna:        'Własna operacja',
+  // Hazard
+  pd_samodzielny:   'Hazardzista niezal.',
+  pd_banda:         'Mała banda',
+  pd_dom_gry:       'Dom gry / kasyno',
+  pd_paserstwo:     'Sieć paserska',
+  pd_falsz:         'Warsztat fałszerski',
+  pd_dokumenty:     'Fałszerstwo dok.',
+  // Nauka
+  an_wydzial:       'Wydział univ.',
+  an_college:       'Mały college',
+  an_instytut:      'Instytut badawczy',
+  an_laboratorium:  'Własne lab. nauk.',
+  an_biblioteka:    'Biblioteka publ.',
+  an_muzeum:        'Muzeum (nauka)',
+  an_towarzystwo:   'Tow. naukowe',
+  an_wyprawa:       'Wyprawa badawcza',
+  an_pismo:         'Pismo naukowe',
+  an_paranormal:    'Gabinet parapsych.',
+  an_fundacja:      'Fundacja badawcza',
+  // Okultyzm
+  ok_samotnik:      'Niezal. okultysta',
+  ok_krag:          'Krąg okultystyczny',
+  ok_lodza:         'Loża ezoteryczna',
+  ok_kult_lok:      'Kult (lok. komórka)',
+  ok_teozofia:      'Tow. teozoficzne',
+  ok_siec:          'Sieć kultów',
+  ok_antykwariat:   'Antykwariat (ezot.)',
+  ok_bractwo:       'Tajne bractwo',
+  ok_stary_bog:     'Kult starego boga',
+  // Medycyna
+  mw_szpital_miejski:   'Szpital miejski',
+  mw_szpital_prywatny:  'Szpital prywatny',
+  mw_praktyka:          'Prywatna praktyka',
+  mw_sanatorium:        'Sanatorium pryw.',
+  mw_psychiatryczny:    'Szpital psych.',
+  mw_gabinet_psych:     'Gabinet psychoanal.',
+  mw_sadowa:            'Lab. med. sądowej',
+  mw_uczelnia:          'Wydz. medyczny',
+  mw_tajny:             'Tajny ośrodek',
+  // Farmacja
+  mn_apteka_wlasna:  'Apteka (własna)',
+  mn_apteka_prac:    'Apteka (pracownik)',
+  mn_szpital:        'Szpital miejski',
+  mn_psychiatryczny: 'Szpital psych.',
+  mn_nielegalny:     'Nielegalna farmacja',
+  // Dziennikarstwo
+  dm_lokalna:       'Mała gazeta lok.',
+  dm_duza:          'Duża gazeta',
+  dm_magazyn:       'Magazyn tygodniowy',
+  dm_agencja:       'Agencja prasowa',
+  dm_wolny:         'Wolny dziennikarz',
+  dm_zagraniczny:   'Redakcja zagr.',
+  dm_naukowe:       'Pismo nauk./branż.',
+  dm_okultystyczne: 'Pismo okultyst.',
+  dm_radio:         'Radio',
+  // Sztuka
+  ls_wolny:         'Wolny twórca',
+  ls_teatr:         'Teatr repertuarowy',
+  ls_hollywood:     'Studio filmowe',
+  ls_wydawnictwo:   'Dom wydawniczy',
+  ls_jazz:          'Klub jazzowy/kab.',
+  ls_galeria:       'Galeria sztuki',
+  ls_cyrk:          'Cyrk / trupa wędr.',
+  ls_okultystyczna: 'Twórczość okultyst.',
+  // Prawo
+  pr_wlasna:        'Własna kancelaria',
+  pr_partnerska:    'Kancelaria partner.',
+  pr_korporacyjna:  'Kancelaria korpor.',
+  pr_prokurator:    'Prokurator okr.',
+  pr_sedzia:        'Sąd okr. (sędzia)',
+  pr_federalny:     'Sąd federalny',
+  pr_kryminalna:    'Obrona kryminalna',
+  pr_syndykat:      'Radca kryminalny',
+  // Bogaty hobbysta
+  bk_prywatna:      'Pryw. kolekcja',
+  bk_sklep:         'Sklep antykwaryczny',
+  bk_dom_aukcyjny:  'Dom aukcyjny',
+  bk_muzeum:        'Muzeum (kurator)',
+  bk_klub:          'Klub dżentelmenów',
+  bk_podroznicze:   'Tow. podróżnicze',
+  bk_fundator:      'Fundator ekspedycji',
+  bk_okultystyczna: 'Kolekcja artefaktów',
+  // Duchowny (uwaga: dm_ prefix — inne niż dziennikarstwo!)
+  dm_parafia:        'Parafia lokalna',
+  dm_katedra:        'Kościół katedralny',
+  dm_misja_miejska:  'Misja miejska',
+  dm_misja_zagr:     'Misja zagraniczna',
+  dm_niezalezny_k:   'Kościół niezal.',
+  dm_spirytystyczna: 'Kongregacja spiryt.',
+  // Wojsko
+  wo_aktywna:        'Armia USA (aktywna)',
+  wo_rezerwa:        'Rezerwa wojsk.',
+  wo_sztab:          'Sztab generalny',
+  wo_specjalna:      'Wywiad wojskowy',
+  wo_weteran:        'Weteran bez afil.',
+  wo_stowarzyszenie: 'Stow. weteranów',
+  wo_ochrona:        'Firma ochroniarska',
+  // Inżynieria
+  it_wlasne:        'Własne biuro proj.',
+  it_firma:         'Firma inżynierska',
+  it_budowlana:     'Firma budowlana',
+  it_laboratorium:  'Lab. wynalazcze',
+  // Handel
+  bh_wlasny:    'Własny sklep/zakład',
+  bh_import:    'Firma import/eksport',
+  bh_korporacja:'Korporacja',
+  bh_wolny:     'Wolny agent hand.',
+  // Służba
+  so_prywatna:  'Służba prywatna',
+  so_hotel:     'Hotel / restauracja',
+  so_speakeasy: 'Speakeasy',
+  so_szofer:    'Prywatny szofer',
+  // Robotnik
+  op_zwiazek_lok:    'Związek zaw. lok.',
+  op_zwiazek_central:'Centralny zw. zaw.',
+  op_straz:          'Straż pożarna',
+  // Farmer
+  pf_wlasna:     'Własna farma',
+  pf_traper:     'Traper / myśliwy',
+  pf_robotnik:   'Wędr. robotnik',
+  pf_ekspedycja: 'Ekspedycja eksp.',
+  // Sport / rozrywka
+  rs_cyrk:          'Cyrk objazdowy',
+  rs_kaskader:      'Trupa kaskaderska',
+  rs_studio:        'Studio filmowe',
+  rs_klub_bokserski:'Klub bokserski',
+  rs_liga:          'Liga profesjonalna',
+  rs_pilot:         'Pilot prywatny',
+  rs_zoo:           'Ogród zoologiczny',
+  // Margines
+  ms_bez_afilacji: 'Bez afiliacji',
+  ms_dom_pub:      'Dom publiczny',
+  ms_siec_trampa:  'Sieć trampa',
+  // Różne
+  zn_wlasna_firma: 'Własna firma',
+  zn_statek:       'Statek handlowy',
+  zn_mysliwy:      'Myśliwy / przew.',
+  zn_uczelnia:     'Uczelnia (stażysta)',
+  zn_warsztat:     'Warsztat mech.',
+}
+
+function positionPdfName(optionId: string, optionName: string): string {
+  return POSITION_SHORT_NAMES[optionId] ?? optionName
+}
+
 // ── Mapping field IDs → character values ──
 
 const CHAR_KEY_MAP: Record<string, CharacteristicKey> = {
@@ -221,7 +395,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   const result: Record<string, string> = {}
   const equip: string[] = []
   const assets: string[] = []
-  const positions: string[] = []
+  const lifestyle: string[] = []
   const weapons: ParsedEquipment['weapons'] = []
 
   // Merge skill points for weapon skill lookup
@@ -236,12 +410,12 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     // v2 tags
     if (item.startsWith('[Lokum]')) { assets.push(stripped); continue }
     if (item.startsWith('[Transport]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Lifestyle]')) { positions.push(`Styl życia: ${stripped}`); continue }
+    if (item.startsWith('[Lifestyle]')) { lifestyle.push(`Styl życia: ${stripped}`); continue }
     if (item.startsWith('[Dobytek]')) { assets.push(stripped); continue }
 
     // Legacy tags (v1 compat)
     if (item.startsWith('[Mieszkanie]')) { assets.push(stripped); continue }
-    if (item.startsWith('[Styl życia]')) { positions.push(`Styl życia: ${stripped}`); continue }
+    if (item.startsWith('[Styl życia]')) { lifestyle.push(`Styl życia: ${stripped}`); continue }
 
     // Tagged weapons (including black market and military)
     if (item.startsWith('[Broń]') || item.startsWith('[Czarny rynek]') || item.startsWith('[Wojsko]')) {
@@ -348,9 +522,20 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     result[`asset_${i + 1}`] = assets[i]
   }
 
-  // Fill positions (up to 6)
-  for (let i = 0; i < Math.min(positions.length, 6); i++) {
-    result[`position_${i + 1}`] = positions[i]
+  // Fill positions (up to 6): lifestyle first, then main_position, then additional
+  const allPositions: string[] = []
+  allPositions.push(...lifestyle)
+  if (char.main_position?.option_name) {
+    const mp = char.main_position
+    allPositions.push(`${positionPdfName(mp.option_id, mp.option_name)} ${mp.strength_percent}%`)
+  }
+  for (const p of char.additional_positions ?? []) {
+    if (p.option_name) {
+      allPositions.push(`${'★'.repeat(p.weight)} ${positionPdfName(p.option_id, p.option_name)} [${p.roll_value}%]${p.pending_st_approval ? ' [ST]' : ''}`)
+    }
+  }
+  for (let i = 0; i < Math.min(allPositions.length, 6); i++) {
+    result[`position_${i + 1}`] = allPositions[i]
   }
 
   return result
