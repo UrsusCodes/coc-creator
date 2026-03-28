@@ -365,6 +365,6 @@ export const FRONT_SKILL_GRIDS: SkillColumnGrid[] = [SKILL_GRID_COL1, SKILL_GRID
 
 export const CARD_LAYOUTS: CardLayout[] = [
   { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
-  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v3_classic.png', fields: BACK_CLASSIC_FIELDS },
-  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v3_toc.png', fields: BACK_TOC_FIELDS },
+  { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v4_classic.png', fields: BACK_CLASSIC_FIELDS },
+  { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v4_toc.png', fields: BACK_TOC_FIELDS },
 ]
