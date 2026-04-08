@@ -1054,8 +1054,8 @@ export const OCCUPATIONS: Occupation[] = [
   },
   {
     id: 'przemytnik_alkoholu_bandyta',
-    name: 'Przemytnik alkoholu / Bandyta',
-    description: 'Przemytnik nielegalnego alkoholu lub brutalny bandyta zarabiający siłą.',
+    name: 'Bandyta',
+    description: 'Brutalny bandyta zarabiający siłą, wymuszeniami i przemocą.',
     category: 'crime_underworld',
     skill_formula: { characteristics: ['EDU', 'STR'], multiplier: 2 },
     skills: [

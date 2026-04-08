@@ -93,8 +93,13 @@ export function getAvailablePositionOptions(
   const clusterId = OCCUPATION_CLUSTER_MAP[occupationId] ?? 'ZAWODY_NISZOWE'
   const clusterOptions = CLUSTER_OPTIONS[clusterId] ?? []
 
-  const always = clusterOptions.filter((o) => o.unlock_condition === 'ZAWSZE')
-  const unlocked = clusterOptions.filter(
+  // Filter by occupation if the option specifies allowed occupations
+  const forOccupation = clusterOptions.filter(
+    (o) => !o.occupations || o.occupations.includes(occupationId),
+  )
+
+  const always = forOccupation.filter((o) => o.unlock_condition === 'ZAWSZE')
+  const unlocked = forOccupation.filter(
     (o) => o.unlock_condition !== 'ZAWSZE' && isUnlocked(o.unlock_condition, skillTotals),
   )
 

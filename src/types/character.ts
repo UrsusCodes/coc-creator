@@ -67,6 +67,8 @@ export interface PositionOption {
   unlock_condition: string
   placeholder: string
   category: string
+  /** Which occupations can see this option. If omitted, all occupations in the cluster can. */
+  occupations?: string[]
 }
 
 export interface MainPosition {
@@ -164,6 +166,9 @@ export interface CharacterData {
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
   portrait_crop_data?: PortraitCropData
+  // Sessions & distinguisher
+  sessions?: string[]
+  distinguisher?: string
   // Player-centric fields
   draft_locked_step?: number | null
   created_by?: string

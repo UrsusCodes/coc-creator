@@ -686,6 +686,18 @@ const OKULTYSTYCZNE_I_TAJEMNICZE: AdditionalPositionOption[] = [
     flavor: 'Stare przedmioty mają swoją historię: niektóre lepiej nie otwierać.',
     placeholder: 'np. Prywatna kolekcja dziwnych przedmiotów w piwnicy antykwariatu. Amulety, manuskrypty, artefakty z wykopalisk. Nie wszystko na sprzedaż.',
   },
+  {
+    id: 'towarzystwo_teozoficzne',
+    title: 'Towarzystwo teozoficzne / różokrzyżowcy',
+    category: 'OKULTYSTYCZNE I TAJEMNICZE',
+    organization_size: 'Średnia',
+    unlock: [
+      { type: 'skill', key: 'okultyzm', threshold: 40, weight: 2.0 },
+      { type: 'attribute', key: 'INT', threshold: 60, weight: 1.2 },
+    ],
+    flavor: 'Teozofia, antropozofia, hermetyzm: duchowość z intelektualnym zacięciem i fasadą respektabilności.',
+    placeholder: 'np. Amerykańska Sekcja Towarzystwa Teozoficznego. Odczyty publiczne, szanowani członkowie, fasada respektabilności.',
+  },
 ]
 
 // ═══════════════════════════════════════════════════════════════
@@ -927,6 +939,7 @@ const SPECJALNE_CECHY_80: AdditionalPositionOption[] = [
     organization_size: 'Mikro',
     unlock: [
       { type: 'attribute', key: 'POW', threshold: 80, weight: 2.5 },
+      { type: 'skill', key: 'okultyzm', threshold: 30, weight: 1.0 },
     ],
     is_attribute_special: true,
     attribute_key: 'POW',
@@ -940,6 +953,7 @@ const SPECJALNE_CECHY_80: AdditionalPositionOption[] = [
     organization_size: 'Mikro',
     unlock: [
       { type: 'attribute', key: 'POW', threshold: 80, weight: 2.5 },
+      { type: 'skill', key: 'okultyzm', threshold: 30, weight: 1.0 },
     ],
     is_attribute_special: true,
     attribute_key: 'POW',
@@ -953,6 +967,7 @@ const SPECJALNE_CECHY_80: AdditionalPositionOption[] = [
     organization_size: 'Mikro',
     unlock: [
       { type: 'attribute', key: 'POW', threshold: 80, weight: 2.5 },
+      { type: 'skill', key: 'okultyzm', threshold: 30, weight: 1.0 },
       { type: 'skill', key: 'hipnoza', threshold: 30, weight: 1.0 },
     ],
     is_attribute_special: true,
