@@ -61,6 +61,9 @@ Deno.serve(async (req: Request) => {
           methods,
           era: body.era,
           max_tries: body.max_tries ?? 1,
+          reroll_budget: body.reroll_budget ?? Math.max(0, (body.max_tries ?? 1) - 1),
+          label: body.label ?? '',
+          assigned_player_id: body.assigned_player_id ?? null,
           perks: body.perks ?? [],
           max_skill_value: body.max_skill_value ?? 99,
         })
@@ -79,6 +82,90 @@ Deno.serve(async (req: Request) => {
         .eq('id', codeDeleteMatch[1])
       if (error) throw error
       return jsonResponse({ deleted: true })
+    }
+
+    // PATCH /codes/:id — edit label/reroll_budget/assignee/perks/era/methods/max_skill_value
+    const codePatchMatch = path.match(/^\/codes\/([^/]+)$/)
+    if (codePatchMatch && req.method === 'PATCH') {
+      const body = await req.json()
+      const allowed = [
+        'label',
+        'reroll_budget',
+        'assigned_player_id',
+        'perks',
+        'max_skill_value',
+        'era',
+        'methods',
+        'is_active',
+      ]
+      const updateData: Record<string, unknown> = {}
+      for (const k of allowed) {
+        if (k in body) updateData[k] = body[k]
+      }
+      // Keep legacy `method` in sync when methods[] changes.
+      if (Array.isArray(body.methods) && body.methods.length > 0) {
+        updateData.method = body.methods[0]
+      }
+
+      const { data, error } = await supabase
+        .from('invite_codes')
+        .update(updateData)
+        .eq('id', codePatchMatch[1])
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // POST /codes/cleanup — delete unused codes + codes whose character is submitted
+    // body (optional): { dry_run: boolean } → if true, returns preview without deleting
+    if (path === '/codes/cleanup' && req.method === 'POST') {
+      const body = await req.json().catch(() => ({}))
+      const dryRun = body.dry_run === true
+
+      // Preview: fetch all codes + their linked character status.
+      const { data: codes, error: codesErr } = await supabase
+        .from('invite_codes')
+        .select('id, code, label, created_at')
+      if (codesErr) throw codesErr
+
+      const { data: chars, error: charsErr } = await supabase
+        .from('characters')
+        .select('invite_code_id, status')
+      if (charsErr) throw charsErr
+
+      const byCode: Record<string, { submitted: boolean; draft: boolean }> = {}
+      for (const c of chars ?? []) {
+        if (!c.invite_code_id) continue
+        const entry = byCode[c.invite_code_id] ?? { submitted: false, draft: false }
+        if (c.status === 'submitted') entry.submitted = true
+        if (c.status === 'draft') entry.draft = true
+        byCode[c.invite_code_id] = entry
+      }
+
+      const deletable: typeof codes = []
+      for (const code of codes ?? []) {
+        const entry = byCode[code.id]
+        // Only delete codes with NO linked character (truly unused).
+        // Codes linked to submitted characters must be preserved — FK CASCADE would
+        // destroy the approved character, violating the "zatwierdzone postaci OK" rule.
+        if (!entry) deletable.push(code)
+      }
+
+      if (dryRun) {
+        return jsonResponse({ dry_run: true, to_delete: deletable, count: deletable.length })
+      }
+
+      const ids = deletable.map((c) => c.id)
+      if (ids.length === 0) {
+        return jsonResponse({ deleted: 0, codes: [] })
+      }
+      const { error: delErr } = await supabase
+        .from('invite_codes')
+        .delete()
+        .in('id', ids)
+      if (delErr) throw delErr
+      return jsonResponse({ deleted: ids.length, codes: deletable })
     }
 
     // GET /characters - list all characters
@@ -688,6 +775,32 @@ Deno.serve(async (req: Request) => {
       if (junctionErr) throw junctionErr
 
       return jsonResponse({ character, invite_code: inviteCode })
+    }
+
+    // POST /characters/:id/grant-reroll — admin increment rerolls_remaining
+    const grantRerollMatch = path.match(/^\/characters\/([^/]+)\/grant-reroll$/)
+    if (grantRerollMatch && req.method === 'POST') {
+      const charId = grantRerollMatch[1]
+      const body = await req.json().catch(() => ({}))
+      const amount = typeof body.count === 'number' ? body.count : 1
+      if (amount <= 0) {
+        return new Response(JSON.stringify({ error: 'count must be positive' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const { data: newRemaining, error: rpcErr } = await supabase
+        .rpc('grant_reroll', { character_id: charId, amount })
+      if (rpcErr) throw rpcErr
+
+      const { data, error } = await supabase
+        .from('characters')
+        .select('id, rerolls_remaining')
+        .eq('id', charId)
+        .single()
+      if (error) throw error
+      return jsonResponse({ ...data, new_remaining: newRemaining })
     }
 
     return new Response(JSON.stringify({ error: 'Not found' }), {

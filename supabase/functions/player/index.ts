@@ -53,6 +53,72 @@ async function verifyToken(token: string): Promise<string | null> {
   }
 }
 
+// ─── Server-side dice (port of src/lib/dice.ts) ────────────────
+function rollDie(sides: number): number {
+  // crypto.getRandomValues for unbiased rolls (prevents client reroll-on-refresh abuse)
+  const buf = new Uint32Array(1)
+  crypto.getRandomValues(buf)
+  return (buf[0] % sides) + 1
+}
+function rollDice(count: number, sides: number): number {
+  let total = 0
+  for (let i = 0; i < count; i++) total += rollDie(sides)
+  return total
+}
+function roll3d6x5(): number { return rollDice(3, 6) * 5 }
+function roll2d6plus6x5(): number { return (rollDice(2, 6) + 6) * 5 }
+function rollCharacteristic(formula: '3d6x5' | '2d6+6x5'): number {
+  return formula === '3d6x5' ? roll3d6x5() : roll2d6plus6x5()
+}
+
+const CHARACTERISTIC_FORMULAS: Record<string, '3d6x5' | '2d6+6x5'> = {
+  STR: '3d6x5', CON: '3d6x5', SIZ: '2d6+6x5', DEX: '3d6x5',
+  APP: '3d6x5', INT: '2d6+6x5', POW: '3d6x5', EDU: '2d6+6x5',
+}
+
+function rollAllCharacteristics(): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const [key, formula] of Object.entries(CHARACTERISTIC_FORMULAS)) {
+    out[key] = rollCharacteristic(formula)
+  }
+  return out
+}
+
+function rollLuckForAge(age: number): number {
+  // "Young" bonus: 15–19 rolls twice takes best. Otherwise single 3d6x5.
+  if (age >= 15 && age <= 19) {
+    return Math.max(roll3d6x5(), roll3d6x5())
+  }
+  return roll3d6x5()
+}
+
+// Fields wiped on reroll / manual characteristics edit.
+// Keep: id, invite_code_id, player_id, distinguisher, method, era, perks,
+//       created_at, reroll_history, rerolls_remaining, status, name, age,
+//       gender, appearance, residence, birthplace, max_skill_value.
+const DOWNSTREAM_WIPE: Record<string, unknown> = {
+  occupation_id: null,
+  occupation_skill_points: {},
+  personal_skill_points: {},
+  backstory: {},
+  equipment: [],
+  cash: '',
+  assets: '',
+  spending_level: '',
+  positions: [],
+  contacts: [],
+  main_position: null,
+  additional_positions: [],
+  contacts_v2: [],
+  lifestyle_rating: null,
+  lifestyle_stars: null,
+  lifestyle_label: null,
+  spending_free: null,
+  assets_breakdown: [],
+  equipment_catalogs_available: [],
+  derived: {},
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -512,10 +578,10 @@ Deno.serve(async (req: Request) => {
     if (draftMatch && req.method === 'PUT') {
       const charId = draftMatch[1]
 
-      // Verify ownership
+      // Verify ownership + fetch commitment timestamp
       const { data: char, error: ownerErr } = await supabase
         .from('characters')
-        .select('id, status, created_by')
+        .select('id, status, created_by, characteristics_committed_at')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
@@ -530,9 +596,244 @@ Deno.serve(async (req: Request) => {
       const { wizard_data } = body
       if (!wizard_data) return errorResponse('wizard_data required', 400)
 
+      // Post-commit: reject direct writes to characteristics/luck
+      // (must go through /reroll or /edit-characteristics endpoints).
+      if (char.characteristics_committed_at) {
+        const forbidden = ['characteristics', 'luck']
+        const attempted = forbidden.filter((k) => k in wizard_data)
+        if (attempted.length > 0) {
+          return errorResponse(
+            `Cannot write ${attempted.join(', ')} after commit — use reroll or edit endpoint`,
+            409,
+          )
+        }
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .update(wizard_data)
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // NEW IDENTITY/CHARACTERISTICS ENDPOINTS (rework 018)
+    // ══════════════════════════════════════════════════════════════
+
+    // ── POST /start-character — commit identifier, create character ─
+    // body: { code, distinguisher, method, era?, name?, age?, gender? }
+    // Rolls characteristics server-side for dice method.
+    if (path === '/start-character' && req.method === 'POST') {
+      const body = await req.json()
+      const { code, distinguisher, method, name, age, gender } = body
+
+      if (!code) return errorResponse('code required', 400)
+      if (!distinguisher || typeof distinguisher !== 'string') {
+        return errorResponse('distinguisher required', 400)
+      }
+      const trimmed = distinguisher.trim()
+      if (trimmed.length < 3 || trimmed.length > 60) {
+        return errorResponse('distinguisher must be 3–60 characters', 400)
+      }
+      if (!method || !['dice', 'point_buy', 'direct'].includes(method)) {
+        return errorResponse('method must be dice | point_buy | direct', 400)
+      }
+
+      // Resolve code, verify player has it assigned
+      const { data: inviteCode, error: codeErr } = await supabase
+        .from('invite_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .maybeSingle()
+      if (codeErr) throw codeErr
+      if (!inviteCode) return errorResponse('Invalid or inactive code', 400)
+
+      if (!(inviteCode.methods ?? [inviteCode.method]).includes(method)) {
+        return errorResponse('Method not allowed for this code', 400)
+      }
+
+      const { data: assignment, error: assignErr } = await supabase
+        .from('player_codes')
+        .select('id')
+        .eq('player_id', playerId)
+        .eq('invite_code_id', inviteCode.id)
+        .maybeSingle()
+      if (assignErr) throw assignErr
+      if (!assignment) return errorResponse('Code not assigned to you', 403)
+
+      // Enforce 1 code = 1 character: reject if any character already linked
+      const { data: existing, error: existErr } = await supabase
+        .from('characters')
+        .select('id, status, player_id')
+        .eq('invite_code_id', inviteCode.id)
+        .limit(1)
+        .maybeSingle()
+      if (existErr) throw existErr
+      if (existing) {
+        return errorResponse('Code already in use — ask admin for a new one', 409)
+      }
+
+      // For dice: roll server-side now and mark committed.
+      const characteristics = method === 'dice' ? rollAllCharacteristics() : {}
+      const effectiveAge = typeof age === 'number' ? age : 30
+      const luck = method === 'dice' ? rollLuckForAge(effectiveAge) : 0
+      const nowIso = new Date().toISOString()
+
+      const insertPayload: Record<string, unknown> = {
+        invite_code_id: inviteCode.id,
+        player_id: playerId,
+        status: 'draft',
+        created_by: 'player',
+        distinguisher: trimmed,
+        method,
+        era: inviteCode.era,
+        perks: inviteCode.perks ?? [],
+        max_skill_value: inviteCode.max_skill_value ?? 99,
+        characteristics,
+        luck,
+        rerolls_remaining: inviteCode.reroll_budget ?? 0,
+        characteristics_committed_at: method === 'dice' ? nowIso : null,
+        reroll_history: [],
+        name: name ?? '',
+        age: effectiveAge,
+        gender: gender ?? '',
+        appearance: '',
+        occupation_skill_points: {},
+        personal_skill_points: {},
+        backstory: {},
+        equipment: [],
+        cash: '',
+        assets: '',
+        spending_level: '',
+        derived: {},
+      }
+
+      const { data, error } = await supabase
+        .from('characters')
+        .insert(insertPayload)
+        .select()
+        .single()
+      if (error) {
+        if (error.code === '23505') {
+          return errorResponse('Identyfikator już użyty w innej twojej postaci', 409)
+        }
+        throw error
+      }
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/reroll — dice only, consume reroll budget ─
+    const rerollMatch = path.match(/^\/characters\/([^/]+)\/reroll$/)
+    if (rerollMatch && req.method === 'POST') {
+      const charId = rerollMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.method !== 'dice') {
+        return errorResponse('Reroll is dice-only; use edit-characteristics for other methods', 400)
+      }
+      if (char.status !== 'draft') {
+        return errorResponse('Cannot reroll a submitted character', 400)
+      }
+      if ((char.rerolls_remaining ?? 0) <= 0) {
+        return errorResponse('No rerolls remaining', 403)
+      }
+
+      const newChars = rollAllCharacteristics()
+      const newLuck = rollLuckForAge(char.age ?? 30)
+      const nowIso = new Date().toISOString()
+
+      const history = Array.isArray(char.reroll_history) ? char.reroll_history : []
+      history.push({
+        at: nowIso,
+        scope: 'reroll',
+        previous_characteristics: char.characteristics,
+        previous_luck: char.luck,
+      })
+
+      // Atomic decrement via RPC; raises if nothing to consume (race safety).
+      const { data: newRemaining, error: rpcErr } = await supabase
+        .rpc('consume_reroll', { character_id: charId })
+      if (rpcErr) return errorResponse(rpcErr.message, 403)
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({
+          ...DOWNSTREAM_WIPE,
+          characteristics: newChars,
+          luck: newLuck,
+          characteristics_committed_at: nowIso,
+          reroll_history: history,
+          rerolls_remaining: newRemaining,
+        })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/edit-characteristics — point_buy/direct manual edit ─
+    const editCharMatch = path.match(/^\/characters\/([^/]+)\/edit-characteristics$/)
+    if (editCharMatch && req.method === 'POST') {
+      const charId = editCharMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.method === 'dice') {
+        return errorResponse('Dice method must use /reroll', 400)
+      }
+      if (char.status !== 'draft') {
+        return errorResponse('Cannot edit a submitted character', 400)
+      }
+
+      const body = await req.json()
+      const { characteristics, luck } = body
+      if (!characteristics || typeof characteristics !== 'object') {
+        return errorResponse('characteristics required', 400)
+      }
+
+      const required = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
+      for (const k of required) {
+        if (typeof characteristics[k] !== 'number') {
+          return errorResponse(`characteristics.${k} must be a number`, 400)
+        }
+      }
+
+      const nowIso = new Date().toISOString()
+      const history = Array.isArray(char.reroll_history) ? char.reroll_history : []
+      history.push({
+        at: nowIso,
+        scope: 'manual_edit',
+        previous_characteristics: char.characteristics,
+        previous_luck: char.luck,
+      })
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({
+          ...DOWNSTREAM_WIPE,
+          characteristics,
+          luck: typeof luck === 'number' ? luck : (char.luck ?? 0),
+          characteristics_committed_at: nowIso,
+          reroll_history: history,
+        })
         .eq('id', charId)
         .select()
         .single()
