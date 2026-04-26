@@ -631,45 +631,95 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
-    // ── PUT /characters/:id/draft — update draft wizard data ──────
+    // ── PUT /characters/:id/draft — soft-zone autosave only ────────
+    // Strict allowlist of fields the wizard can write directly. All
+    // mechanical pre-occupation state (cech/wiek/luck/edu/aging/swap and
+    // their commit timestamps) goes through dedicated endpoints. status,
+    // method, era, perks, distinguisher, max_skill_value, invite_code_id
+    // also blocked — none of those are draft-time mutable.
+    const DRAFT_ALLOWLIST = new Set([
+      // Soft-zone wizard state
+      'occupation_id',
+      'occupation_skill_points',
+      'personal_skill_points',
+      'equipment',
+      'cash',
+      'assets',
+      'spending_level',
+      'lifestyle_rating',
+      'lifestyle_stars',
+      'lifestyle_label',
+      'spending_free',
+      'assets_breakdown',
+      'equipment_catalogs_available',
+      'positions',
+      'contacts',
+      'main_position',
+      'additional_positions',
+      'contacts_v2',
+      // Narrative — also editable via dedicated /narrative endpoint, but
+      // permitting here too lets wizard autosave during backstory step.
+      'backstory',
+      'name',
+      'appearance',
+      'residence',
+      'birthplace',
+      'player_name',
+      'gender',
+      // Sessions + admin_notes (player can self-annotate during draft)
+      'sessions',
+      'admin_notes',
+      // Client progression tracker
+      'draft_step',
+      'draft_locked_step',
+      // Derived block — purely computed mirror; client persists for fast UI
+      'derived',
+    ])
+
     const draftMatch = path.match(/^\/characters\/([^/]+)\/draft$/)
     if (draftMatch && req.method === 'PUT') {
       const charId = draftMatch[1]
 
-      // Verify ownership + fetch commitment timestamp
       const { data: char, error: ownerErr } = await supabase
         .from('characters')
-        .select('id, status, created_by, characteristics_committed_at')
+        .select('id, status')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
       if (ownerErr) return errorResponse('Character not found', 404)
-
-      // Only allow updating drafts
       if (char.status !== 'draft') {
         return errorResponse('Character is not a draft', 400)
       }
 
       const body = await req.json()
       const { wizard_data } = body
-      if (!wizard_data) return errorResponse('wizard_data required', 400)
+      if (!wizard_data || typeof wizard_data !== 'object') {
+        return errorResponse('wizard_data required', 400)
+      }
 
-      // Post-commit: reject direct writes to characteristics/luck
-      // (must go through /reroll or /edit-characteristics endpoints).
-      if (char.characteristics_committed_at) {
-        const forbidden = ['characteristics', 'luck']
-        const attempted = forbidden.filter((k) => k in wizard_data)
-        if (attempted.length > 0) {
-          return errorResponse(
-            `Cannot write ${attempted.join(', ')} after commit — use reroll or edit endpoint`,
-            409,
-          )
+      // Allowlist enforcement: reject if any field outside allowlist.
+      const rejected: string[] = []
+      const filtered: Record<string, unknown> = {}
+      for (const k of Object.keys(wizard_data)) {
+        if (DRAFT_ALLOWLIST.has(k)) {
+          filtered[k] = (wizard_data as Record<string, unknown>)[k]
+        } else {
+          rejected.push(k)
         }
+      }
+      if (rejected.length > 0) {
+        return errorResponse(
+          `Fields not allowed via /draft: ${rejected.join(', ')}. Use the dedicated endpoint.`,
+          400,
+        )
+      }
+      if (Object.keys(filtered).length === 0) {
+        return errorResponse('wizard_data has no allowed fields', 400)
       }
 
       const { data, error } = await supabase
         .from('characters')
-        .update(wizard_data)
+        .update(filtered)
         .eq('id', charId)
         .select()
         .single()
@@ -1199,6 +1249,266 @@ Deno.serve(async (req: Request) => {
           characteristics_committed_at: nowIso,
           reroll_history: history,
         })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/go-back-to-step — soft back-step ─────
+    // Soft zone only (occupation onward). Wipes fields ≥ target step;
+    // pre-occupation state (cech/wiek/luck/edu/aging/swap) and narrative
+    // and identity preserved. No reroll token consumed.
+    // body: { step: 'occupation' | 'occupation_skills' | 'personal_skills' |
+    //                'wealth_equipment' | 'positions_contacts' }
+    const goBackMatch = path.match(/^\/characters\/([^/]+)\/go-back-to-step$/)
+    if (goBackMatch && req.method === 'POST') {
+      const charId = goBackMatch[1]
+      const body = await req.json()
+      const { step } = body
+
+      const VALID_STEPS = ['occupation', 'occupation_skills', 'personal_skills', 'wealth_equipment', 'positions_contacts']
+      if (!VALID_STEPS.includes(step)) {
+        return errorResponse(`step must be one of: ${VALID_STEPS.join(', ')}`, 400)
+      }
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, draft_step')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+      if (char.status !== 'draft') return errorResponse('Cannot back-step on submitted character', 400)
+
+      // Cascade wipe: each step wipes itself + everything below.
+      // Order matters; SOFT_WIPE_CASCADE[i] wipes stage i and all later.
+      const cascade: Record<string, Record<string, unknown>> = {
+        occupation: {
+          occupation_id: null,
+          occupation_skill_points: {},
+          personal_skill_points: {},
+          equipment: [],
+          cash: '',
+          assets: '',
+          spending_level: '',
+          lifestyle_rating: null,
+          lifestyle_stars: null,
+          lifestyle_label: null,
+          spending_free: null,
+          assets_breakdown: [],
+          equipment_catalogs_available: [],
+          positions: [],
+          contacts: [],
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
+        },
+        occupation_skills: {
+          occupation_skill_points: {},
+          personal_skill_points: {},
+          equipment: [],
+          cash: '',
+          assets: '',
+          spending_level: '',
+          lifestyle_rating: null,
+          lifestyle_stars: null,
+          lifestyle_label: null,
+          spending_free: null,
+          assets_breakdown: [],
+          equipment_catalogs_available: [],
+          positions: [],
+          contacts: [],
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
+        },
+        personal_skills: {
+          personal_skill_points: {},
+          equipment: [],
+          cash: '',
+          assets: '',
+          spending_level: '',
+          lifestyle_rating: null,
+          lifestyle_stars: null,
+          lifestyle_label: null,
+          spending_free: null,
+          assets_breakdown: [],
+          equipment_catalogs_available: [],
+          positions: [],
+          contacts: [],
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
+        },
+        wealth_equipment: {
+          equipment: [],
+          cash: '',
+          assets: '',
+          spending_level: '',
+          lifestyle_rating: null,
+          lifestyle_stars: null,
+          lifestyle_label: null,
+          spending_free: null,
+          assets_breakdown: [],
+          equipment_catalogs_available: [],
+          positions: [],
+          contacts: [],
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
+        },
+        positions_contacts: {
+          positions: [],
+          contacts: [],
+          main_position: null,
+          additional_positions: [],
+          contacts_v2: [],
+        },
+      }
+
+      const wipeFields = cascade[step]
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ ...wipeFields, draft_step: step })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── PUT /characters/:id/distinguisher — anytime, even post-submit ─
+    // body: { distinguisher: string (3–60 chars) }
+    // Uniqueness per-player enforced by partial unique index from 018.
+    const distMatch = path.match(/^\/characters\/([^/]+)\/distinguisher$/)
+    if (distMatch && req.method === 'PUT') {
+      const charId = distMatch[1]
+      const body = await req.json()
+      const { distinguisher } = body
+
+      if (typeof distinguisher !== 'string') {
+        return errorResponse('distinguisher must be a string', 400)
+      }
+      const trimmed = distinguisher.trim()
+      if (trimmed.length < 3 || trimmed.length > 60) {
+        return errorResponse('distinguisher must be 3–60 characters', 400)
+      }
+
+      // Verify ownership only — no status check; editable post-submit per spec.
+      const { data: char, error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ distinguisher: trimmed })
+        .eq('id', char.id)
+        .select()
+        .single()
+      if (error) {
+        if (error.code === '23505') {
+          return errorResponse('Identyfikator już zajęty przez inną twoją postać', 409)
+        }
+        throw error
+      }
+      return jsonResponse(data)
+    }
+
+    // ── PUT /characters/:id/narrative — anytime, also post-submit ──
+    // Allowlist of narrative fields. Body subset of:
+    //   name, appearance, residence, birthplace, player_name, gender,
+    //   backstory (full object replacement),
+    //   portrait_url, art_prompt, art_gallery, portrait_crop_data
+    const NARRATIVE_ALLOWLIST = new Set([
+      'name', 'appearance', 'residence', 'birthplace', 'player_name', 'gender',
+      'backstory',
+      'portrait_url', 'art_prompt', 'art_gallery', 'portrait_crop_data',
+    ])
+    const narrMatch = path.match(/^\/characters\/([^/]+)\/narrative$/)
+    if (narrMatch && req.method === 'PUT') {
+      const charId = narrMatch[1]
+      const body = await req.json()
+      if (!body || typeof body !== 'object') return errorResponse('body required', 400)
+
+      const { data: char, error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const rejected: string[] = []
+      const filtered: Record<string, unknown> = {}
+      for (const k of Object.keys(body)) {
+        if (NARRATIVE_ALLOWLIST.has(k)) {
+          filtered[k] = (body as Record<string, unknown>)[k]
+        } else {
+          rejected.push(k)
+        }
+      }
+      if (rejected.length > 0) {
+        return errorResponse(
+          `Fields not allowed via /narrative: ${rejected.join(', ')}`,
+          400,
+        )
+      }
+      if (Object.keys(filtered).length === 0) {
+        return errorResponse('No allowed narrative fields in body', 400)
+      }
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update(filtered)
+        .eq('id', char.id)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/submit — flip draft → submitted ──────
+    // Validates all hard-zone commits are present (for dice flow).
+    // For point_buy/direct: only characteristics_committed_at required.
+    const submitMatch = path.match(/^\/characters\/([^/]+)\/submit$/)
+    if (submitMatch && req.method === 'POST') {
+      const charId = submitMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, method, characteristics_committed_at, age_committed_at, edu_committed_at, aging_committed_at, luck_committed_at, swap_available, swap_used')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+      if (char.status === 'submitted') return errorResponse('Already submitted', 409)
+      if (char.status !== 'draft') return errorResponse('Character is not a draft', 400)
+
+      if (!char.characteristics_committed_at) {
+        return errorResponse('Cechy nie zostały jeszcze zatwierdzone', 409)
+      }
+      // For dice flow, all per-step commits must be present.
+      if (char.method === 'dice') {
+        const missing: string[] = []
+        if (!char.age_committed_at) missing.push('wiek')
+        if (!char.edu_committed_at) missing.push('rzuty EDU')
+        if (!char.aging_committed_at) missing.push('obniżenia wiekowe')
+        if (!char.luck_committed_at) missing.push('szczęście')
+        if (char.swap_available && !char.swap_used) missing.push('decyzja o zamianie cech')
+        if (missing.length > 0) {
+          return errorResponse(`Brakujące kroki przed zatwierdzeniem: ${missing.join(', ')}`, 409)
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ status: 'submitted' })
         .eq('id', charId)
         .select()
         .single()
