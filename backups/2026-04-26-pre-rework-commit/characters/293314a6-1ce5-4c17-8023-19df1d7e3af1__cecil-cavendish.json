@@ -1,0 +1,188 @@
+{
+  "id": "293314a6-1ce5-4c17-8023-19df1d7e3af1",
+  "invite_code_id": "3658292e-9560-41fd-becf-70a80cbb3b07",
+  "status": "submitted",
+  "name": "Cecil Cavendish",
+  "age": 34,
+  "gender": "M",
+  "appearance": "",
+  "characteristics": {
+    "APP": 40,
+    "CON": 60,
+    "DEX": 45,
+    "EDU": 70,
+    "INT": 50,
+    "POW": 55,
+    "SIZ": 65,
+    "STR": 65
+  },
+  "luck": 50,
+  "derived": {
+    "db": "+1K4",
+    "hp": 12,
+    "mp": 11,
+    "san": 55,
+    "build": 1,
+    "dodge": 22,
+    "move_rate": 8
+  },
+  "occupation_id": "profesor",
+  "occupation_skill_points": {
+    "okultyzm": 60,
+    "majetnosc": 20,
+    "perswazja": 45,
+    "wiedza_tajemna": 1,
+    "spostrzegawczosc": 45,
+    "jezyk_obcy:Łacina": 54,
+    "korzystanie_z_bibliotek": 55
+  },
+  "personal_skill_points": {
+    "okultyzm": 5,
+    "perswazja": 20,
+    "spostrzegawczosc": 6,
+    "jezyk_obcy:Łacina": 5,
+    "jezyk_obcy:Hebrajski": 59,
+    "korzystanie_z_bibliotek": 5
+  },
+  "backstory": {
+    "drive": "scholarship",
+    "pillars": [
+      "Postęp naukowy / wartość intelektu",
+      "Język jest granicą świata - jeśli jestem w stanie coś opisać, mogę to zrozumieć i wyjaśnić"
+    ],
+    "sources": [
+      {
+        "name": "Klub tekstów i symboli",
+        "category": "organization",
+        "description": "Grupa osób, która zajmuje się deszyfrowaniem starożytnej wiedzy. Jedni traktują to czysto hobbystycznie, inni całkowicie naukowo, jeszcze inni chcą sprawdzać starożytne inkantacje w ramach archeologii eksperymentalnej. Skutki bywają... różne."
+      },
+      {
+        "name": "Siostra bliźniaczka Coleen",
+        "category": "person",
+        "description": "Ona uważa go za dziwaka, który więcej czyta niż żyje. On uważa, że jej jedynym celem na ziemi jest rodzenie dzieci i pieczenie ciasta. Nieustannie się przedrzeźniają, ale wskoczą za sobą w ogień."
+      },
+      {
+        "name": "Biblioteka uniwersytecka",
+        "category": "place",
+        "description": "Cisza spokój i szacunek do słowa pisanego. Idealne miejsce na studiowanie języków, o których wszyscy dawno zapomnieli.. albo powinni byli zapomnieć."
+      }
+    ],
+    "other_traits": "",
+    "appearance_description": "Właściciel bladych, błękitnych, często nieobecnych oczu. Zawsze z kilkudniowym zarostem, Nieco przygarbiony. Staraninie zaczesane, chociaż nieco przetłuszczone szpakowate włosy. Spokojny, sprawia wrażenie człowieka, którego ciężko wyprowadzić z równowagi lub wywołać w nim jakieś emocje."
+  },
+  "equipment": [
+    "[Styl życia] Przeciętny",
+    "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+    "[Transport] Komunikacja + okazj. taksówki",
+    "[Lifestyle] ★★··· Przeciętny",
+    "[Ekwipunek] Lupa ($1)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Ekwipunek] Książka (specjalistyczna) ($5) [x2]",
+    "[Ekwipunek] Portfel ($1)",
+    "[Ekwipunek] Nóż / scyzoryk ($0.50)",
+    "[Ekwipunek] Zapalniczka ($1)",
+    "[Ekwipunek] Walizka ($3)",
+    "[Ekwipunek] Laska spacerowa ($5)",
+    "[Ekwipunek] Zegarek kieszonkowy ($5)"
+  ],
+  "cash": "Gotówka: 40 $",
+  "assets": "1000 $",
+  "spending_level": "$7",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-03-23T09:39:35.390087+00:00",
+  "updated_at": "2026-03-28T02:07:52.143335+00:00",
+  "player_name": "Piotrek",
+  "invite_code": "",
+  "admin_notes": "",
+  "player_id": "47867d08-1248-47d0-ae22-5fe569d01cae",
+  "main_position": {
+    "category": "OKULTYZM",
+    "option_id": "an_paranormal",
+    "option_name": "Gabinet parapsychologiczny",
+    "strength_percent": 85,
+    "unlock_condition": "okultyzm_30",
+    "organization_size": "Mikro",
+    "custom_description": "Pracownia badań nad językami hipotetycznymi i wymarłymi - mała pracownia skupiona na badaniu języków marginalnych oraz analizie niesklasyfikowanych znaków i inskrypcji"
+  },
+  "additional_positions": [
+    {
+      "weight": 3,
+      "category": "INTELEKTUALNE I AKADEMICKIE",
+      "is_custom": false,
+      "option_id": "klub_tekstow_symboli",
+      "roll_value": 75,
+      "slot_index": 0,
+      "option_name": "Klub tekstów i symboli",
+      "unlocked_by": "jezyk obcy ≥ 50",
+      "organization_size": "Mikro",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 2,
+      "subcategory_id": "profesorowie",
+      "subcategory_name": "Profesorowie i wykładowcy",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 2,
+      "subcategory_id": "towarzystwa_naukowe",
+      "subcategory_name": "Towarzystwa naukowe",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 2,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 2,
+      "subcategory_id": "archiwisci",
+      "subcategory_name": "Archiwiści i bibliotekarze",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": null,
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "",
+  "birthplace": ""
+}

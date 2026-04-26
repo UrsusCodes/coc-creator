@@ -1,0 +1,19 @@
+{
+  "id": "0bee6145-37a7-412d-af43-a573606a9f07",
+  "code": "FQK-1129-WXJ",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 2,
+  "times_used": 0,
+  "is_active": true,
+  "created_at": "2026-03-17T14:05:23.715974+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars",
+    "black_market"
+  ],
+  "max_skill_value": 80
+}

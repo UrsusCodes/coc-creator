@@ -1,0 +1,219 @@
+{
+  "id": "c879b3d5-46cb-4985-9747-d284fbde7c7b",
+  "invite_code_id": "55017e2c-b911-4659-962b-2e4c75122490",
+  "status": "submitted",
+  "name": "Wilson Stanford",
+  "age": 39,
+  "gender": "M",
+  "appearance": "Wysoki, wątłej budowy. Trójkątna twarz o wydatnych wysoko ustawionych kościach policzkowych. Fryzura zadbana chociaż z wyraźnymi zakolami.",
+  "characteristics": {
+    "APP": 60,
+    "CON": 35,
+    "DEX": 25,
+    "EDU": 65,
+    "INT": 90,
+    "POW": 90,
+    "SIZ": 45,
+    "STR": 30
+  },
+  "luck": 60,
+  "derived": {
+    "db": "-1",
+    "hp": 8,
+    "mp": 18,
+    "san": 90,
+    "build": -1,
+    "dodge": 12,
+    "move_rate": 7
+  },
+  "occupation_id": "okultysta",
+  "occupation_skill_points": {
+    "historia": 30,
+    "okultyzm": 55,
+    "majetnosc": 15,
+    "antropologia": 20,
+    "urok_osobisty": 20,
+    "nauka:Astronomia": 40,
+    "bron_palna:krotka": 20,
+    "jezyk_obcy:Łacina": 40,
+    "korzystanie_z_bibliotek": 20
+  },
+  "personal_skill_points": {
+    "historia": 15,
+    "okultyzm": 15,
+    "antropologia": 14,
+    "nasluchiwanie": 25,
+    "urok_osobisty": 25,
+    "nauka:Astronomia": 19,
+    "spostrzegawczosc": 25,
+    "bron_palna:krotka": 10,
+    "jezyk_obcy:Łacina": 22,
+    "korzystanie_z_bibliotek": 10
+  },
+  "backstory": {
+    "drive": "follower",
+    "pillars": [
+      "Nie ma rzeczy niemożliwych ",
+      "Prawdziwą wartość ma to co jeszcze nieodkryte ",
+      "Życie doczesne to tylko preludium do następnego, ważniejszego ",
+      "Jeżeli nie istnieje Bóg, z pewnością jest inna wyższa siła której nie można uchwycić "
+    ],
+    "sources": [
+      {
+        "name": "Ojciec - James",
+        "category": "person",
+        "description": "Ojciec poprzez literaturę zaszczepił w nim miłość do ksiąg i tajemnic. Stanowi dla niego osobę do której może się zwrócić w chwilach potrzeby "
+      },
+      {
+        "name": "Brat: Gregor",
+        "category": "person",
+        "description": "Łączy ich pasja do tego co nieodkryte i nadnaturalne, okazjonalnie korespondują na tematy filozoficzno duchowe"
+      },
+      {
+        "name": "Dom rodzinny",
+        "category": "place",
+        "description": "Dom rodzinny stanowił dla niego zawsze ognisko ciepła i bezpieczeństwa "
+      },
+      {
+        "name": "Biblioteka ",
+        "category": "place",
+        "description": "Miejsce badań i odosobnienia, w każdej czuję się jak w drugim domu"
+      },
+      {
+        "name": "Stowarzyszenie spirytualistyczne ",
+        "category": "organization",
+        "description": "Grupa ludzi o podobnych fascynacjach, na których zawsze może liczyć. Formuła organizacja zakłada że żaden z członków nie dzieli się szczegółami ze swojego życia prywatnego, jedynie kwestiami okultystycznymi. Są podstawy aby sądzić że kierownictwo stowarzyszenia dysponuje znacznymi zasobami. Spotkania odbywają się raz w miesiącu w wyznaczonym listownie miejscu."
+      },
+      {
+        "name": "Kolega ze stowarzyszenia: Thomas",
+        "category": "person",
+        "description": "Z Thomasem łączy do szczególną więź oparta na wspólnym zainteresowaniu: badaniu wszelkich przejawów magii w świecie:"
+      }
+    ],
+    "other_traits": "Posiada zamknięty naklucz dziennik ",
+    "appearance_description": "Wysoki, wątły, przeciętnej urody, o trójkątnej twarzy z wydatnymi, wysokimi kośćmi policzkowymi. Zadbana fryzura chociaż z już wyraźnie zarysowująca się łysina. Bystre i przenikliwe spojrzenie, pewna siebie, wyprostowana postawa."
+  },
+  "equipment": [
+    "[Transport] Komunikacja / taksówki",
+    "[Styl życia] Przeciętny",
+    "[Lokum] Kawalerka (wynajem)",
+    "[Transport] Komunikacja miejska",
+    "[Lifestyle] ★☆··· Przeciętny",
+    "[Ekwipunek] Świece (6 szt.) ($0.25)",
+    "[Ekwipunek] Świece w latarni ($1)",
+    "[Ekwipunek] Latarka (duża) ($5)",
+    "[Ekwipunek] Monokl ($3)",
+    "[Ekwipunek] Okulary ($3)",
+    "[Ekwipunek] Aparat foto (dobry) ($25)",
+    "[Ekwipunek] Walizka ($3)",
+    "[Ekwipunek] Tablica pisarska i kreda ($0.50)",
+    "[Ekwipunek] Parasol ($3)",
+    "[Ekwipunek] Kompas ($3)",
+    "[Ekwipunek] Zegarek na rękę ($15)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Broń] .45 Colt Revolver (1K10+2, 15 m) ($25)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50) [x2]",
+    "[Dobytek] Konto bankowe: $375",
+    "[Dobytek] Biżuteria: $375"
+  ],
+  "cash": "Gotówka: 30 $ | Dobytek: Konto bankowe, Biżuteria",
+  "assets": "750 $",
+  "spending_level": "$7",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-04-08T20:18:39.422416+00:00",
+  "updated_at": "2026-04-20T17:54:06.81748+00:00",
+  "player_name": "Rafał",
+  "invite_code": "",
+  "admin_notes": "",
+  "player_id": "377fe97d-e576-4f8b-b7f9-33529e811e0b",
+  "main_position": {
+    "category": "OKULTYZM",
+    "option_id": "ok_bractwo",
+    "option_name": "Tajne bractwo z wieloletnią tradycją",
+    "strength_percent": 65,
+    "unlock_condition": "okultyzm_60",
+    "organization_size": "Średnia",
+    "custom_description": ""
+  },
+  "additional_positions": [
+    {
+      "weight": 3,
+      "category": "OKULTYSTYCZNE I TAJEMNICZE",
+      "is_custom": false,
+      "option_id": "towarzystwo_filozoficzno_duchowe",
+      "roll_value": 75,
+      "slot_index": 0,
+      "option_name": "Towarzystwo filozoficzno-duchowe",
+      "unlocked_by": "okultyzm ≥ 40",
+      "organization_size": "Mała",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "OKULTYZM",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W kręgach okultystycznych",
+      "synergy_bonus": 1,
+      "subcategory_id": "spirytysci",
+      "subcategory_name": "Spirytyści i medium",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "OKULTYZM",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W kręgach okultystycznych",
+      "synergy_bonus": 1,
+      "subcategory_id": "tajne_bractwa",
+      "subcategory_name": "Tajne bractwa i loże ezoteryczne",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 2,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 0,
+      "subcategory_id": "profesorowie",
+      "subcategory_name": "Profesorowie i wykładowcy",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": null,
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "Arkham",
+  "birthplace": "Arkham"
+}

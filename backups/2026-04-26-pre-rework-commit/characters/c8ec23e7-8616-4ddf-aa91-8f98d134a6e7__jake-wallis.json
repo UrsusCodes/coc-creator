@@ -1,0 +1,156 @@
+{
+  "id": "c8ec23e7-8616-4ddf-aa91-8f98d134a6e7",
+  "invite_code_id": "2e74b322-373c-4a83-b047-b0144d46feb3",
+  "status": "submitted",
+  "name": "Jake Wallis",
+  "age": 25,
+  "gender": "M",
+  "appearance": "",
+  "characteristics": {
+    "APP": 30,
+    "CON": 30,
+    "DEX": 60,
+    "EDU": 75,
+    "INT": 80,
+    "POW": 50,
+    "SIZ": 45,
+    "STR": 50
+  },
+  "luck": 65,
+  "derived": {
+    "db": "0",
+    "hp": 7,
+    "mp": 10,
+    "san": 50,
+    "build": 0,
+    "dodge": 30,
+    "move_rate": 9
+  },
+  "occupation_id": "antykwariusz",
+  "occupation_skill_points": {
+    "wycena": 35,
+    "historia": 51,
+    "majetnosc": 30,
+    "perswazja": 50,
+    "spostrzegawczosc": 50,
+    "jezyk_obcy:Hebrajski": 29,
+    "korzystanie_z_bibliotek": 55
+  },
+  "personal_skill_points": {
+    "wycena": 10,
+    "nasluchiwanie": 40,
+    "sztuka_rzemioslo:Literatura": 55,
+    "sztuka_rzemioslo:Fałszerstwo": 55
+  },
+  "backstory": {
+    "drive": "antiquarianism",
+    "pillars": [
+      "Wszystko ma swoją cenę",
+      "Pieniądz nie śmierdzi "
+    ],
+    "sources": [
+      {
+        "name": "Kolektyw antykwariatów ",
+        "category": "organization",
+        "description": ""
+      },
+      {
+        "name": "Mój sklepik",
+        "category": "place",
+        "description": ""
+      },
+      {
+        "name": "Przyjaciel z dzieciństwa ",
+        "category": "person",
+        "description": ""
+      }
+    ],
+    "appearance_description": "Niski, szczupły mężczyzna. Brunet z słabo zadbanym zarostem. Ubrany w marynarkę i długie eleganckie spodnie. Próbuje wytwarzać pozory zamożnego "
+  },
+  "equipment": [
+    "[Styl życia] Przeciętny",
+    "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+    "[Transport] Komunikacja + okazj. taksówki",
+    "[Lifestyle] ★★··· Przeciętny",
+    "[Ekwipunek] Aparat foto (prof.) ($75)",
+    "[Ekwipunek] Lupa ($1)",
+    "[Ekwipunek] Lampa naftowa (duża) ($5)",
+    "[Ekwipunek] Torba podróżna ($3)",
+    "[Ekwipunek] Łom ($1)",
+    "[Ekwipunek] Łopata ($1)",
+    "[Ekwipunek] Tablica pisarska i kreda ($0.50)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Ekwipunek] Nóż / scyzoryk ($0.50)",
+    "[Dobytek] Biżuteria: $500",
+    "[Dobytek] Złoto / srebro: $500",
+    "[Dobytek] Dzieła sztuki: $500"
+  ],
+  "cash": "Gotówka: 60 $ | Dobytek: Złoto i kosztowności, Biżuteria, Dzieła sztuki",
+  "assets": "1500 $",
+  "spending_level": "$7",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-03-23T11:07:07.184136+00:00",
+  "updated_at": "2026-03-28T02:07:51.430868+00:00",
+  "player_name": "Kamil",
+  "invite_code": "MGQ-1507-NKD",
+  "admin_notes": "",
+  "player_id": "32cc3214-460b-4785-b17a-fe382fcfad1e",
+  "main_position": {
+    "category": "BIZNES I FINANSE",
+    "option_id": "bk_sklep",
+    "option_name": "Sklep antykwaryczny",
+    "strength_percent": 95,
+    "unlock_condition": "ZAWSZE",
+    "organization_size": "Mikro",
+    "custom_description": ""
+  },
+  "additional_positions": [
+    {
+      "weight": 3,
+      "category": "AKADEMICKIE: ROZSZERZENIA",
+      "is_custom": false,
+      "option_id": "towarzystwo_antykwaryczne",
+      "roll_value": 75,
+      "slot_index": 0,
+      "option_name": "Towarzystwo antykwaryczne",
+      "unlocked_by": "korzystanie z bibliotek ≥ 50",
+      "organization_size": "Mała",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 2,
+      "is_custom": false,
+      "roll_value": 60,
+      "slot_index": 0,
+      "category_id": "OKULTYZM",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 2,
+      "category_name": "W kręgach okultystycznych",
+      "synergy_bonus": 0,
+      "subcategory_id": "kolekcjonerzy_ant",
+      "subcategory_name": "Kolekcjonerzy antyków i osobliwości",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": null,
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "",
+  "birthplace": ""
+}
