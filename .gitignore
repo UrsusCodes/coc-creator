@@ -19,6 +19,15 @@ portraits
 # Claude Code local state (per-machine permission grants)
 .claude/
 
+# Full pg dumps contain bcrypt password hashes + active share_tokens —
+# kept locally as disaster-recovery snapshots, never committed.
+# (Admin-API JSON snapshots in backups/<date>-{safety,pre-*}/ ARE committed —
+# they don't include credential material.)
+backups/*-pgdump/
+
+# Supabase CLI local cache (pooler-url, version pins, linked-project meta)
+supabase/.temp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
