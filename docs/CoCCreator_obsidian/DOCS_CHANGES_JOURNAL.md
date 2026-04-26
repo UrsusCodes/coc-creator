@@ -12,6 +12,95 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-27 — Wizard sub-session 1 + skip-swap endpoint
+
+**Focus:** first frontend sub-session of v2.0 deploy plan
+([[work/v2-deploy-plan]] sub-session 1). Five new wizard step components
+matching the new hard-zone endpoints + slim StepInviteCode + tiny
+`/skip-swap` endpoint.
+
+**Done:**
+
+Edge function (`supabase/functions/player/index.ts`):
+- NEW `POST /characters/:id/skip-swap` (+36 lines) — symmetric guards to
+  `/swap-characteristics` (`swap_available && !swap_used &&
+  characteristics_committed_at && !age_committed_at`); sets `swap_used=true`
+  + `swap_committed_at=now()` without mutating `characteristics`. Polish
+  error messages.
+
+Client lib (`src/lib/player.ts`):
+- NEW `playerSkipSwap(token, charId)` (+12 lines) — `POST /skip-swap`,
+  no body, returns `CharacterData`.
+
+Wizard components (`src/components/wizard/`):
+- **`StepInviteCode.tsx`** — slimmed down (-56/+0 net cleanup): dropped
+  method picker (moved to StepIdentifier). Kept code input, validation,
+  URL-param auto-validate, resume logic, submitted-character display.
+- **`StepIdentifier.tsx`** (NEW, ~155 lines) — distinguisher input
+  (3-60 chars, live counter) + method radio (filtered to `inviteCode.methods`,
+  auto-pick if single). Submit → `playerStartCharacter`, persists
+  `serverDraftId` + `method` to store, mirrors distinguisher into existing
+  `name` field for legacy consumers.
+- **`StepSwap.tsx`** (NEW, ~205 lines) — perk-gated; on mount
+  `playerGetCharacter` to read fresh `swap_available` / `swap_used`. Two
+  selects, "Zamień" → `playerSwapCharacteristics`, "Pomiń zamianę"
+  → `playerSkipSwap`. Defensive guard renders informational state if
+  perk missing or already used.
+- **`StepEduRolls.tsx`** (NEW, ~175 lines) — auto-rolls on mount via
+  `playerRollEdu` if `!edu_committed_at`. Renders per-roll detail
+  (`{roll, improved, gained, new_edu}` from server). Mirrors `edu_rolls` +
+  final EDU into legacy store fields.
+- **`StepAgingPenalties.tsx`** (NEW, ~225 lines) — `getAgeModifications(age)`
+  drives `requiredTotal` + `allowedStats`. Manual deduction UI with
+  +/- buttons, live sum + remaining counter, client validation via
+  `validateDeductions`. Submit → `playerApplyAgingPenalties`. Auto-commits
+  with `{}` payload when `requiredTotal === 0` (age 20-39).
+- **`StepLuck.tsx`** (NEW, ~125 lines) — single "Rzuć szczęście" button
+  → `playerRollLuck`. Young-Badacz note ("dwa rzuty, lepszy wynik").
+  After commit: button disappears, only "Dalej" remains.
+
+**Decisions:**
+
+- **Skip-swap UX = dedicated endpoint** (chosen over `/set-age` 409 forcing
+  or auto-set semantics). Cleaner UX (one explicit click "Pomiń zamianę"),
+  ~30 lines in edge function, deploys atomically with the rest.
+- **Nowe komponenty trzymają `CharacterData` w lokalnym useState** (po
+  każdym endpoincie), mirror selected fields (`characteristics`, `luck`,
+  `eduRolls`) do istniejących pól store dla kompatybilności wstecznej z
+  legacy code (StepDerived, useDraftSync, useCharacterSubmit). Sub-session 2
+  cleanup characterStore zastąpi to proper character object.
+- **Defensive auth checks** — każdy step pokazuje "Musisz być zalogowany"
+  jeśli `usePlayerStore().token === null`, zamiast crashować.
+- **WizardShell nie tknięty** — komponenty są napisane i kompilują się, ale
+  nie są jeszcze podłączone do flow. Routing rewrite to sub-session 2.
+
+**Build:** `npm run build` zielone (tsc -b + vite build, 4.43s, 2074 modules).
+
+**Verify:**
+- `playerSkipSwap` wrapper exists ([src/lib/player.ts:197](src/lib/player.ts:197)).
+- `/skip-swap` handler exists ([supabase/functions/player/index.ts:994](supabase/functions/player/index.ts:994)).
+- Wszystkie 5 nowych plików istnieją w `src/components/wizard/`.
+
+**Not done (sub-session 2):**
+- WizardShell routing rewrite (kolejność stepów, conditional skips, resume).
+- StepCharacteristics rewrite (rip `handleAbandon`, `rollAll`,
+  `characteristicsLocked`).
+- DELETE `StepAgeModifiers.tsx` (po podłączeniu nowych).
+- characterStore cleanup (usuń locks, dorzuć server-synced character object).
+- useDraftSync — narrative-only sync na post-submit.
+
+**Files touched (1 commit, +1018 / -53 lines):**
+- `supabase/functions/player/index.ts` (+36) — file now 1601 lines.
+- `src/lib/player.ts` (+12) — file now 421 lines.
+- `src/components/wizard/StepInviteCode.tsx` (-56 net cleanup).
+- `src/components/wizard/Step{Identifier,Swap,EduRolls,AgingPenalties,Luck}.tsx` (NEW, +1067).
+
+**Commit:** `e5043eb` — "Wizard sub-session 1: 5 new step components + slim
+StepInviteCode + skip-swap". **No git push** — gated on rest of v2.0
+punch list.
+
+---
+
 ## 2026-04-27 — Edge functions rework + client lib (Etap A/B/C + types)
 
 **Focus:** code-only sub-sessions of the granular-commits-v2 rework — write all

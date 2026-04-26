@@ -16,10 +16,18 @@ Complete punch list from "everything currently in repo" to "v2.0 live on prod wi
 
 > [!info] What's done already
 > Migrations 016/017/018/019 applied 2026-04-26 (verify 31/31 OK). Edge functions Etap A/B/C committed (`3ac51b3`, `fb500cc`, `53a2674`). Client lib + types committed (`dffe4d2`). Build green.
+>
+> **Sub-session 1 done 2026-04-27** (`e5043eb`): 5 new step components + slim StepInviteCode + `/skip-swap` endpoint + `playerSkipSwap` wrapper. Components compile but are NOT yet wired into WizardShell.
 
 ---
 
-## Sub-session 1 — Wizard step components (5 new + 1 slim)
+## Sub-session 1 — Wizard step components (5 new + 1 slim) ✅ DONE 2026-04-27
+
+> [!success] Completed in commit `e5043eb`
+> All 5 new step components + slim StepInviteCode + dedicated `/skip-swap`
+> endpoint (decision: dedicated endpoint over `/set-age` 409 forcing) +
+> `playerSkipSwap` wrapper. Build green. Components not yet routed —
+> sub-session 2 will wire them into WizardShell.
 
 Goal: write the 5 new step components matching the 5 new player endpoints, plus slim StepInviteCode. Each component is small (~80-150 lines) and isolated. Build green at end.
 
@@ -349,17 +357,17 @@ Short Polish message to share with players (Discord / chat). Draft:
 
 ## Decisions still open
 
-1. **Skip-swap UX** (sub-session 1) — dedicated `/skip-swap` endpoint vs `/set-age` 409 forcing? **Default: dedicated endpoint** (simpler frontend, explicit user intent). Decide before sub-session 1.
-2. **Auto-skip empty steps** (sub-session 2) — when `requiredRolls=0` or `deductionPoints=0`, auto-advance vs informational panel? **Default: informational panel + auto-commit on render** (player still sees what step did/didn't do).
+1. ~~**Skip-swap UX** (sub-session 1) — dedicated `/skip-swap` endpoint vs `/set-age` 409 forcing?~~ **DECIDED 2026-04-27: dedicated endpoint.** Implemented in `e5043eb`.
+2. **Auto-skip empty steps** (sub-session 2) — when `requiredRolls=0` or `deductionPoints=0`, auto-advance vs informational panel? **Default: informational panel + auto-commit on render** (player still sees what step did/didn't do). _Partially settled in sub-session 1: StepEduRolls auto-rolls on mount (server returns empty `edu_rolls` for age 15-19 / one roll for 20-39) and StepAgingPenalties auto-commits with empty `{}` payload when requiredTotal===0._
 3. **Player communication channel** (post-deploy) — Discord? Direct message? GM session? **Decide post-D.4.**
 
 ---
 
 ## Estimated effort
 
-- Sub-session 1 (5 step components): **2-3 hours.**
+- ~~Sub-session 1 (5 step components): 2-3 hours.~~ ✅ DONE 2026-04-27.
 - Sub-session 2 (WizardShell + StepCharacteristics + cleanup): **3-4 hours.**
 - Sub-session 3 (UI touches): **2-3 hours.**
 - Pre-deploy + deploy day: **1-2 hours** (mostly waiting + clicking + verification).
 
-Total: **8-12 hours of focused work** spread across 3-4 sessions before v2.0 lands.
+Remaining: **6-9 hours** spread across 2-3 sessions before v2.0 lands.

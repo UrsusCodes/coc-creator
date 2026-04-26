@@ -30,19 +30,21 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] **Player endpoints — Etap B** (`fb500cc`): TIGHTEN /draft (strict allowlist), NEW /go-back-to-step, /distinguisher, /narrative, /submit. +327 lines.
 - [x] **Admin endpoint tightening — Etap C** (`53a2674`): /pending-edits/:id/approve allowlist (blocks mechanical pre-occupation fields). +85 lines.
 - [x] **Client lib + types** (`dffe4d2`): 12 new player wrappers + 3 admin wrappers (grantReroll, updateInviteCode, cleanupCodes) + 5 new types (EduRoll, RerollHistoryEntry, SoftZoneStep, AgingDeductions, NarrativeFields) + 8 fields added to CharacterData. +342 lines. Build green.
+- [x] **Wizard sub-session 1 — 5 new step components + slim StepInviteCode + /skip-swap** (`e5043eb`): NEW StepIdentifier, StepSwap, StepEduRolls, StepAgingPenalties, StepLuck (all server-authoritative, mirror updated fields into legacy store fields for compatibility); slimmed StepInviteCode (dropped method picker → moved to StepIdentifier); NEW edge endpoint `POST /skip-swap` + `playerSkipSwap` wrapper. +1018 lines. Build green. **Components NOT YET wired into WizardShell — sub-session 2 will do routing.**
 
 ### Outstanding for v2.0 release
 
 > [!warning] Critical: any push to origin auto-deploys frontend
 > Frontend will reference endpoints (and types) that ONLY exist on prod once edge functions are also redeployed. Do not push partial work.
 
-**Wizard rewrite (sub-session 1):**
-- [ ] **`StepIdentifier.tsx` (NEW)** — slim form for `{ code, distinguisher, method }` → `playerStartCharacter`. Replaces inline distinguisher field that lived in old StepInviteCode.
-- [ ] **`StepSwap.tsx` (NEW)** — perk-gated, conditional skip if `swap_available = false`. Two-stat picker → `playerSwapCharacteristics` or "skip" button (which auto-sets swap_used via... TBD: either /set-age 409 forces decision, or a dedicated /skip-swap endpoint). Decide during impl.
-- [ ] **`StepEduRolls.tsx` (NEW)** — extracted from StepAgeModifiers. Triggers `playerRollEdu` once on mount (server-authoritative). Renders the per-roll detail from response `edu_rolls`.
-- [ ] **`StepAgingPenalties.tsx` (NEW)** — extracted from StepAgeModifiers. Distribution UI for deductions, sum validation matching `getAgeModifications(age).deductionPoints`. → `playerApplyAgingPenalties`.
-- [ ] **`StepLuck.tsx` (NEW)** — single-button "Rzuć szczęście" → `playerRollLuck`. Display result.
-- [ ] **`StepInviteCode.tsx` (slim)** — only validates code + forwards to identifier (or resumes at `draft_step`). Move distinguisher field out.
+**Wizard rewrite (sub-session 1) — DONE 2026-04-27:**
+- [x] ~~`StepIdentifier.tsx` (NEW)~~ — distinguisher (3-60 chars) + method radio → `playerStartCharacter`. Persists serverDraftId+method. Mirrors distinguisher into `name` for legacy code.
+- [x] ~~`StepSwap.tsx` (NEW)~~ — perk-gated, two selects + "Zamień"/"Pomiń zamianę" → `playerSwapCharacteristics` or new `playerSkipSwap`. Defensive guards on `swap_available`/`swap_used`.
+- [x] ~~`StepEduRolls.tsx` (NEW)~~ — auto-rolls on mount via `playerRollEdu`. Renders per-roll detail from `edu_rolls`.
+- [x] ~~`StepAgingPenalties.tsx` (NEW)~~ — manual distribution UI with +/- buttons, client validation via `validateDeductions`. Auto-commits with `{}` when `requiredTotal === 0`. → `playerApplyAgingPenalties`.
+- [x] ~~`StepLuck.tsx` (NEW)~~ — single "Rzuć szczęście" button → `playerRollLuck`. Young-Badacz note.
+- [x] ~~`StepInviteCode.tsx` (slim)~~ — dropped method picker (moved to StepIdentifier). Kept code + validate + resume + submitted-display.
+- [x] ~~Decision: skip-swap UX~~ → **dedicated `/skip-swap` endpoint** (cleaner UX, ~30 lines edge fn). NEW `POST /characters/:id/skip-swap` + `playerSkipSwap` wrapper.
 
 **Wizard rewrite (sub-session 2):**
 - [ ] **`StepCharacteristics.tsx` rewrite** — server-authoritative. Use `playerRollCharacteristics` (dice) or `playerEditCharacteristics` (point_buy/direct). Remove `handleAbandon`, client-side `rollAll`, client locks (`characteristicsLocked`).
