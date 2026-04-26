@@ -991,6 +991,42 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(data)
     }
 
+    // ── POST /characters/:id/skip-swap — explicit "do not swap" ───
+    // Step 2b alternative. Sets swap_used = true without changing chars.
+    // Same window as /swap-characteristics: between chars commit and age commit.
+    const skipSwapMatch = path.match(/^\/characters\/([^/]+)\/skip-swap$/)
+    if (skipSwapMatch && req.method === 'POST') {
+      const charId = skipSwapMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, characteristics_committed_at, swap_available, swap_used, age_committed_at')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot skip swap on submitted character', 400)
+      if (!char.swap_available) return errorResponse('Swap perk not available on this code', 403)
+      if (char.swap_used) return errorResponse('Swap already used', 409)
+      if (!char.characteristics_committed_at) {
+        return errorResponse('Roll characteristics first', 409)
+      }
+      if (char.age_committed_at) {
+        return errorResponse('Cannot skip swap after age committed', 409)
+      }
+
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ swap_used: true, swap_committed_at: nowIso })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
     // ── POST /characters/:id/set-age — commit age ─────────────────
     // Step 3. Forces swap decision before age (swap is a one-shot pre-age
     // window). body: { age: number }

@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
-import { METHOD_LABELS, ERA_LABELS, type CreationMethod } from '@/types/common'
+import { ERA_LABELS } from '@/types/common'
 import type { CharacterData } from '@/types/character'
 
 const STEP_NAMES = [
@@ -33,7 +33,6 @@ export function StepInviteCode() {
   const { loading, error, inviteCode, validate } = useInviteCode()
   const [searchParams] = useSearchParams()
   const [code, setCode] = useState(store.inviteCode ?? searchParams.get('code') ?? '')
-  const [selectedMethod, setSelectedMethod] = useState<CreationMethod | null>(store.method)
   const [resumeAvailable, setResumeAvailable] = useState(false)
   const [submittedCharacter, setSubmittedCharacter] = useState<CharacterData | null>(null)
 
@@ -44,7 +43,6 @@ export function StepInviteCode() {
     if (urlCode && !autoValidated.current && !inviteCode) {
       autoValidated.current = true
       setCode(urlCode)
-      // Use handleValidate flow (not raw validate) to properly reset store
       const runAutoValidate = async () => {
         setSubmittedCharacter(null)
         const result = await validate(urlCode)
@@ -63,11 +61,9 @@ export function StepInviteCode() {
           const autoMethod = methods.length === 1 ? methods[0] : null
           if (isSameCode && store.savedStep > 0) {
             setResumeAvailable(true)
-            setSelectedMethod(store.method ?? autoMethod)
             store.updateInviteCodeMeta({ timesUsed: result.times_used })
           } else {
             setResumeAvailable(false)
-            setSelectedMethod(autoMethod)
             store.setInviteCode({
               id: result.id,
               code: result.code,
@@ -91,7 +87,6 @@ export function StepInviteCode() {
     setSubmittedCharacter(null)
     const result = await validate(code)
     if (result) {
-      // Check for existing submitted character
       const { data: existingChar } = await supabase
         .from('characters')
         .select('*')
@@ -107,15 +102,10 @@ export function StepInviteCode() {
       const autoMethod = methods.length === 1 ? methods[0] : null
 
       if (isSameCode && store.savedStep > 0) {
-        // Same code with existing progress — offer resume
         setResumeAvailable(true)
-        setSelectedMethod(store.method ?? autoMethod)
-        // Only update server-side metadata (timesUsed may have changed)
         store.updateInviteCodeMeta({ timesUsed: result.times_used })
       } else {
-        // New code — full reset
         setResumeAvailable(false)
-        setSelectedMethod(autoMethod)
         store.setInviteCode({
           id: result.id,
           code: result.code,
@@ -131,11 +121,6 @@ export function StepInviteCode() {
     }
   }
 
-  const handleMethodSelect = (method: CreationMethod) => {
-    setSelectedMethod(method)
-    store.setMethod(method)
-  }
-
   const handleResume = () => {
     store.setStep(store.savedStep)
   }
@@ -145,7 +130,6 @@ export function StepInviteCode() {
     const ic = inviteCode!
     const methods = ic.methods ?? [ic.method]
     const autoMethod = methods.length === 1 ? methods[0] : null
-    setSelectedMethod(autoMethod)
     store.setInviteCode({
       id: ic.id,
       code: ic.code,
@@ -163,9 +147,7 @@ export function StepInviteCode() {
     store.nextStep()
   }
 
-  const methods = inviteCode?.methods ?? (inviteCode ? [inviteCode.method] : [])
   const perks = inviteCode?.perks ?? []
-  const canContinue = selectedMethod !== null
 
   return (
     <Card title="Kod zaproszenia">
@@ -252,41 +234,9 @@ export function StepInviteCode() {
             </div>
           )}
 
-          {/* Method selection — only show when NOT resuming */}
+          {/* Continue (no method picker — moved to StepIdentifier) */}
           {!resumeAvailable && (
             <>
-              {methods.length === 1 ? (
-                <div>
-                  <span className="text-xs text-coc-text-muted">Metoda: </span>
-                  <Badge variant="success">{METHOD_LABELS[methods[0]]}</Badge>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-sm font-medium mb-2">Wybierz metodę tworzenia:</p>
-                  <div className="space-y-2">
-                    {methods.map((m) => (
-                      <label
-                        key={m}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedMethod === m
-                            ? 'border-coc-accent bg-coc-accent/10'
-                            : 'border-coc-border hover:border-coc-accent/50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="method"
-                          checked={selectedMethod === m}
-                          onChange={() => handleMethodSelect(m)}
-                          className="accent-coc-accent"
-                        />
-                        <span className="text-sm font-medium">{METHOD_LABELS[m]}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Perks display */}
               {perks.length > 0 && (
                 <div>
@@ -307,7 +257,7 @@ export function StepInviteCode() {
                   Uwaga: Ten kod był już użyty. Poprzednia postać zostanie zastąpiona nową.
                 </p>
               )}
-              <Button onClick={handleContinue} disabled={!canContinue} className="mt-2">
+              <Button onClick={handleContinue} className="mt-2">
                 Dalej
               </Button>
             </>

@@ -193,6 +193,18 @@ export async function playerSwapCharacteristics(
   return res.json()
 }
 
+/** Step 2b alternative — skip the swap perk without changing characteristics. */
+export async function playerSkipSwap(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/skip-swap`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się pominąć zamiany cech')
+  return res.json()
+}
+
 /** Step 3 — commit age. Forces swap decision first if perk is available. */
 export async function playerSetAge(
   token: string,
