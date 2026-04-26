@@ -49,6 +49,7 @@ interface PlayerCharacter {
   perks?: string[]
   max_skill_value?: number
   invite_code_id?: string
+  distinguisher?: string
 }
 
 interface EditPermission {
@@ -305,7 +306,10 @@ export function PlayerDashboard() {
                 className="flex items-center justify-between p-3 bg-coc-surface-light rounded-lg border border-coc-border"
               >
                 <div className="space-y-1 min-w-0 flex-1">
-                  <div className="font-medium">{char.name || 'Bez nazwy'}</div>
+                  <div className="font-medium">
+                    {char.name || 'Bez nazwy'}
+                    {char.distinguisher && <span className="text-coc-accent-light font-normal text-sm ml-2">— {char.distinguisher}</span>}
+                  </div>
                   <div className="flex flex-wrap gap-1">
                     <Badge variant={char.status === 'submitted' ? 'success' : 'warning'}>
                       {char.status === 'submitted' ? 'Zatwierdzona' : 'Szkic'}

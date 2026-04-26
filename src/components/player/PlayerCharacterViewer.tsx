@@ -21,6 +21,7 @@ import { DerivedEditor } from '@/components/admin/edit/DerivedEditor'
 import { SkillsEditor } from '@/components/admin/edit/SkillsEditor'
 import { BackstoryEditor } from '@/components/admin/edit/BackstoryEditor'
 import { EquipmentEditor } from '@/components/admin/edit/EquipmentEditor'
+import { SessionsEditor } from '@/components/admin/edit/SessionsEditor'
 import type { PortraitCropData, PortraitFeedback } from '@/types/character'
 
 interface PendingEdit {
@@ -256,6 +257,10 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
               spendingLevel={editData.spending_level}
               onEquipmentChange={(eq) => handleFieldChange('equipment', eq)}
               onFieldChange={(field, value) => handleFieldChange(field, value)}
+            />
+            <SessionsEditor
+              sessions={editData.sessions ?? []}
+              onChange={(sessions) => handleFieldChange('sessions', sessions)}
             />
 
             {/* Submit section */}

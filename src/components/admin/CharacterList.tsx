@@ -33,6 +33,7 @@ interface CharacterRow {
   player_name?: string
   invite_code?: string
   admin_notes?: string
+  distinguisher?: string
 }
 
 export function CharacterList() {
@@ -142,6 +143,7 @@ export function CharacterList() {
               <div className="font-medium">
                 {char.name || 'Bez nazwy'}
                 {char.player_name && <span className="text-coc-text-muted font-normal text-sm"> ({char.player_name})</span>}
+                {char.distinguisher && <span className="text-coc-accent-light font-normal text-sm ml-2">— {char.distinguisher}</span>}
               </div>
               <div className="flex flex-wrap gap-1">
                 <Badge variant={char.status === 'submitted' ? 'success' : 'warning'}>

@@ -11,6 +11,7 @@ interface BasicInfoEditorProps {
     player_name?: string
     status: string
     occupation_id: string
+    distinguisher?: string
   }
   onChange: (field: string, value: string | number) => void
 }
@@ -33,6 +34,7 @@ export function BasicInfoEditor({ data, onChange }: BasicInfoEditorProps) {
         <Input label="Płeć" value={data.gender} onChange={(e) => onChange('gender', e.target.value)} />
         <Select label="Status" value={data.status} options={STATUS_OPTIONS} onChange={(e) => onChange('status', e.target.value)} />
         <Select label="Zawód" value={data.occupation_id} options={occupationOptions} onChange={(e) => onChange('occupation_id', e.target.value)} />
+        <Input label="Wyróżnik" value={data.distinguisher ?? ''} onChange={(e) => onChange('distinguisher', e.target.value)} placeholder="np. Śledczy, Kapitan..." />
       </div>
       <div>
         <label className="block text-sm font-medium text-coc-text-muted mb-1">Wygląd</label>

@@ -19,6 +19,7 @@ import { DerivedEditor } from './edit/DerivedEditor'
 import { SkillsEditor } from './edit/SkillsEditor'
 import { BackstoryEditor } from './edit/BackstoryEditor'
 import { EquipmentEditor } from './edit/EquipmentEditor'
+import { SessionsEditor } from './edit/SessionsEditor'
 import { ArtPromptSection } from './ArtPromptSection'
 import type { ShareToken, HistoryEntry } from '@/types/character'
 
@@ -406,6 +407,10 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
               spendingLevel={editData.spending_level}
               onEquipmentChange={(eq) => handleFieldChange('equipment', eq)}
               onFieldChange={(field, value) => handleFieldChange(field, value)}
+            />
+            <SessionsEditor
+              sessions={editData.sessions ?? []}
+              onChange={(sessions) => handleFieldChange('sessions', sessions)}
             />
 
             {/* Save section */}

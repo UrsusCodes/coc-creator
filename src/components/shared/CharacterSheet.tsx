@@ -51,6 +51,8 @@ export interface CharacterSheetData {
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
   portrait_crop_data?: { x: number; y: number; width: number; height: number } | null
+  sessions?: string[]
+  distinguisher?: string
 }
 
 interface CharacterSheetProps {
@@ -89,6 +91,7 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
         <div><span className="text-coc-text-muted">Zawód:</span> {occupation?.name ?? char.occupation_id}</div>
         <div><span className="text-coc-text-muted">Era:</span> {ERA_LABELS[char.era as keyof typeof ERA_LABELS]}</div>
         <div><span className="text-coc-text-muted">Metoda:</span> {METHOD_LABELS[char.method as keyof typeof METHOD_LABELS]}</div>
+        {char.distinguisher && <div><span className="text-coc-text-muted">Wyróżnik:</span> {char.distinguisher}</div>}
       </div>
       {char.appearance && (
         <div className="text-sm">
@@ -176,6 +179,18 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
         additionalPositions={char.additional_positions}
         contacts={char.contacts_v2}
       />
+
+      {/* Sessions */}
+      {(char.sessions?.length ?? 0) > 0 && (
+        <>
+          <SectionHeader>Sesje</SectionHeader>
+          <ul className="text-sm space-y-0.5">
+            {char.sessions!.map((s, i) => (
+              <li key={i} className="text-coc-text-muted">• {s}</li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {/* Equipment */}
       {char.equipment.length > 0 && (
