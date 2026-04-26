@@ -1,0 +1,15 @@
+{
+  "id": "518a2ab8-0bf8-4ec9-92f2-19c38a602645",
+  "code": "QKF-4380-RKF",
+  "method": "direct",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-19T21:14:56.187693+00:00",
+  "methods": [
+    "direct"
+  ],
+  "perks": [],
+  "max_skill_value": 80
+}

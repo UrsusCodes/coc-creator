@@ -1,0 +1,18 @@
+{
+  "id": "66f80306-76f4-413f-b644-f1aa414cafb1",
+  "code": "HFE-1402-PAX",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 2,
+  "times_used": 0,
+  "is_active": true,
+  "created_at": "2026-03-22T22:17:15.191055+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80
+}

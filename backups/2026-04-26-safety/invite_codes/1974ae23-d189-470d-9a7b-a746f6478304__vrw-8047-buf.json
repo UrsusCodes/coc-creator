@@ -1,0 +1,15 @@
+{
+  "id": "1974ae23-d189-470d-9a7b-a746f6478304",
+  "code": "VRW-8047-BUF",
+  "method": "direct",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-19T18:17:46.5116+00:00",
+  "methods": [
+    "direct"
+  ],
+  "perks": [],
+  "max_skill_value": 80
+}
