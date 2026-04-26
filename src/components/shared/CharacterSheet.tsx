@@ -5,6 +5,7 @@ import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
+import { CharacterDescriptions } from '@/components/shared/CharacterDescriptions'
 import type { StabilitySource, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
@@ -126,6 +127,9 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
           </div>
         </>
       )}
+
+      {/* Stat-derived narrative — only renders if any stat is in the tail buckets */}
+      <CharacterDescriptions characteristics={char.characteristics} />
 
       {/* Skills */}
       <SectionHeader>Umiejętności</SectionHeader>

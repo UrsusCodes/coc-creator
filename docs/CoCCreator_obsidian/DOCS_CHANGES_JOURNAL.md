@@ -12,6 +12,36 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-26 — Feature 1 shipped: "Portret z cech" descriptive paragraphs
+
+**Focus:** implement Plan A from the future-features plan — deterministic narrative paragraphs derived from character stats. Pure additive client-side rendering, zero DB / migration impact.
+
+**Done:**
+- Wrote `src/lib/characterDescriptions.ts` — per-stat threshold buckets keyed by `rollFormula` (3d6×5: ≤25/≤35/≥70/≥80; 2d6+6×5: ≤50/≤60/≥75/≥85). 32 paragraphs total: 8 stats × 4 categories. Average values (category 0) intentionally produce no entry.
+- Wrote `src/components/shared/CharacterDescriptions.tsx` — presentational; renders `<section>` with `Portret z cech` header + `<ul>` of `[ABBREV] paragraph` lines. Returns `null` when no stat is in a tail bucket.
+- Wired into `src/components/shared/CharacterSheet.tsx` between `Atrybuty pochodne` and `Umiejętności`. Single insertion point reaches both `admin/CharacterViewer` and `player/PlayerCharacterViewer` (both render via shared `CharacterSheet`).
+- Build green: `npm run build` (tsc -b + vite build) compiled clean, no new TS errors.
+
+**Decisions:**
+- **Insertion point chosen: stat-area (post-derived, pre-skills).** Alternative was post-backstory; chose stat-area to keep the deterministic stat → narrative relationship visually adjacent.
+- **Polish abbreviations corrected:** plan said BC/ZR; actual `CHARACTERISTIC_MAP` uses BUD/ZRĘ. Component uses canonical abbreviations from data.
+- **No PDF integration.** Kept v1 web-only as specced — paragraphs are too long for the existing card layout.
+- **No DB persistence.** Fully tranzytowe — derived from `character.characteristics` on render.
+
+**Not done (v2 backlog from plan):**
+- Random variants per slot (seed = character.id)
+- Stat combinations (otyły / kolos / magnetyczny / etc.)
+- Age / occupation context-aware text variants
+- Editability (player can hide individual paragraphs)
+- PDF rendering
+
+**Files touched:**
+- `src/lib/characterDescriptions.ts` (new)
+- `src/components/shared/CharacterDescriptions.tsx` (new)
+- `src/components/shared/CharacterSheet.tsx` (import + 1 component insert)
+
+---
+
 ## 2026-04-26 — Future-features brainstorm + safety snapshot tooling
 
 **Focus:** discuss next-cycle features (descriptive text from stats; Gemini API portraits) and harden the deploy path for migration 019 with a snapshot/verify tooling layer.
