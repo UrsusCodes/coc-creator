@@ -454,6 +454,60 @@ Deno.serve(async (req: Request) => {
     }
 
     // POST /pending-edits/:id/approve
+    // Plan v2: post-submit edits go through this flow. Mechanical
+    // pre-occupation fields (cech/wiek/luck/edu/aging/swap and timestamps)
+    // are TRWALE zablokowane — even admin cannot unlock them via this
+    // endpoint. Admin's escape hatch for those is direct PUT /characters/:id
+    // (which still has no allowlist; use sparingly).
+    //
+    // Allowlist below = everything from the player narrative + soft-zone
+    // fields the admin can approve. Pending edits containing blocked fields
+    // are rejected with a clear error so the admin knows to revise the edit
+    // (or use direct PUT).
+    const APPROVE_ALLOWLIST = new Set([
+      // Soft zone (occupation+)
+      'occupation_id',
+      'occupation_skill_points',
+      'personal_skill_points',
+      'equipment',
+      'cash',
+      'assets',
+      'spending_level',
+      'lifestyle_rating',
+      'lifestyle_stars',
+      'lifestyle_label',
+      'spending_free',
+      'assets_breakdown',
+      'equipment_catalogs_available',
+      'positions',
+      'contacts',
+      'main_position',
+      'additional_positions',
+      'contacts_v2',
+      // Narrative
+      'name',
+      'appearance',
+      'residence',
+      'birthplace',
+      'player_name',
+      'gender',
+      'backstory',
+      'portrait_url',
+      'art_prompt',
+      'art_gallery',
+      'portrait_crop_data',
+      // Anytime-editable
+      'distinguisher',
+      // Sessions + admin notes
+      'sessions',
+      'admin_notes',
+    ])
+    const APPROVE_ALWAYS_STRIPPED = new Set([
+      // Server-managed; never approvable through pending-edits
+      'id', 'created_at', 'updated_at', 'player_id', 'invite_code_id',
+      'invite_code', 'status', 'created_by',
+    ])
+
     const approveMatch = path.match(/^\/pending-edits\/([^/]+)\/approve$/)
     if (approveMatch && req.method === 'POST') {
       const editId = approveMatch[1]
@@ -472,6 +526,34 @@ Deno.serve(async (req: Request) => {
         })
       }
 
+      // Validate proposed_data against allowlist BEFORE touching the
+      // character. Reject the entire approval if any blocked field appears.
+      const proposed = edit.proposed_data ?? {}
+      const blocked: string[] = []
+      const filtered: Record<string, unknown> = {}
+      for (const k of Object.keys(proposed)) {
+        if (APPROVE_ALWAYS_STRIPPED.has(k)) continue  // silently strip
+        if (APPROVE_ALLOWLIST.has(k)) {
+          filtered[k] = (proposed as Record<string, unknown>)[k]
+        } else {
+          blocked.push(k)
+        }
+      }
+      if (blocked.length > 0) {
+        return new Response(
+          JSON.stringify({
+            error: `Edycja zawiera pola zablokowane dla zatwierdzania post-submit: ${blocked.join(', ')}. Cechy/wiek/luck/EDU/swap są trwale zablokowane. Aby je zmienić użyj bezpośredniego PUT /characters/:id (admin override) z rozmysłem.`,
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+      if (Object.keys(filtered).length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Po filtrowaniu nie zostały żadne pola do zatwierdzenia.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
       // Snapshot current character to history
       const { data: current, error: fetchErr } = await supabase
         .from('characters')
@@ -487,18 +569,17 @@ Deno.serve(async (req: Request) => {
         change_comment: `[Zatwierdzono edycję gracza] ${edit.change_comment}`,
       })
 
-      // Apply proposed data
-      const { id: _id, created_at: _ca, updated_at: _ua, player_id: _pid, invite_code_id: _ici, invite_code: _ic, status: _st, ...proposedFields } = edit.proposed_data
+      // Apply allowlisted proposed data
       const { data: updated, error: updateErr } = await supabase
         .from('characters')
-        .update(proposedFields)
+        .update(filtered)
         .eq('id', edit.character_id)
         .select()
         .single()
       if (updateErr) throw updateErr
 
       // Mark edit as approved
-      const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
+      const body = await req.json().catch(() => ({}))
       await supabase
         .from('pending_edits')
         .update({
