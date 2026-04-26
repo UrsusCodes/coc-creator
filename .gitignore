@@ -16,6 +16,9 @@ player_credentials.txt
 generated_portraits
 portraits
 
+# Claude Code local state (per-machine permission grants)
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
