@@ -92,10 +92,37 @@ function rollLuckForAge(age: number): number {
   return roll3d6x5()
 }
 
-// Fields wiped on reroll / manual characteristics edit.
-// Keep: id, invite_code_id, player_id, distinguisher, method, era, perks,
-//       created_at, reroll_history, rerolls_remaining, status, name, age,
-//       gender, appearance, residence, birthplace, max_skill_value.
+// ─── Age modifications (port of src/lib/ageModifiers.ts + src/data/ageRanges.ts) ───
+interface AgeRange {
+  min: number
+  max: number
+  eduImprovementChecks: number
+  deductionPoints: number
+  appReduction: number
+  moveReduction: number
+}
+const AGE_RANGES: AgeRange[] = [
+  { min: 15, max: 19, eduImprovementChecks: 0, deductionPoints: 5,  appReduction: 0,  moveReduction: 0 },
+  { min: 20, max: 39, eduImprovementChecks: 1, deductionPoints: 0,  appReduction: 0,  moveReduction: 0 },
+  { min: 40, max: 49, eduImprovementChecks: 2, deductionPoints: 5,  appReduction: 5,  moveReduction: 1 },
+  { min: 50, max: 59, eduImprovementChecks: 3, deductionPoints: 10, appReduction: 10, moveReduction: 2 },
+  { min: 60, max: 69, eduImprovementChecks: 4, deductionPoints: 20, appReduction: 15, moveReduction: 3 },
+  { min: 70, max: 79, eduImprovementChecks: 4, deductionPoints: 40, appReduction: 20, moveReduction: 4 },
+  { min: 80, max: 89, eduImprovementChecks: 4, deductionPoints: 80, appReduction: 25, moveReduction: 5 },
+]
+function getAgeRange(age: number): AgeRange | undefined {
+  return AGE_RANGES.find((r) => age >= r.min && age <= r.max)
+}
+function isYoungCharacter(age: number): boolean {
+  return age >= 15 && age <= 19
+}
+function getDeductibleStats(age: number): string[] {
+  return isYoungCharacter(age) ? ['STR', 'SIZ'] : ['STR', 'CON', 'DEX']
+}
+
+// Fields wiped on soft back-step (occupation onwards). Mechanical fields
+// (cechy/wiek/luck/edu/aging/swap) are NOT here — those are wiped only by
+// /reroll and replaced by the hard-zone endpoints.
 const DOWNSTREAM_WIPE: Record<string, unknown> = {
   occupation_id: null,
   occupation_skill_points: {},
@@ -117,6 +144,37 @@ const DOWNSTREAM_WIPE: Record<string, unknown> = {
   assets_breakdown: [],
   equipment_catalogs_available: [],
   derived: {},
+}
+
+// Fields wiped on /reroll (full wipe — token-cost). Resets character to
+// just-post-/start-character state. swap_available preserved (it's perm
+// property derived from code.perks). swap_used reset to false.
+// rerolls_remaining decremented separately by consume_reroll RPC.
+// reroll_history appended (not wiped) by append_reroll_history RPC.
+// Identity (distinguisher/method/era/perks/max_skill_value) preserved.
+// Narrative (name/appearance/residence/birthplace/player_name/gender/
+// backstory/portrait_*) — wiped by /reroll per spec ("wszystko co
+// nastąpiło potem, łącznie z fabułą jest usuwane").
+const HARD_ZONE_WIPE: Record<string, unknown> = {
+  characteristics: {},
+  luck: 0,
+  age: 0,
+  edu_rolls: [],
+  characteristics_committed_at: null,
+  swap_committed_at: null,
+  age_committed_at: null,
+  edu_committed_at: null,
+  aging_committed_at: null,
+  luck_committed_at: null,
+  swap_used: false,
+  // narrative wiped on reroll per user spec
+  name: '',
+  gender: '',
+  appearance: '',
+  residence: '',
+  birthplace: '',
+  player_name: '',
+  ...DOWNSTREAM_WIPE,
 }
 
 Deno.serve(async (req: Request) => {
@@ -623,12 +681,14 @@ Deno.serve(async (req: Request) => {
     // NEW IDENTITY/CHARACTERISTICS ENDPOINTS (rework 018)
     // ══════════════════════════════════════════════════════════════
 
-    // ── POST /start-character — commit identifier, create character ─
-    // body: { code, distinguisher, method, era?, name?, age?, gender? }
-    // Rolls characteristics server-side for dice method.
+    // ── POST /start-character — identifier only; no auto-roll ──────
+    // body: { code, distinguisher, method }
+    // Per plan v2: this endpoint creates a draft with NO mechanical state.
+    // Rolling characteristics happens via /roll-characteristics (dice) or
+    // /edit-characteristics (point_buy/direct) as a separate commit.
     if (path === '/start-character' && req.method === 'POST') {
       const body = await req.json()
-      const { code, distinguisher, method, name, age, gender } = body
+      const { code, distinguisher, method } = body
 
       if (!code) return errorResponse('code required', 400)
       if (!distinguisher || typeof distinguisher !== 'string') {
@@ -665,10 +725,12 @@ Deno.serve(async (req: Request) => {
       if (assignErr) throw assignErr
       if (!assignment) return errorResponse('Code not assigned to you', 403)
 
-      // Enforce 1 code = 1 character: reject if any character already linked
+      // Enforce 1 code = 1 character forever (also enforced by partial unique
+      // index idx_characters_one_per_code_active on draft rows; checking here
+      // gives a clean 409 instead of letting the DB error bubble up).
       const { data: existing, error: existErr } = await supabase
         .from('characters')
-        .select('id, status, player_id')
+        .select('id, status')
         .eq('invite_code_id', inviteCode.id)
         .limit(1)
         .maybeSingle()
@@ -677,12 +739,7 @@ Deno.serve(async (req: Request) => {
         return errorResponse('Code already in use — ask admin for a new one', 409)
       }
 
-      // For dice: roll server-side now and mark committed.
-      const characteristics = method === 'dice' ? rollAllCharacteristics() : {}
-      const effectiveAge = typeof age === 'number' ? age : 30
-      const luck = method === 'dice' ? rollLuckForAge(effectiveAge) : 0
-      const nowIso = new Date().toISOString()
-
+      const perks: string[] = Array.isArray(inviteCode.perks) ? inviteCode.perks : []
       const insertPayload: Record<string, unknown> = {
         invite_code_id: inviteCode.id,
         player_id: playerId,
@@ -691,24 +748,29 @@ Deno.serve(async (req: Request) => {
         distinguisher: trimmed,
         method,
         era: inviteCode.era,
-        perks: inviteCode.perks ?? [],
+        perks,
         max_skill_value: inviteCode.max_skill_value ?? 99,
-        characteristics,
-        luck,
+        // No mechanical state yet — rolled by dedicated endpoints.
+        characteristics: {},
+        luck: 0,
+        age: 0,
+        edu_rolls: [],
         rerolls_remaining: inviteCode.reroll_budget ?? 0,
-        characteristics_committed_at: method === 'dice' ? nowIso : null,
+        swap_available: perks.includes('swap_characteristics'),
+        swap_used: false,
         reroll_history: [],
-        name: name ?? '',
-        age: effectiveAge,
-        gender: gender ?? '',
-        appearance: '',
-        occupation_skill_points: {},
-        personal_skill_points: {},
-        backstory: {},
-        equipment: [],
-        cash: '',
-        assets: '',
-        spending_level: '',
+        // All commit timestamps NULL — will be set by per-step endpoints.
+        characteristics_committed_at: null,
+        swap_committed_at: null,
+        age_committed_at: null,
+        edu_committed_at: null,
+        aging_committed_at: null,
+        luck_committed_at: null,
+        // Empty narrative + soft zone scaffolding.
+        name: '', gender: '', appearance: '',
+        occupation_skill_points: {}, personal_skill_points: {},
+        backstory: {}, equipment: [],
+        cash: '', assets: '', spending_level: '',
         derived: {},
       }
 
@@ -719,14 +781,20 @@ Deno.serve(async (req: Request) => {
         .single()
       if (error) {
         if (error.code === '23505') {
-          return errorResponse('Identyfikator już użyty w innej twojej postaci', 409)
+          // Could be the per-player distinguisher unique idx OR the
+          // one-per-code partial idx — message covers both contexts.
+          return errorResponse('Identyfikator zajęty albo kod już ma postać', 409)
         }
         throw error
       }
       return jsonResponse(data)
     }
 
-    // ── POST /characters/:id/reroll — dice only, consume reroll budget ─
+    // ── POST /characters/:id/reroll — full wipe + new characteristics ─
+    // Per plan v2: wipes ALL hard-zone state (cech, wiek, EDU, aging, luck)
+    // PLUS soft zone (occupation+) PLUS narrative. Consumes one reroll token.
+    // Then rolls new characteristics ONLY — luck/age/edu/aging come from the
+    // per-step endpoints again. Dice method only.
     const rerollMatch = path.match(/^\/characters\/([^/]+)\/reroll$/)
     if (rerollMatch && req.method === 'POST') {
       const charId = rerollMatch[1]
@@ -749,33 +817,330 @@ Deno.serve(async (req: Request) => {
         return errorResponse('No rerolls remaining', 403)
       }
 
-      const newChars = rollAllCharacteristics()
-      const newLuck = rollLuckForAge(char.age ?? 30)
       const nowIso = new Date().toISOString()
-
-      const history = Array.isArray(char.reroll_history) ? char.reroll_history : []
-      history.push({
+      const historyEntry = {
         at: nowIso,
         scope: 'reroll',
         previous_characteristics: char.characteristics,
         previous_luck: char.luck,
-      })
+        previous_age: char.age,
+        previous_edu_rolls: char.edu_rolls,
+      }
 
-      // Atomic decrement via RPC; raises if nothing to consume (race safety).
+      // Atomic decrement; raises if nothing to consume (race safety).
       const { data: newRemaining, error: rpcErr } = await supabase
         .rpc('consume_reroll', { character_id: charId })
       if (rpcErr) return errorResponse(rpcErr.message, 403)
 
+      // Atomic append (race-safe; replaces read-modify-write).
+      const { error: appendErr } = await supabase
+        .rpc('append_reroll_history', { character_id: charId, entry: historyEntry })
+      if (appendErr) return errorResponse(appendErr.message, 500)
+
+      // Apply HARD_ZONE_WIPE then immediately roll new cechy + commit.
+      const newChars = rollAllCharacteristics()
       const { data, error } = await supabase
         .from('characters')
         .update({
-          ...DOWNSTREAM_WIPE,
+          ...HARD_ZONE_WIPE,
           characteristics: newChars,
-          luck: newLuck,
           characteristics_committed_at: nowIso,
-          reroll_history: history,
           rerolls_remaining: newRemaining,
         })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/roll-characteristics — dice only, server-side ─
+    // Step 2 of new hard-zone flow. Sets characteristics + commit timestamp.
+    // Does NOT roll luck/age (those are separate commits).
+    const rollCharsMatch = path.match(/^\/characters\/([^/]+)\/roll-characteristics$/)
+    if (rollCharsMatch && req.method === 'POST') {
+      const charId = rollCharsMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, method, characteristics_committed_at, player_id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot roll on submitted character', 400)
+      if (char.method !== 'dice') return errorResponse('Roll endpoint is dice-only; use /edit-characteristics', 400)
+      if (char.characteristics_committed_at) {
+        return errorResponse('Characteristics already committed; use /reroll to redo', 409)
+      }
+
+      const newChars = rollAllCharacteristics()
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ characteristics: newChars, characteristics_committed_at: nowIso })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/swap-characteristics — perk-gated value swap ─
+    // Step 2b. Optional. Requires swap_available (perk on code) + not yet used.
+    // Must be after characteristics commit, before age commit.
+    // body: { from: CharacteristicKey, to: CharacteristicKey }
+    const swapCharsMatch = path.match(/^\/characters\/([^/]+)\/swap-characteristics$/)
+    if (swapCharsMatch && req.method === 'POST') {
+      const charId = swapCharsMatch[1]
+      const body = await req.json()
+      const { from, to } = body
+
+      const VALID_KEYS = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
+      if (!VALID_KEYS.includes(from) || !VALID_KEYS.includes(to)) {
+        return errorResponse('from/to must be valid characteristic keys', 400)
+      }
+      if (from === to) return errorResponse('from and to must differ', 400)
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, characteristics, characteristics_committed_at, swap_available, swap_used, age_committed_at')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot swap on submitted character', 400)
+      if (!char.swap_available) return errorResponse('Swap perk not available on this code', 403)
+      if (char.swap_used) return errorResponse('Swap already used', 409)
+      if (!char.characteristics_committed_at) {
+        return errorResponse('Roll characteristics first', 409)
+      }
+      if (char.age_committed_at) {
+        return errorResponse('Cannot swap after age committed', 409)
+      }
+
+      const chars = { ...(char.characteristics as Record<string, number>) }
+      const tmp = chars[from]
+      chars[from] = chars[to]
+      chars[to] = tmp
+
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({
+          characteristics: chars,
+          swap_used: true,
+          swap_committed_at: nowIso,
+        })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/set-age — commit age ─────────────────
+    // Step 3. Forces swap decision before age (swap is a one-shot pre-age
+    // window). body: { age: number }
+    const setAgeMatch = path.match(/^\/characters\/([^/]+)\/set-age$/)
+    if (setAgeMatch && req.method === 'POST') {
+      const charId = setAgeMatch[1]
+      const body = await req.json()
+      const { age } = body
+
+      if (typeof age !== 'number' || age < 15 || age > 99) {
+        return errorResponse('age must be a number in [15, 99]', 400)
+      }
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, characteristics_committed_at, age_committed_at, swap_available, swap_used')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot set age on submitted character', 400)
+      if (!char.characteristics_committed_at) {
+        return errorResponse('Commit characteristics first', 409)
+      }
+      if (char.age_committed_at) return errorResponse('Age already committed', 409)
+      if (char.swap_available && !char.swap_used) {
+        return errorResponse(
+          'Wykorzystaj zamianę cech lub zrezygnuj z niej przed ustawieniem wieku',
+          409,
+        )
+      }
+
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ age, age_committed_at: nowIso })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/roll-edu — improvement rolls per age ─
+    // Step 4. Rolls N times where N = ageRange.eduImprovementChecks.
+    // Each roll: if d100 > current EDU, EDU += 1d10. Persists rolls + EDU.
+    // For young characters: EDU -5 applied here (per ageModifiers.ts spec).
+    const rollEduMatch = path.match(/^\/characters\/([^/]+)\/roll-edu$/)
+    if (rollEduMatch && req.method === 'POST') {
+      const charId = rollEduMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, age, characteristics, age_committed_at, edu_committed_at')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot roll on submitted character', 400)
+      if (!char.age_committed_at) return errorResponse('Commit age first', 409)
+      if (char.edu_committed_at) return errorResponse('EDU rolls already committed', 409)
+
+      const age = char.age as number
+      const mods = getAgeModifications(age)
+      if (!mods) return errorResponse('Invalid age (no age range)', 400)
+
+      const characteristics = { ...(char.characteristics as Record<string, number>) }
+      let edu = characteristics.EDU ?? 0
+
+      // Young: EDU -5 (clamped at 1).
+      if (isYoungCharacter(age)) {
+        edu = Math.max(1, edu - 5)
+      }
+
+      // Improvement rolls.
+      const rolls: { roll: number; improved: boolean; gained: number; new_edu: number }[] = []
+      for (let i = 0; i < mods.eduImprovementChecks; i++) {
+        const roll = rollDie(100)
+        const improved = roll > edu
+        const gained = improved ? rollDie(10) : 0
+        if (improved) edu = Math.min(99, edu + gained)
+        rolls.push({ roll, improved, gained, new_edu: edu })
+      }
+
+      characteristics.EDU = edu
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({
+          characteristics,
+          edu_rolls: rolls,
+          edu_committed_at: nowIso,
+        })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/apply-aging-penalties — physical deductions ─
+    // Step 5. body: { deductions: { STR?: number, CON?: number, DEX?: number, SIZ?: number } }
+    // Validates: total matches required, all stats are deductible for age,
+    // no stat goes below 1. Also applies APP reduction (40+) automatically.
+    const agingMatch = path.match(/^\/characters\/([^/]+)\/apply-aging-penalties$/)
+    if (agingMatch && req.method === 'POST') {
+      const charId = agingMatch[1]
+      const body = await req.json()
+      const { deductions } = body
+
+      if (!deductions || typeof deductions !== 'object') {
+        return errorResponse('deductions object required', 400)
+      }
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, age, characteristics, edu_committed_at, aging_committed_at')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot apply on submitted character', 400)
+      if (!char.edu_committed_at) return errorResponse('Roll EDU first', 409)
+      if (char.aging_committed_at) return errorResponse('Aging penalties already committed', 409)
+
+      const age = char.age as number
+      const mods = getAgeModifications(age)
+      if (!mods) return errorResponse('Invalid age', 400)
+
+      const allowed = getDeductibleStats(age)
+      const characteristics = { ...(char.characteristics as Record<string, number>) }
+
+      // Validate deductions sum + allowed stats + min-1 invariant.
+      let total = 0
+      for (const [k, v] of Object.entries(deductions)) {
+        if (typeof v !== 'number' || v < 0) {
+          return errorResponse(`deductions.${k} must be a non-negative number`, 400)
+        }
+        if (v > 0 && !allowed.includes(k)) {
+          return errorResponse(`Cannot deduct from ${k} at age ${age} (allowed: ${allowed.join(', ')})`, 400)
+        }
+        if ((characteristics[k] ?? 0) - v < 1) {
+          return errorResponse(`${k} would drop below 1`, 400)
+        }
+        total += v
+      }
+      if (total !== mods.deductionPoints) {
+        return errorResponse(`Must distribute exactly ${mods.deductionPoints} deduction points (got ${total})`, 400)
+      }
+
+      // Apply deductions.
+      for (const [k, v] of Object.entries(deductions)) {
+        characteristics[k] = Math.max(1, (characteristics[k] ?? 0) - (v as number))
+      }
+
+      // Apply APP reduction (40+).
+      if (mods.appReduction > 0) {
+        characteristics.APP = Math.max(1, (characteristics.APP ?? 0) - mods.appReduction)
+      }
+
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({
+          characteristics,
+          aging_committed_at: nowIso,
+        })
+        .eq('id', charId)
+        .select()
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/roll-luck — final hard-zone step ─────
+    // Step 6. Young (15–19): max(3d6×5, 3d6×5). Otherwise: 3d6×5.
+    const rollLuckMatch = path.match(/^\/characters\/([^/]+)\/roll-luck$/)
+    if (rollLuckMatch && req.method === 'POST') {
+      const charId = rollLuckMatch[1]
+
+      const { data: char, error: charErr } = await supabase
+        .from('characters')
+        .select('id, status, age, aging_committed_at, luck_committed_at')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      if (char.status !== 'draft') return errorResponse('Cannot roll on submitted character', 400)
+      if (!char.aging_committed_at) return errorResponse('Apply aging penalties first', 409)
+      if (char.luck_committed_at) return errorResponse('Luck already committed', 409)
+
+      const luck = rollLuckForAge(char.age as number ?? 30)
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ luck, luck_committed_at: nowIso })
         .eq('id', charId)
         .select()
         .single()
