@@ -12,6 +12,132 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-27 — Edge functions rework + client lib (Etap A/B/C + types)
+
+**Focus:** code-only sub-sessions of the granular-commits-v2 rework — write all
+new player + admin endpoints and the matching typed client wrappers. Zero
+deploys, zero pushes; everything local in git, prod still on edge function
+v14/v13 from 2026-03-21.
+
+**Done:**
+
+Edge functions (`supabase/functions/{player,admin}/index.ts`) — 3 commits:
+
+- **Etap A** (`3ac51b3`, +408 lines `player/index.ts`) — hard-zone server-authoritative endpoints:
+  - REWRITE `POST /start-character` — body shrunk to `{ code, distinguisher, method }`. No auto-roll. Sets `swap_available` from `code.perks.includes('swap_characteristics')`. All 6 commit timestamps NULL on insert. 1-code-1-character enforced (partial unique idx + 409 pre-check).
+  - REWRITE `POST /characters/:id/reroll` — full `HARD_ZONE_WIPE` (cech/wiek/luck/edu/aging/swap_used/narrative + downstream); rolls new chars only; atomic via `consume_reroll` + `append_reroll_history` RPCs.
+  - NEW `POST /characters/:id/roll-characteristics` (dice only).
+  - NEW `POST /characters/:id/swap-characteristics` (perk-gated, single-use, between chars-commit and age-commit).
+  - NEW `POST /characters/:id/set-age` (forces swap decision via 409 if perk available + unused).
+  - NEW `POST /characters/:id/roll-edu` — N improvement rolls per `getAgeModifications(age).eduImprovementChecks`; persists per-roll detail in `edu_rolls` JSONB.
+  - NEW `POST /characters/:id/apply-aging-penalties` — validates total === `deductionPoints`, allowed stats per age (young: STR/SIZ; 40+: STR/CON/DEX), no stat below 1; auto-applies APP reduction (40+).
+  - NEW `POST /characters/:id/roll-luck` — final hard-zone step, age-aware (young: max(2 rolls)).
+  - Helpers added: `AGE_RANGES` + `getAgeRange` + `isYoungCharacter` + `getDeductibleStats` (Deno-side port of `src/data/ageRanges.ts` + `src/lib/ageModifiers.ts`); `HARD_ZONE_WIPE` constant.
+
+- **Etap B** (`fb500cc`, +327 lines `player/index.ts`) — soft-zone + cross-cutting:
+  - TIGHTEN `PUT /characters/:id/draft` — strict `DRAFT_ALLOWLIST` (occupation+, narrative, draft progression metadata, derived mirror). Anything else → 400.
+  - NEW `POST /characters/:id/go-back-to-step` — soft back-step with per-step cascade wipe; preserves pre-occupation state and narrative; no token cost.
+  - NEW `PUT /characters/:id/distinguisher` — anytime, also post-submit; uniqueness by partial unique idx from 018.
+  - NEW `PUT /characters/:id/narrative` — anytime, also post-submit; allowlist = name/appearance/residence/birthplace/player_name/gender/backstory/portrait_*.
+  - NEW `POST /characters/:id/submit` — flips draft → submitted; validates all hard-zone commits present for dice flow.
+
+- **Etap C** (`53a2674`, +85 lines `admin/index.ts`) — admin pending-edits tightening:
+  - TIGHTEN `POST /pending-edits/:id/approve` — `APPROVE_ALLOWLIST` covers narrative + soft-zone + distinguisher; mechanical pre-occupation fields (cech/wiek/luck/EDU/aging/swap and timestamps) blocked even for admin via this endpoint. Polish error message points at direct PUT `/characters/:id` as the explicit override path.
+
+Client lib + types (`dffe4d2`, +342 lines):
+
+- `src/types/character.ts` — added 8 new fields to `CharacterData` (rerolls_remaining, characteristics_committed_at, reroll_history, 5 timestamps, swap_*, edu_rolls). New types: `EduRoll`, `RerollHistoryEntry`, `SoftZoneStep`, `AgingDeductions`, `NarrativeFields`.
+- `src/lib/player.ts` — 12 new typed wrappers (one per endpoint above) with shared `throwEdgeError()` helper for surfacing Polish error messages from edge function failure responses.
+- `src/lib/admin.ts` — 3 new wrappers: `adminUpdateInviteCode` (PATCH /codes/:id), `adminCleanupCodes` (POST /codes/cleanup with optional dry_run), `adminGrantReroll` (POST /characters/:id/grant-reroll). Extended `adminCreateCode` signature with optional 018 fields.
+
+**Decisions:**
+
+- **Edge function wipe semantics for /reroll** — wipes narrative too (per user spec "wszystko co nastąpiło potem, łącznie z fabułą jest usuwane"). Preserves portrait fields (expensive to regenerate), distinguisher, identity (method/era/perks/max_skill_value/swap_available), reroll_history (appended), rerolls_remaining (decremented separately).
+- **EDU young (15-19) handling** — `-5` baseline applied in `/roll-edu` before improvement rolls (per `applyAgeModifiers` semantics). 0 improvement rolls but timestamp still committed so the wizard can advance.
+- **Swap forcing via /set-age 409** — explicit reject + Polish message, NOT auto-set `swap_used = true`. Requires player to make conscious decision (use or skip swap).
+- **Edge function not deployed** — all changes utrwalone lokalnie. Deploy will happen in big-bang release with frontend (next sub-sessions: wizard rewrite). Justification: TIGHTEN of `/draft` will break old frontend on first request (legacy frontend writes characteristics through it).
+
+**Not done (outstanding work for v2.0 deploy):**
+
+Tracked in detail in `work/v2-deploy-plan.md` (this session). Summary:
+1. Wizard rewrite — 5 new step components + WizardShell routing + StepCharacteristics rewrite + StepAgeModifiers deletion + StepEquipment reorder + StepInviteCode slim. Estimated 2-3 sub-sessions.
+2. State store cleanup — remove `characteristicsLocked`/`ageLocked` from characterStore, narrative-only autosave in useDraftSync post-submit.
+3. InviteCodeManager rewrite — full UI overhaul.
+4. Small touchups — CharacterList, BasicInfoEditor, PlayerDashboard.
+5. Balast cleanup — 8 abandoned/test drafts before deploy.
+6. Big-bang deploy — supabase functions deploy + git push (auto-deploy frontend).
+7. Smoke test each role.
+8. Update specs (code_identity_rework_spec.md → status implemented).
+
+**Files touched this session (5 commits, +1162 lines):**
+- `supabase/functions/player/index.ts` — Etap A (+408) + Etap B (+327) = +735 net, file now 1565 lines.
+- `supabase/functions/admin/index.ts` — Etap C (+85), file now 904 lines.
+- `src/types/character.ts` (+64), `src/lib/player.ts` (+196), `src/lib/admin.ts` (+83).
+- `docs/CoCCreator_obsidian/{DOCS_CHANGES_JOURNAL,memories/project,TASK_LIST}.md` — this update.
+- `docs/CoCCreator_obsidian/work/v2-deploy-plan.md` (new — full execution plan).
+
+---
+
+## 2026-04-26 — Migration sequence applied to live DB (016/017/018/019)
+
+**Focus:** apply all 4 pending migrations to production Supabase, prove zero data
+damage on existing 31 characters, ensure Rafał's in-flight draft is fully
+backfilled to "as if went through new flow" semantics.
+
+**Done:**
+
+Pre-flight checks (read-only, against live DB via direct Postgres pooler):
+- 0 codes with >1 draft (TOCTOU index from 019 won't fail).
+- 0 orphan drafts without invite_code_id.
+- 0 new columns from 016/017/018/019 already present (clean state).
+- 31 total / 9 drafts / 22 submitted (matches snapshots).
+- `player_codes` table exists (016 trigger has its FK).
+- `invite_codes.max_tries` exists (018 reroll_budget backfill has source).
+
+Defensive backups taken (parallel admin-API JSON + full pgdump):
+- `backups/2026-04-26-pre-migrations/` — admin-API snapshot (sha256 `c4b7bcfa…`, identical to safety baseline).
+- `backups/2026-04-26-pre-migrations-pgdump/` — direct Postgres dump (gitignored — contains bcrypt password hashes and active share_tokens).
+- `backups/2026-04-26-post-019-pgdump/` — post-migration pgdump (gitignored, sha256 `963a6b5e…`).
+
+Migrations applied in transaction-with-rollback-on-error sequence:
+- **016** (auto-assign player trigger) — applied; trigger + function present.
+- **017** (sessions, distinguisher cols) — applied; both cols added with defaults.
+- **018** (code identity Step 1a) — applied; 3 invite_codes cols + 3 characters cols + grant_reroll/consume_reroll RPCs. Backfill: 22/22 submitted got `characteristics_committed_at = created_at`; all 59 codes got `reroll_budget = max(0, max_tries - 1)`.
+- **019** (granular commits) — first attempt rolled back on `jsonb @> text[]` operator mismatch (`perks` is JSONB, not TEXT[]); fix used JSONB literal. Retry succeeded. 8 new characters columns + `append_reroll_history` RPC + `idx_characters_one_per_code_active` partial unique index. Backfill: 22/22 submitted got 4 timestamps backfilled to `created_at`; 27 chars got `swap_available = true` from code perks.
+
+Verify (`scripts/verify-characters-post-migration.mjs` against pre-migrations snapshot):
+- 31/31 OK on all existing fields. Zero drift on characteristics, age, luck, equipment, occupation, backstory, contacts, positions, skills.
+- Verify script extended: `NEW_019_FIELDS` allowlist now also includes 017/018 fields (sessions, distinguisher, characteristics_committed_at, rerolls_remaining, reroll_history); new `TRIVIAL_DRIFT_FIELDS` allowlist for `updated_at` (backfill UPDATEs bump it as expected side effect).
+
+Rafał's draft (`7d54eec4`) post-migration check:
+- Field-by-field comparison vs pre-migration snapshot: 0 issues (excluding `updated_at` and serialization-only `+00:00` vs `Z` on `created_at`).
+- All 13 new fields backfilled correctly: `characteristics_committed_at`, `age_committed_at`, `edu_committed_at`, `aging_committed_at`, `luck_committed_at` all set to `created_at` (because his age + occupation are populated, the draft DO block conditions matched). `swap_available = false` (his code lacks perk), `swap_used = false`, `edu_rolls = []` (default — historic info unknown), `rerolls_remaining = 0` (his code had `max_tries = 1`).
+- **No restore needed** — backfill captures him in full.
+
+Supporting tooling (committed earlier this session):
+- `scripts/pg-dump-all.mjs` (`a3ebc2e`) — full DB backup via direct Postgres connection (bypass Supabase CLI Docker dep). Discovers pooler URL from `supabase/.temp/pooler-url`. Disaster-recovery layer #3 (alongside the 2 admin-API snapshots).
+- `.gitignore` updated: `backups/*-pgdump/` (contains credential material), `supabase/.temp/`.
+
+**Decisions:**
+
+- **Migration application order: option A** (per user) — keep 016/017/018/019 as separate files, apply sequentially. Cleaner audit, more rollback granularity than monolithic squash.
+- **Each migration in single transaction with rollback-on-error** — if anything inside the BEGIN fails, schema stays untouched. This caught the JSONB operator bug in 019 with zero damage.
+- **Rafał's draft is preserved automatically** — backfill DO block in 019 handles "in-flight drafts" gracefully (per-state conditional commits based on what's populated). User won't need to ask him to redo anything.
+- **Submitted characters bit-exact preserved** — verify confirmed. No frontend impact: submitted chars render the same; new commit timestamp columns are extra metadata not used by old viewer.
+- **Edge functions on prod still old (v14/v13 from 2026-03-21)** — they don't read the new columns, so the schema change is invisible to live users. Deliberate: defer edge function deploy until matching frontend exists (next sub-sessions).
+
+**Files touched this session (1 commit beyond migrations):**
+- `supabase/migrations/019_granular_commits.sql` (new — 88 lines, additive, with 3 backfill blocks).
+- `scripts/verify-characters-post-migration.mjs` (extended allowlist + trivial drift handling).
+- `scripts/pg-dump-all.mjs` (new — 401 lines).
+- `backups/2026-04-26-{safety,pre-rework-commit,pre-migrations}/` — 3 admin-API JSON snapshots committed.
+- `backups/2026-04-26-{pre-migrations-pgdump,post-019-pgdump}/` — 2 pg dumps, gitignored.
+- `.gitignore`, `package.json`/`lock` (pg dep).
+
+**Status:** schema and edge function code complete in repo for v2.0. Wizard rewrite + deploy next.
+
+---
+
 ## 2026-04-26 — Feature 1 shipped: "Portret z cech" descriptive paragraphs
 
 **Focus:** implement Plan A from the future-features plan — deterministic narrative paragraphs derived from character stats. Pure additive client-side rendering, zero DB / migration impact.

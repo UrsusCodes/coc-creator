@@ -12,7 +12,7 @@ Map of `work/*.md` scratch and decision notes. Newest at the top.
 
 ## Active
 
-_(no work notes yet — add here when first `work/YYYY-MM-DD-*.md` is created)_
+- [[work/v2-deploy-plan]] — **2026-04-27** — Complete punch list for shipping v2.0 (granular commits rework). Backend done in repo; covers wizard rewrite (3 sub-sessions), pre-deploy housekeeping, deploy day procedure, smoke test matrix, rollback plan. Master document for the rest of the cycle.
 
 ## Archived
 

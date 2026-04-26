@@ -20,9 +20,15 @@ A Polish-language web application for creating Call of Cthulhu (7e) player chara
 - **Language of UI:** Polish. Language of code/docs: English.
 - **Scope:** this is a closed tool for one game group — not a public product.
 
-## Current status (2026-04-26)
+## Current status (2026-04-27)
 
-**New version cycle in planning.** Full implementation plan for the granular-commits rework is written at `~/.claude/plans/granular-commits-v2.md` — ready-to-execute. **Deploy gated on Rafał finishing character `e1cd6edf` on legacy system** (no prod changes until then). Jakub M's 3 drafts submitted 2026-04-22.
+**v2.0 in flight — backend + client lib complete in repo, frontend wizard rewrite + deploy remain.** Plan v2 from `~/.claude/plans/granular-commits-v2.md` is materialized: all 4 migrations (016/017/018/019) **applied to live DB** 2026-04-26 with 31/31 verify OK and Rafał's draft auto-backfilled. All edge function endpoints written and committed (Etap A/B/C — `3ac51b3` `fb500cc` `53a2674`). Client lib + types written and build-verified (`dffe4d2`).
+
+**Production still serves v1 code** — edge functions on prod remain v14/v13 from 2026-03-21, frontend last deployed before that. New DB columns are invisible to old endpoints (additive schema). Players see no change; backend rework is dark-launched.
+
+**Outstanding for v2.0 release:** wizard step rewrite (5 new components + WizardShell + StepCharacteristics rewrite + cleanup), InviteCodeManager rewrite, drobne touchupy CharacterList/PlayerDashboard, balast cleanup, deploy + smoke test. Master plan: [[work/v2-deploy-plan]]. Estimated 3 sub-sessions before deploy.
+
+**Critical constraint:** any `git push` to origin auto-deploys frontend. Frontend changes already committed (sessions/distinguisher/F1) reference endpoints that aren't deployed. **No push until edge functions + remaining frontend are all ready as one big-bang release.**
 
 **Future-features plan** at `~/.claude/plans/zacznijmy-od-f1-kr-tkie-deep-rivest.md` covers Plan A (Feature 1 — descriptive text generated from stats, 32 paragraphs, deterministic) and Plan B (snapshot/verify scripts before migration 019). Both **shipped 2026-04-26**: Plan A → `src/lib/characterDescriptions.ts` + `src/components/shared/CharacterDescriptions.tsx`, wired into `CharacterSheet` (admin + player viewers). Plan B → `scripts/snapshot-characters.mjs` + `scripts/verify-characters-post-migration.mjs`, with safety baseline at `backups/2026-04-26-safety/` (sha256 `c4b7bcfa…`).
 
@@ -95,6 +101,8 @@ Summary of what's **standard** vs **modified** vs **custom**:
 
 Low-frequency, durable decisions. Implementation-level decisions go in [[DOCS_CHANGES_JOURNAL]] per session.
 
+- **2026-04-27** — All v2.0 backend + client lib complete in git. Edge functions Etap A/B/C cover all 13 plan-v2 player endpoints + admin pending-edits tightening. Client wrappers + types added. Big-bang frontend deploy gated on wizard rewrite (3 sub-sessions estimated). Plan: [[work/v2-deploy-plan]].
+- **2026-04-26** — Migration 016/017/018/019 sequence applied to live DB. Each in single transaction with rollback-on-error. Verify post-migration 31/31 OK on existing fields. Rafał's in-flight draft fully backfilled by 019 DO block (no manual restore needed). pgdump tooling (`scripts/pg-dump-all.mjs`) added as 3rd disaster-recovery layer (gitignored — contains bcrypt hashes).
 - **2026-04-26** — Feature 1 shipped: "Portret z cech" deterministic narrative paragraphs derived from stats (32 paragraphs, 8 stats × 4 categories). Web-only (no PDF), no DB. `src/lib/characterDescriptions.ts` + `src/components/shared/CharacterDescriptions.tsx`, wired through shared `CharacterSheet`.
 - **2026-04-26** — Snapshot/verify tooling shipped (`scripts/snapshot-characters.mjs`, `scripts/verify-characters-post-migration.mjs`). Backups committable to git in `backups/`. `ADMIN_PASSWORD` stays out of `.env.local`, passed inline per invocation. Safety baseline `2026-04-26-safety` taken before any further structural work.
 - **2026-04-22** — Granular-commits rework scoped: per-step server-authoritative commits across hard zone (identifier → characteristics → swap → age → EDU → aging → luck), soft back-step in middle zone, narrative editable anytime. Plan at `~/.claude/plans/granular-commits-v2.md`. In-place migration (not greenfield).
