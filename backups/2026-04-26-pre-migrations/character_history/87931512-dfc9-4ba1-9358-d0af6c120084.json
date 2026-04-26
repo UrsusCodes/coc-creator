@@ -1,0 +1,183 @@
+[
+  {
+    "id": "36b8d235-ba02-4eab-b21d-4865dd7e2278",
+    "character_id": "87931512-dfc9-4ba1-9358-d0af6c120084",
+    "snapshot": {
+      "id": "87931512-dfc9-4ba1-9358-d0af6c120084",
+      "age": 42,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 40 $",
+      "luck": 45,
+      "name": "William Smith",
+      "perks": [
+        "swap_characteristics",
+        "drive_pillars"
+      ],
+      "assets": "1000 $",
+      "gender": "M",
+      "method": "dice",
+      "status": "submitted",
+      "derived": {
+        "db": "0",
+        "hp": 7,
+        "mp": 7,
+        "san": 35,
+        "build": 0,
+        "dodge": 35,
+        "move_rate": 8
+      },
+      "backstory": {
+        "drive": "adventure",
+        "pillars": [
+          "Rodzina"
+        ],
+        "sources": [
+          {
+            "name": "Dom rodziców",
+            "category": "place",
+            "description": "Stary dom rodziców, w którym dalej znajduje się mój pokój za czasów dzieciństwa "
+          },
+          {
+            "name": "Tata",
+            "category": "person",
+            "description": ""
+          }
+        ],
+        "appearance_description": "Wysoki, szczupły, chodzi w długim płaszczu i fedorze. Lekki zadbany zarost. Zawsze uśmiechnięty"
+      },
+      "equipment": [
+        "[Styl życia] Przeciętny",
+        "[Lokum] Kawalerka (wynajem)",
+        "[Transport] Regularne taksówki / kolej 1. kl.",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Ekwipunek] Aparat foto (prosty) ($5)",
+        "[Ekwipunek] Latarka (duża) ($5)",
+        "[Ekwipunek] Lupa ($1)",
+        "[Ekwipunek] Wytrychy ($10)",
+        "[Broń] .32 Smith & Wesson (1K8, 15 m) ($15)",
+        "[Ekwipunek] Amunicja .38 (50 szt.) ($2)",
+        "[Ekwipunek] Plecak ($2)"
+      ],
+      "player_id": "32cc3214-460b-4785-b17a-fe382fcfad1e",
+      "residence": "",
+      "appearance": "",
+      "art_prompt": null,
+      "birthplace": "",
+      "created_at": "2026-03-23T10:34:32.400458+00:00",
+      "created_by": "player",
+      "draft_step": null,
+      "updated_at": "2026-03-23T10:54:57.36835+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [
+        {
+          "strength": 2,
+          "is_custom": false,
+          "roll_value": 60,
+          "slot_index": 0,
+          "category_id": "ORGANY_SCIGANIA",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W organach ścigania",
+          "synergy_bonus": 0,
+          "subcategory_id": "detektywi_prywatni",
+          "subcategory_name": "Detektywi prywatni i agencyjni",
+          "custom_description": "",
+          "pending_st_approval": false
+        },
+        {
+          "strength": 1,
+          "is_custom": false,
+          "roll_value": 30,
+          "slot_index": 1,
+          "category_id": "",
+          "custom_name": "",
+          "slot_source": "additional",
+          "base_strength": 1,
+          "category_name": "",
+          "synergy_bonus": 0,
+          "subcategory_id": "",
+          "subcategory_name": "",
+          "custom_description": "",
+          "pending_st_approval": false
+        }
+      ],
+      "invite_code": "MGQ-1507-NKD",
+      "player_name": "Kamil",
+      "portrait_url": null,
+      "main_position": {
+        "category": "PRAWO I INSTYTUCJE",
+        "option_id": "dw_wolny",
+        "option_name": "Wolny strzelec (niezależny)",
+        "strength_percent": 100,
+        "unlock_condition": "ZAWSZE",
+        "organization_size": "Mikro",
+        "custom_description": ""
+      },
+      "occupation_id": "prywatny_detektyw",
+      "invite_code_id": "2e74b322-373c-4a83-b047-b0144d46feb3",
+      "spending_level": "$7",
+      "characteristics": {
+        "APP": 60,
+        "CON": 35,
+        "DEX": 70,
+        "EDU": 83,
+        "INT": 65,
+        "POW": 35,
+        "SIZ": 40,
+        "STR": 60
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [
+        {
+          "weight": 1,
+          "category": "",
+          "is_custom": false,
+          "option_id": "",
+          "roll_value": 25,
+          "slot_index": 0,
+          "option_name": "",
+          "unlocked_by": "",
+          "organization_size": "",
+          "custom_description": "",
+          "pending_st_approval": false,
+          "is_attribute_special": false
+        },
+        {
+          "weight": 1,
+          "category": "",
+          "is_custom": false,
+          "option_id": "",
+          "roll_value": 25,
+          "slot_index": 1,
+          "option_name": "",
+          "unlocked_by": "",
+          "organization_size": "",
+          "custom_description": "",
+          "pending_st_approval": false,
+          "is_attribute_special": false
+        }
+      ],
+      "personal_skill_points": {
+        "unik": 40,
+        "nasluchiwanie": 55,
+        "zreczne_palce": 35
+      },
+      "occupation_skill_points": {
+        "majetnosc": 20,
+        "perswazja": 65,
+        "psychologia": 50,
+        "spostrzegawczosc": 50,
+        "bron_palna:krotka": 55,
+        "korzystanie_z_bibliotek": 30,
+        "sztuka_rzemioslo:Fałszerstwo": 36
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-28T02:07:51.862761+00:00"
+  }
+]

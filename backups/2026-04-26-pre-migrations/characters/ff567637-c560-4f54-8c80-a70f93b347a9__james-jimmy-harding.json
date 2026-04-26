@@ -1,0 +1,240 @@
+{
+  "id": "ff567637-c560-4f54-8c80-a70f93b347a9",
+  "invite_code_id": "66f80306-76f4-413f-b644-f1aa414cafb1",
+  "status": "submitted",
+  "name": "James „Jimmy\" Harding",
+  "age": 45,
+  "gender": "M",
+  "appearance": "Wysoki, żylasty mężczyzna po czterdziestce. Twarz poorana bruzdami, zwłaszcza wokół oczu — jakby przez całe życie mrużył je od dymu papierosowego albo przyglądał się ludziom zbyt uważnie. Szczęka kwadratowa, nos złamany co najmniej raz. Krótko przystrzyżone ciemne włosy z siwizną na skroniach. Ręce duże, suche, z pożółkłymi od nikotyny palcami. Ubiera się schludnie, ale bez elegancji — zawsze ten sam szary garnitur, trochę za luźny, jakby nosił go ktoś kto kiedyś był większy. Na tym nieodłączna fedora i płaszcz przeciwdeszczowy w chłodniejsze dni. Porusza się spokojnie, bez pośpiechu, ale z czujnością człowieka który odruchowo liczy wyjścia z każdego pomieszczenia. Mówi mało, słucha dużo. Patrzy rozmówcy prosto w oczy odrobinę za długo — nie agresywnie, ale tak, że ludzie zaczynają się wiercić. Pierwsze wrażenie: zmęczony facet, który widział za dużo i nie zamierza o tym opowiadać.",
+  "characteristics": {
+    "APP": 25,
+    "CON": 45,
+    "DEX": 50,
+    "EDU": 75,
+    "INT": 55,
+    "POW": 75,
+    "SIZ": 70,
+    "STR": 65
+  },
+  "luck": 25,
+  "derived": {
+    "db": "+1K4",
+    "hp": 11,
+    "mp": 15,
+    "san": 75,
+    "build": 1,
+    "dodge": 25,
+    "move_rate": 6
+  },
+  "occupation_id": "prywatny_detektyw",
+  "occupation_skill_points": {
+    "prawo": 45,
+    "majetnosc": 20,
+    "psychologia": 50,
+    "zastraszanie": 45,
+    "nasluchiwanie": 30,
+    "spostrzegawczosc": 35,
+    "korzystanie_z_bibliotek": 5,
+    "sztuka_rzemioslo:Ślusarstwo": 50
+  },
+  "personal_skill_points": {
+    "unik": 30,
+    "ukrywanie": 30,
+    "bron_palna:krotka": 40,
+    "prowadzenie_samochodu": 5,
+    "sztuka_rzemioslo:Literatura": 5
+  },
+  "backstory": {
+    "drive": "duty",
+    "pillars": [
+      "Filar 1: Zasady moralne — „istnieje obiektywne dobro i zło\". To fundament całej postaci. Jim odszedł z policji bo kazali mu zignorować zło. Prowadzi śledztwa bo wierzy, że prawda i sprawiedliwość nie są kwestią opinii. Gdy Mity zaczną podważać granicę między dobrem a złem, to uderzy go najmocniej.",
+      "Filar 2: Godność i wartość człowieka — „ludzie mają znaczenie i zasługują na szacunek\". Jim traktuje swoją pracę poważnie bo za każdą sprawą stoi człowiek — ofiara, która zasługuje na sprawiedliwość. Dlatego nie odpuszcza sprawy pisarza. Kosmiczny horror Mitów, gdzie ludzkość jest nic nieznaczącym pyłem, to bezpośredni atak na to przekonanie.",
+      "Filar 3: Miłość do rodzinnego miasta — „twoje miasto jest bezpieczne, dobre, twoje\". Jim jest lokalnym człowiekiem. Zna ulice, zna ludzi, zna rytm miasta. Wierzy, że to miejsce da się obronić, że ma sens o nie walczyć. Odkrycie, że pod znajomymi fasadami czai się coś nieludzkiego i starszego niż samo miasto — to będzie jak wyrwanie mu gruntu spod nóg."
+    ],
+    "sources": [
+      {
+        "name": "Margaret Harding",
+        "category": "person",
+        "description": "Starsza siostra. Wdowa, mieszka na przedmieściach. Jedyna rodzina jaka mu została. Co niedzielę obiad u niej — jedyny rytuał, którego Jim nigdy nie łamie."
+      },
+      {
+        "name": "Biuro przy Tremont Street",
+        "category": "place",
+        "description": "Cztery ściany, biurko, szafka z aktami i jego nazwisko na drzwiach. Jedyne miejsce na świecie, które naprawdę należy do niego. Tu jest panem samego siebie."
+      },
+      {
+        "name": "Old Colony Marksmen",
+        "category": "organization",
+        "description": "Strzelnica w sobotę rano. Zapach prochu, kawa z termosu, chłopaki którzy nie zadają głupich pytań. Tu odzyskuje spokój."
+      },
+      {
+        "name": "Dr. Edward Poole",
+        "category": "person",
+        "description": "Koroner miejski. Pracowali razem przez dziesięć lat. Eddie jest jednym z niewielu ludzi, którym Jim ufa bezwarunkowo. Czasem piją razem po godzinach w kostnicy — to mniej ponure niż brzmi."
+      },
+      {
+        "name": "Ławka w Boston Common (lub Central Park jeśli NY)",
+        "category": "place",
+        "description": "Ławka pod starym wiązem, z widokiem na staw. Przychodził tu jeszcze jako patrol. Kiedy sprawa go przerasta, siada tu i myśli. Zawsze pomaga."
+      }
+    ],
+    "drive_detail": "„Dwadzieścia lat w mundurze nauczyło mnie jednego — martwi nie zamkną za siebie sprawy. Kiedy policja mówi 'włamanie', a ja widzę coś innego, nie potrafię odwrócić wzroku. Już raz mi kazali odpuścić. Drugi raz nie będzie.\"",
+    "other_traits": "Zawsze nosi kapelusz fedora, nawet gdy nie musi — czuje się bez niego nagi. Notuje wszystko w małym, obitym skórą notesie, który nosi przy sercu — ma ich już pełną szufladę w biurze, datowane od pierwszego dnia w policji. Nigdy nie siada plecami do drzwi. Pije kawę czarną, bez cukru, w ilościach które przeraziłyby lekarza. Najlepiej myśli mu się \"na chodząco\" czego ślady widoczne są już na podłodze w biurze ",
+    "appearance_description": "Wysoki, żylasty mężczyzna po czterdziestce. Twarz poorana bruzdami, zwłaszcza wokół oczu — jakby przez całe życie mrużył je od dymu papierosowego albo przyglądał się ludziom zbyt uważnie. Szczęka kwadratowa, nos złamany co najmniej raz. Krótko przystrzyżone ciemne włosy z siwizną na skroniach. Ręce duże, suche, z pożółkłymi od nikotyny palcami. Ubiera się schludnie, ale bez elegancji — zawsze ten sam szary garnitur, trochę za luźny, jakby nosił go ktoś kto kiedyś był większy. Na tym nieodłączna fedora i płaszcz przeciwdeszczowy w chłodniejsze dni. Porusza się spokojnie, bez pośpiechu, ale z czujnością człowieka który odruchowo liczy wyjścia z każdego pomieszczenia. Mówi mało, słucha dużo. Patrzy rozmówcy prosto w oczy odrobinę za długo — nie agresywnie, ale tak, że ludzie zaczynają się wiercić. Pierwsze wrażenie: zmęczony facet, który widział za dużo i nie zamierza o tym opowiadać.\n\nUrodzony około 1879 roku. Syn irlandzkiego imigranta — ojciec pracował w dokach, matka prała bieliznę dla bogatszych rodzin. Dorastał na ulicy, szybko nauczył się kto kłamie, a kto mówi prawdę.\nW 1898 roku, mając 19 lat, zaciągnął się na wojnę amerykańsko-hiszpańską. Wrócił po kilku miesiącach bez ran, ale z przekonaniem że potrafi zachować zimną krew gdy inni panikują. Po powrocie wstąpił do policji — jedyna przyzwoita praca dla młodego Irlandczyka bez wykształcenia.\nPrzez ponad 15 lat wspinał się po szczeblach wydziału kryminalnego. Był dobrym gliną — systematyczny, cierpliwy, uparty. Poznał koronerów przy sekcjach zwłok, prokuratorów przy przygotowywaniu spraw, sędziów na przesłuchaniach. Nauczył się prawa nie z książek, ale z sal sądowych i kostnicy. Strzelnicę odwiedzał regularnie — stąd stowarzyszenie strzeleckie, które pozostało mu do dziś.\nOkoło 1920 roku coś poszło nie tak. Prowadził sprawę, w której trop wiódł do wpływowego polityka z ratusza. Przełożeni kazali mu odpuścić. Odmówił. Nie wyrzucili go — to byłoby zbyt głośne — ale przesunęli na biurko, papierki, martwe sprawy. Próbowali go złamać nudą. Po roku złożył odznakę.\nOtworzył własną agencję za oszczędności i pożyczkę od wuja. Biuro w kamienicy — ciasne, ale jego. Pierwsze lata były chude: śledzenie niewiernych mężów, szukanie zaginionych dłużników, sprawdzanie pracowników dla fabryk. Powoli zbudował reputację jako ktoś, kto nie odpuszcza i nie daje się kupić.\nDawni koledzy z wydziału wciąż go szanują — jedni cicho, inni otwarcie. Koroner, który robił z nim sekcje przez dekadę, dalej odbiera telefon. Prokurator, z którym wygrał kilkanaście spraw, czasem podsunie informację przy kawie. Nawet sędzia Callahan, stary drań, ma dla niego słabość — bo Jim nigdy nie kłamał na zeznaniach, a to w tym mieście rzadkość.\nMa 45 lat, mieszka sam, pali za dużo, pije umiarkowanie (bo widział co whiskey robi gliną na emeryturze). Nie jest bogaty, nie jest biedny. Jest uparty, uczciwy do bólu i nosi w sobie cichą wściekłość na ludzi, którzy myślą że pieniądze stawiają ich ponad prawem.\nOfiarę — pisarza — znał jako klienta. Może sprawdzał dla niego kogoś. Może pilnował go gdy dostawał pogróżki. Kiedy policja zamknęła sprawę jako włamanie, Jim poczuł znajomy smak w ustach — ten sam co wtedy, gdy kazali mu odpuścić sprawę polityka. I wiedział, że tym razem nikt mu nie każe odłożyć akt."
+  },
+  "equipment": [
+    "[Lokum] Kawalerka (wynajem)",
+    "[Transport] Komunikacja miejska",
+    "[Lifestyle] ★☆··· Skromny",
+    "[Ekwipunek] Przeciętne auto ($450)",
+    "[Broń] .38 Colt Police (1K10, 15 m) ($20)",
+    "[Broń] Nóż bojowy / sztylet (1K4+MO, dotyk) ($1)",
+    "[Broń] Kastet (1K3+1+MO, dotyk) ($2)",
+    "[Broń] Remington dwururka (2K6+2/1K6+1, 10/20 m) ($30)",
+    "[Ekwipunek] Kajdanki ($10)",
+    "[Ekwipunek] Wytrychy ($10)",
+    "[Ekwipunek] Aparat foto (dobry) ($25)",
+    "[Ekwipunek] Błona fotograficzna (rolka) ($0.50) [x4]",
+    "[Ekwipunek] Lornetka polowa ($10)",
+    "[Ekwipunek] Latarka (duża) ($5)",
+    "[Ekwipunek] Latarka (mała) ($3)",
+    "[Ekwipunek] Dyktafon ($50)",
+    "[Ekwipunek] Zegarek na rękę ($15)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Broń] Nóż kieszonkowy (1K3+MO, dotyk) ($0.50)",
+    "[Ekwipunek] Zapałki (pudełko) ($0.05)",
+    "[Ekwipunek] Papierosy (paczka) ($0.15)",
+    "[Ekwipunek] Parasol ($3)",
+    "[Ekwipunek] Portfel ($1)",
+    "[Ekwipunek] Kompas ($3)",
+    "[Ekwipunek] Lina (15 m) ($1)",
+    "[Ekwipunek] Gwizdek ($0.25)",
+    "[Ekwipunek] Koc ($2)",
+    "[Ekwipunek] Walizka ($3)",
+    "[Ekwipunek] Lupa ($1)",
+    "[Ekwipunek] Atrament i pióro ($1)",
+    "[Ekwipunek] Książka (specjalistyczna) ($5)",
+    "[Ekwipunek] Apteczka polowa ($5)",
+    "[Ekwipunek] Aspiryna (opakowanie) ($0.25)",
+    "[Ekwipunek] Bandaże (zestaw) ($0.50)",
+    "[Ekwipunek] Morfina (dawka) ($1)",
+    "[Ekwipunek] Amunicja .38 (50 szt.) ($2) [x4]",
+    "[Ekwipunek] Amun. 12 gauge (25 szt.) ($2.50) [x4]",
+    "[Broń] Pałka policyjna (1K6+MO, dotyk) ($3)",
+    "[Dobytek] Konto bankowe: $1000"
+  ],
+  "cash": null,
+  "assets": null,
+  "spending_level": null,
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-03-23T18:52:04.610589+00:00",
+  "updated_at": "2026-04-21T22:58:45.265713+00:00",
+  "player_name": "Jakub Mazur",
+  "invite_code": null,
+  "admin_notes": "",
+  "player_id": "3d945188-ead8-492f-9289-d303be222232",
+  "main_position": {
+    "category": "PRAWO I INSTYTUCJE",
+    "option_id": "dw_wlasna",
+    "option_name": "Własna agencja detektywistyczna",
+    "strength_percent": 85,
+    "unlock_condition": "ZAWSZE",
+    "organization_size": "Mikro",
+    "custom_description": "Ciasne biuro na czwartym piętrze kamienicy przy Tremont Street. Na drzwiach z matowego szkła złocone litery:  James Harding - Śledztwa Prywatne. W środku biurko z telefonem, szafka z aktami, wieszak na kapelusz i butelka bourbona w dolnej szufladzie. Na sekretarkę mnie nie stać."
+  },
+  "additional_positions": [
+    {
+      "weight": 2,
+      "category": "BOJOWE I FIZYCZNE",
+      "is_custom": false,
+      "option_id": "stowarzyszenie_strzeleckie",
+      "roll_value": 50,
+      "slot_index": 0,
+      "option_name": "Stowarzyszenie strzeleckie",
+      "unlocked_by": "bron palna krotka ≥ 50",
+      "organization_size": "Mała",
+      "custom_description": "Stowarzyszenie Strzeleckie „Old Colony Marksmen\"\nZałożone w 1903 roku przez grupę weteranów wojny hiszpańsko-amerykańskiej, którzy po powrocie do cywila nie chcieli stracić formy. Początkowo strzelali na polu za farmą jednego z członków na przedmieściach. Z czasem zebrali składki, wynajęli kawałek ziemi i postawili porządną strzelnicę z sześcioma stanowiskami.\nKlub ma siedzibę w drewnianym budynku obok strzelnicy — w środku bar, kilka stolików, trofea na ścianach i zapach prochu, który nigdy do końca nie wietrzeje. Na ścianach wiszą zdjęcia z zawodów i stara flaga pułkowa z Kuby.\nCzłonków jest może czterdziestu. Większość to byli wojskowi i mundurowi — policjanci, strażacy, celników kilku. Są też cywile, ale muszą mieć rekomendację dwóch członków. Składka roczna niewielka, bo klub trzyma się na zasadzie wzajemności — kto umie, ten naprawia, kto ma deski, ten łata dach.\nJim dołączył jeszcze jako młody policjant. Chodził regularnie, wygrał kilka lokalnych zawodów. Kiedy odszedł z policji, nikt w klubie nie pytał dlaczego — każdy miał swoją historię z przełożonymi. Dalej przychodzi w soboty rano, strzela pudełko amunicji, pije kawę, słucha co słychać w mieście. Bo w „Old Colony\" wieści krążą szybko — ktoś zawsze zna kogoś z sądu, z portu, z ratusza.\nDla Jima klub to jedno z niewielu miejsc gdzie czuje się swobodnie. Nie musi nikogo udawać, nie musi nikomu niczego udowadniać. Po prostu staje na stanowisku, oddycha, celuje i strzela. A potem przy kawie ktoś wspomni że w dokach znowu kogoś znaleziono, albo że nowy komendant dziwnie przyjaźni się z ludźmi z North End — i Jim zapamiętuje, bo Jim zawsze zapamiętuje.",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    },
+    {
+      "weight": 3,
+      "category": "ARTYSTYCZNE I KULTURALNE",
+      "is_custom": false,
+      "option_id": "klub_pisarski",
+      "roll_value": 75,
+      "slot_index": 1,
+      "option_name": "Klub pisarski",
+      "unlocked_by": "jezyk ojczysty ≥ 70",
+      "organization_size": "Mała",
+      "custom_description": "Próbuje trochę odmienić swój los poprzez spisanie swoich śledztw w formie powieści. Nie jest dobrym pisarzem bo jest zbyt dosłowny i pragmatyczny - spisuje notatki ze śledztwa a nie historię przystępną dla widza z zewnątrz. Uczęszcza na spotkania żeby poprawić swój warsztat. Poznał tutaj zamordowanego autora, który zatrudnił go i w którym upatrywał możliwość nauczenia się lepszego pisarstwa i podejrzenia tajników jego warsztatu pisarskiego",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 2,
+      "is_custom": false,
+      "roll_value": 60,
+      "slot_index": 0,
+      "category_id": "PRASA_MEDIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 2,
+      "category_name": "W prasie i mediach",
+      "synergy_bonus": 0,
+      "subcategory_id": "plotkarze",
+      "subcategory_name": "Plotkarze i informatorzy",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 2,
+      "is_custom": false,
+      "roll_value": 60,
+      "slot_index": 1,
+      "category_id": "ORGANY_SCIGANIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 2,
+      "category_name": "W organach ścigania",
+      "synergy_bonus": 0,
+      "subcategory_id": "detektywi_prywatni",
+      "subcategory_name": "Detektywi prywatni i agencyjni",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 2,
+      "category_id": "",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "",
+      "synergy_bonus": 0,
+      "subcategory_id": "",
+      "subcategory_name": "",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": "",
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": 12,
+  "residence": "Dorchester / Brooklyn, Park Slope",
+  "birthplace": "South Boston / Hell's Kitchen, Manhattan"
+}

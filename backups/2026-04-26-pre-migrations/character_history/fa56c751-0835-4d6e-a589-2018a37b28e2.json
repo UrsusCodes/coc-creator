@@ -1,0 +1,186 @@
+[
+  {
+    "id": "994f789b-b30a-40ec-b000-97450a499e4d",
+    "character_id": "fa56c751-0835-4d6e-a589-2018a37b28e2",
+    "snapshot": {
+      "id": "fa56c751-0835-4d6e-a589-2018a37b28e2",
+      "age": 36,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 300 $",
+      "luck": 43,
+      "name": "Edward Swanson",
+      "perks": [
+        "black_market",
+        "drive_pillars",
+        "swap_characteristics"
+      ],
+      "assets": "1500 $",
+      "gender": "M",
+      "method": "direct",
+      "status": "submitted",
+      "derived": {
+        "db": "0",
+        "hp": 10,
+        "mp": 10,
+        "san": 50,
+        "build": 0,
+        "dodge": 25,
+        "move_rate": 8
+      },
+      "backstory": {
+        "drive": "artistic_sensitivity",
+        "pillars": [
+          "Prawa fizyki i realność wiedzy naukowej",
+          "Estetyka / wyższe ideały sztuki"
+        ],
+        "sources": [
+          {
+            "name": "fs",
+            "category": "person",
+            "description": ""
+          },
+          {
+            "name": "fdsf",
+            "category": "person",
+            "description": ""
+          },
+          {
+            "name": "dfsdf",
+            "category": "person",
+            "description": ""
+          }
+        ],
+        "appearance_description": "fees"
+      },
+      "equipment": [
+        "[Styl życia] Przeciętny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Czarny rynek] Nielegalny rewolwer ($45)",
+        "[Czarny rynek] Tłumik ($75)",
+        "[Czarny rynek] Granat ręczny ($35)"
+      ],
+      "player_id": "70593f5b-869a-4845-9d18-c36246a45188",
+      "residence": "",
+      "appearance": "",
+      "art_prompt": null,
+      "birthplace": "",
+      "created_at": "2026-03-20T10:13:48.013609+00:00",
+      "created_by": "player",
+      "draft_step": null,
+      "updated_at": "2026-03-20T10:13:48.013609+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [
+        {
+          "strength": 3,
+          "is_custom": false,
+          "roll_value": 90,
+          "slot_index": 0,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 1,
+          "subcategory_id": "przemytnicy",
+          "subcategory_name": "Przemytnicy (alkohol, towary)",
+          "custom_description": "",
+          "pending_st_approval": false
+        },
+        {
+          "strength": 3,
+          "is_custom": false,
+          "roll_value": 90,
+          "slot_index": 1,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 1,
+          "subcategory_id": "gangi_uliczne",
+          "subcategory_name": "Gangi uliczne",
+          "custom_description": "",
+          "pending_st_approval": false
+        }
+      ],
+      "invite_code": "",
+      "player_name": "Paweł",
+      "portrait_url": null,
+      "main_position": {
+        "category": "PÓŁŚWIATEK",
+        "option_id": "pz_istotny",
+        "option_name": "Istotny gang w dużym mieście",
+        "strength_percent": 55,
+        "unlock_condition": "ZAWSZE",
+        "organization_size": "Średnia",
+        "custom_description": ""
+      },
+      "occupation_id": "przemytnik_alkoholu_bandyta",
+      "invite_code_id": "53f6dcd9-28b3-4d3e-b3a6-8df3d33525eb",
+      "spending_level": "$7",
+      "characteristics": {
+        "APP": 50,
+        "CON": 50,
+        "DEX": 50,
+        "EDU": 59,
+        "INT": 50,
+        "POW": 50,
+        "SIZ": 50,
+        "STR": 50
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [
+        {
+          "weight": 1,
+          "category": "",
+          "is_custom": false,
+          "option_id": "",
+          "roll_value": 25,
+          "slot_index": 0,
+          "option_name": "",
+          "unlocked_by": "",
+          "organization_size": "",
+          "custom_description": "",
+          "pending_st_approval": false,
+          "is_attribute_special": false
+        }
+      ],
+      "personal_skill_points": {
+        "gadanina": 5,
+        "bron_palna:karabin_strzelba": 30,
+        "bron_palna:pistolet_maszynowy": 65
+      },
+      "occupation_skill_points": {
+        "majetnosc": 30,
+        "ukrywanie": 30,
+        "psychologia": 13,
+        "bron_palna:krotka": 35,
+        "walka_wrecz:bijatyka": 55,
+        "prowadzenie_samochodu": 55
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-28T02:07:52.442532+00:00"
+  }
+]

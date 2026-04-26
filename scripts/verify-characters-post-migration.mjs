@@ -70,8 +70,12 @@ if (!existsSync(charactersDir)) {
   process.exit(1)
 }
 
-// ── known new fields from migration 019 ──────────────────────────────────────
+// ── known new fields from migrations 017 / 018 / 019 ────────────────────────
+// All considered "expected backfill" — appearing in current but not in older
+// snapshots is normal. Drift on these fields between two post-migration
+// snapshots is still flagged.
 const NEW_019_FIELDS = new Set([
+  // 019 — granular commits
   'swap_committed_at',
   'age_committed_at',
   'edu_committed_at',
@@ -80,7 +84,19 @@ const NEW_019_FIELDS = new Set([
   'swap_available',
   'swap_used',
   'edu_rolls',
+  // 018 — code identity rework
+  'characteristics_committed_at',
+  'rerolls_remaining',
+  'reroll_history',
+  // 017 — sessions + distinguisher
+  'sessions',
+  'distinguisher',
 ])
+
+// Fields whose value is expected to change as a side effect of a backfill
+// UPDATE (Supabase auto-bumps these on row touch). Drift on these is reported
+// at INFO level, not DRIFT.
+const TRIVIAL_DRIFT_FIELDS = new Set(['updated_at'])
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 async function adminGet(path) {
@@ -131,12 +147,16 @@ function diffFields(backup, current) {
       continue
     }
 
-    // Non-NEW_019 fields: must be bit-exact
+    // Non-NEW_019 fields: must be bit-exact (with trivial-drift exception)
     if (inBackup && !inCurrent) {
       drift.push({ field: key, backup: backup[key], current: undefined, note: 'field removed from current' })
     } else if (!inBackup && inCurrent) {
       review.push({ field: key, reason: 'unexpected field in current (not in NEW_019_FIELDS)', value: current[key] })
     } else if (stableStringify(backup[key]) !== stableStringify(current[key])) {
+      if (TRIVIAL_DRIFT_FIELDS.has(key)) {
+        // updated_at bumped by backfill UPDATE — informational only
+        continue
+      }
       drift.push({ field: key, backup: backup[key], current: current[key] })
     }
   }

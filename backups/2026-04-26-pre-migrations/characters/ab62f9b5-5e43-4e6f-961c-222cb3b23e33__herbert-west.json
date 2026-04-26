@@ -1,0 +1,177 @@
+{
+  "id": "ab62f9b5-5e43-4e6f-961c-222cb3b23e33",
+  "invite_code_id": "b6990efd-b639-49cc-8f08-121084929fe1",
+  "status": "submitted",
+  "name": "Herbert West",
+  "age": 31,
+  "gender": "M",
+  "appearance": "",
+  "characteristics": {
+    "APP": 60,
+    "CON": 45,
+    "DEX": 55,
+    "EDU": 85,
+    "INT": 70,
+    "POW": 50,
+    "SIZ": 30,
+    "STR": 65
+  },
+  "luck": 40,
+  "derived": {
+    "db": "0",
+    "hp": 7,
+    "mp": 10,
+    "san": 50,
+    "build": 0,
+    "dodge": 27,
+    "move_rate": 9
+  },
+  "occupation_id": "naukowiec",
+  "occupation_skill_points": {
+    "majetnosc": 20,
+    "perswazja": 44,
+    "nauka:Biologia": 44,
+    "spostrzegawczosc": 30,
+    "nauka:Psychologia": 64,
+    "jezyk_obcy:Łacina": 49,
+    "nauka:Antropologia": 49,
+    "korzystanie_z_bibliotek": 40
+  },
+  "personal_skill_points": {
+    "okultyzm": 35,
+    "perswazja": 10,
+    "psychoanaliza": 30,
+    "nauka:Biologia": 20,
+    "spostrzegawczosc": 10,
+    "prowadzenie_samochodu": 10,
+    "bron_palna:karabin_strzelba": 25
+  },
+  "backstory": {
+    "drive": "curiosity",
+    "pillars": [
+      "Nic co ludzkie nie jest mi obce ",
+      "Porządek świata oparty jest na racjonalności "
+    ],
+    "sources": [
+      {
+        "name": "Uniwersytet ",
+        "category": "organization",
+        "description": ""
+      },
+      {
+        "name": "Biblioteka ",
+        "category": "place",
+        "description": ""
+      },
+      {
+        "name": "Ojciec: Thomas",
+        "category": "person",
+        "description": "Ojciec był dla niego zawsze źródłem inspiracji, stabilności i wsparcia w chwilach potrzeby "
+      }
+    ],
+    "other_traits": "Nie rozstaje się z zegarkiem, prezentem od ojca ",
+    "appearance_description": "Średniego wzrostu mężczyzna o pogodnym usposobieniu i łagodnym spojrzeniu. Pewną siebie, wyprostowana postawa, mimo raczej wątłej budowy ciała."
+  },
+  "equipment": [
+    "[Styl życia] Przeciętny",
+    "[Lokum] Mieszkanie 2–3 pok. (wynajem)",
+    "[Transport] Komunikacja + okazj. taksówki",
+    "[Lifestyle] ★★··· Przeciętny",
+    "[Ekwipunek] Zapalniczka ($1) [x2]",
+    "[Ekwipunek] Okulary ($3)",
+    "[Ekwipunek] Mikroskop laboratoryjny ($75)",
+    "[Ekwipunek] Aparat foto (dobry) ($25)",
+    "[Ekwipunek] Tytoń i fajka ($1) [x3]",
+    "[Ekwipunek] Parasol ($3)",
+    "[Ekwipunek] Książka (specjalistyczna) ($5) [x3]",
+    "[Ekwipunek] Portfel ($1)",
+    "[Broń] .45 Colt Revolver (1K10+2, 15 m) ($25)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50) [x2]",
+    "[Dobytek] Konto bankowe: $500",
+    "[Dobytek] Akcje: $500"
+  ],
+  "cash": "Gotówka: 40 $ | Dobytek: Konto bankowe, Akcje giełdowe",
+  "assets": "1000 $",
+  "spending_level": "$7",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-04-21T05:46:49.41298+00:00",
+  "updated_at": "2026-04-21T10:03:15.960009+00:00",
+  "player_name": "Rafał",
+  "invite_code": "RPM-8685-BHQ",
+  "admin_notes": "",
+  "player_id": "377fe97d-e576-4f8b-b7f9-33529e811e0b",
+  "main_position": {
+    "category": "AKADEMIA",
+    "option_id": "an_wydzial",
+    "option_name": "Wydział uniwersytecki",
+    "strength_percent": 70,
+    "unlock_condition": "ZAWSZE",
+    "organization_size": "Duża",
+    "custom_description": ""
+  },
+  "additional_positions": [
+    {
+      "weight": 3,
+      "category": "OKULTYSTYCZNE I TAJEMNICZE",
+      "is_custom": false,
+      "option_id": "towarzystwo_teozoficzne",
+      "roll_value": 75,
+      "slot_index": 0,
+      "option_name": "Towarzystwo teozoficzne / różokrzyżowcy",
+      "unlocked_by": "okultyzm ≥ 40",
+      "organization_size": "Średnia",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 2,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 1,
+      "subcategory_id": "profesorowie",
+      "subcategory_name": "Profesorowie i wykładowcy",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "AKADEMIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 2,
+      "category_name": "W środowisku akademickim",
+      "synergy_bonus": 1,
+      "subcategory_id": "instytuty",
+      "subcategory_name": "Instytuty badawcze",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": null,
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "Boston",
+  "birthplace": "Boston"
+}
