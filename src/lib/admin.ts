@@ -30,7 +30,18 @@ export async function adminGetCodes(password: string) {
 
 export async function adminCreateCode(
   password: string,
-  data: { methods: string[]; era: string; max_tries: number; code: string; perks: string[]; max_skill_value?: number }
+  data: {
+    methods: string[]
+    era: string
+    max_tries: number
+    code: string
+    perks: string[]
+    max_skill_value?: number
+    // Code identity rework (migration 018)
+    label?: string
+    reroll_budget?: number
+    assigned_player_id?: string | null
+  },
 ) {
   const res = await adminFetch('/codes', password, {
     method: 'POST',
@@ -43,6 +54,76 @@ export async function adminCreateCode(
 export async function adminDeleteCode(password: string, codeId: string) {
   const res = await adminFetch(`/codes/${codeId}`, password, { method: 'DELETE' })
   if (!res.ok) throw new Error('Błąd usuwania kodu')
+  return res.json()
+}
+
+/**
+ * Patch invite code metadata. Edge function enforces an allowlist (label,
+ * reroll_budget, assigned_player_id, perks, max_skill_value, era, methods,
+ * is_active). Returns the updated code row.
+ */
+export async function adminUpdateInviteCode(
+  password: string,
+  codeId: string,
+  data: Partial<{
+    label: string
+    reroll_budget: number
+    assigned_player_id: string | null
+    perks: string[]
+    max_skill_value: number
+    era: string
+    methods: string[]
+    is_active: boolean
+  }>,
+) {
+  const res = await adminFetch(`/codes/${codeId}`, password, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd aktualizacji kodu' }))
+    throw new Error(err.error ?? 'Błąd aktualizacji kodu')
+  }
+  return res.json()
+}
+
+/**
+ * Cleanup unused codes — codes with no linked character. Codes linked to
+ * submitted characters are preserved (FK CASCADE would destroy approved
+ * chars). Pass dry_run=true to preview.
+ */
+export async function adminCleanupCodes(
+  password: string,
+  options: { dryRun?: boolean } = {},
+): Promise<{ dry_run?: boolean; deleted?: number; to_delete?: unknown[]; codes: unknown[]; count?: number }> {
+  const res = await adminFetch('/codes/cleanup', password, {
+    method: 'POST',
+    body: JSON.stringify({ dry_run: options.dryRun === true }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd czyszczenia kodów' }))
+    throw new Error(err.error ?? 'Błąd czyszczenia kodów')
+  }
+  return res.json()
+}
+
+/**
+ * Grant additional reroll tokens to a character. Atomically increments
+ * rerolls_remaining via the grant_reroll RPC.
+ */
+export async function adminGrantReroll(
+  password: string,
+  charId: string,
+  count = 1,
+): Promise<{ id: string; rerolls_remaining: number; new_remaining: number }> {
+  const res = await adminFetch(`/characters/${charId}/grant-reroll`, password, {
+    method: 'POST',
+    body: JSON.stringify({ count }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd przyznawania przerzutu' }))
+    throw new Error(err.error ?? 'Błąd przyznawania przerzutu')
+  }
   return res.json()
 }
 

@@ -171,9 +171,73 @@ export interface CharacterData {
   distinguisher?: string
   // Player-centric fields
   draft_locked_step?: number | null
+  draft_step?: SoftZoneStep | string
   created_by?: string
   perks?: string[]
   max_skill_value?: number
+  // Code-identity rework (migration 018)
+  rerolls_remaining?: number
+  characteristics_committed_at?: string | null
+  reroll_history?: RerollHistoryEntry[]
+  // Granular commits (migration 019)
+  swap_committed_at?: string | null
+  age_committed_at?: string | null
+  edu_committed_at?: string | null
+  aging_committed_at?: string | null
+  luck_committed_at?: string | null
+  swap_available?: boolean
+  swap_used?: boolean
+  edu_rolls?: EduRoll[]
+}
+
+/** Per-roll detail of EDU improvement step (granular commits, migration 019). */
+export interface EduRoll {
+  /** d100 result for the improvement check */
+  roll: number
+  /** True if roll > previous EDU (improvement triggered) */
+  improved: boolean
+  /** d10 amount EDU gained (0 if !improved) */
+  gained: number
+  /** EDU value after this roll */
+  new_edu: number
+}
+
+/** Audit entry appended to characters.reroll_history on each /reroll. */
+export interface RerollHistoryEntry {
+  /** ISO timestamp */
+  at: string
+  /** 'reroll' | 'manual_edit' | future scopes */
+  scope: string
+  previous_characteristics?: Characteristics | Record<string, number>
+  previous_luck?: number
+  previous_age?: number
+  previous_edu_rolls?: EduRoll[]
+}
+
+/** Soft-zone wizard steps for /go-back-to-step endpoint (granular commits). */
+export type SoftZoneStep =
+  | 'occupation'
+  | 'occupation_skills'
+  | 'personal_skills'
+  | 'wealth_equipment'
+  | 'positions_contacts'
+
+/** Allowed characteristic deductions for /apply-aging-penalties. */
+export type AgingDeductions = Partial<Record<'STR' | 'CON' | 'DEX' | 'SIZ', number>>
+
+/** Allowed narrative fields for /narrative (anytime, even post-submit). */
+export interface NarrativeFields {
+  name?: string
+  appearance?: string
+  residence?: string
+  birthplace?: string
+  player_name?: string
+  gender?: string
+  backstory?: Backstory | Record<string, unknown>
+  portrait_url?: string
+  art_prompt?: string
+  art_gallery?: { url: string; label: string; created_at: string }[]
+  portrait_crop_data?: PortraitCropData | null
 }
 
 export interface PortraitCropData {

@@ -139,6 +139,202 @@ export async function playerSaveDraft(token: string, charId: string, wizardData:
   return res.json()
 }
 
+// ── Granular commits — hard zone (cech/wiek/luck/edu/aging/swap) ──
+
+import type { AgingDeductions, CharacterData, NarrativeFields, SoftZoneStep } from '@/types/character'
+import type { CharacteristicKey, CreationMethod } from '@/types/common'
+
+/** Helper: parse JSON error from edge function and surface a useful message. */
+async function throwEdgeError(res: Response, fallback: string): Promise<never> {
+  const err = await res.json().catch(() => ({ error: fallback }))
+  throw new Error(err.error ?? fallback)
+}
+
+/**
+ * Step 1 — start a new character on a given code.
+ * Identifier-only: no roll, no luck, no age. Subsequent endpoints commit
+ * each part of the hard zone separately.
+ */
+export async function playerStartCharacter(
+  token: string,
+  args: { code: string; distinguisher: string; method: CreationMethod },
+): Promise<CharacterData> {
+  const res = await playerFetch('/start-character', token, {
+    method: 'POST',
+    body: JSON.stringify(args),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się utworzyć postaci')
+  return res.json()
+}
+
+/** Step 2 — server-side dice roll for all 8 characteristics (dice method only). */
+export async function playerRollCharacteristics(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/roll-characteristics`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się rzucić cech')
+  return res.json()
+}
+
+/** Step 2b (optional) — perk-gated swap of two characteristic values. */
+export async function playerSwapCharacteristics(
+  token: string,
+  charId: string,
+  args: { from: CharacteristicKey; to: CharacteristicKey },
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/swap-characteristics`, token, {
+    method: 'POST',
+    body: JSON.stringify(args),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zamienić cech')
+  return res.json()
+}
+
+/** Step 3 — commit age. Forces swap decision first if perk is available. */
+export async function playerSetAge(
+  token: string,
+  charId: string,
+  age: number,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/set-age`, token, {
+    method: 'POST',
+    body: JSON.stringify({ age }),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się ustawić wieku')
+  return res.json()
+}
+
+/**
+ * Step 4 — server-rolls EDU improvement checks based on age range.
+ * Returns the updated character including edu_rolls with per-check detail.
+ */
+export async function playerRollEdu(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/roll-edu`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się wykonać rzutów EDU')
+  return res.json()
+}
+
+/** Step 5 — apply aging penalties (player chooses distribution). */
+export async function playerApplyAgingPenalties(
+  token: string,
+  charId: string,
+  deductions: AgingDeductions,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/apply-aging-penalties`, token, {
+    method: 'POST',
+    body: JSON.stringify({ deductions }),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zastosować obniżeń wiekowych')
+  return res.json()
+}
+
+/** Step 6 — final hard-zone roll. Young chars (15-19): max(3d6×5, 3d6×5). */
+export async function playerRollLuck(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/roll-luck`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się rzucić szczęścia')
+  return res.json()
+}
+
+/**
+ * Reroll — full wipe (cech/wiek/luck/edu/aging + downstream + narrative).
+ * Consumes one rerolls_remaining token. Dice method only; for point_buy /
+ * direct, use playerEditCharacteristics instead (no token cost).
+ */
+export async function playerReroll(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/reroll`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się przerzucić cech')
+  return res.json()
+}
+
+/** Manual characteristics edit (point_buy / direct methods). Implicit reroll, no token cost. */
+export async function playerEditCharacteristics(
+  token: string,
+  charId: string,
+  characteristics: Record<CharacteristicKey, number>,
+  luck?: number,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/edit-characteristics`, token, {
+    method: 'POST',
+    body: JSON.stringify({ characteristics, luck }),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zapisać cech')
+  return res.json()
+}
+
+// ── Granular commits — soft zone + cross-cutting ──
+
+/** Soft back-step (occupation onwards). Wipes target step + below. No token cost. */
+export async function playerGoBackToStep(
+  token: string,
+  charId: string,
+  step: SoftZoneStep,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/go-back-to-step`, token, {
+    method: 'POST',
+    body: JSON.stringify({ step }),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się cofnąć kroku')
+  return res.json()
+}
+
+/** Distinguisher edit — works anytime, also post-submit. */
+export async function playerUpdateDistinguisher(
+  token: string,
+  charId: string,
+  distinguisher: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/distinguisher`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ distinguisher }),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zaktualizować identyfikatora')
+  return res.json()
+}
+
+/** Narrative edit — works anytime, also post-submit. Allowlist enforced server-side. */
+export async function playerUpdateNarrative(
+  token: string,
+  charId: string,
+  fields: NarrativeFields,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/narrative`, token, {
+    method: 'PUT',
+    body: JSON.stringify(fields),
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zapisać fabuły')
+  return res.json()
+}
+
+/** Submit — flip draft → submitted. Validates all hard-zone commits for dice flow. */
+export async function playerSubmitCharacter(
+  token: string,
+  charId: string,
+): Promise<CharacterData> {
+  const res = await playerFetch(`/characters/${charId}/submit`, token, {
+    method: 'POST',
+  })
+  if (!res.ok) await throwEdgeError(res, 'Nie udało się zatwierdzić postaci')
+  return res.json()
+}
+
 // ── Portrait ──────────────────────────────────────────────────────
 
 export async function playerSelectPortrait(
