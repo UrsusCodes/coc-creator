@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, AlertTriangle, Pencil, Check, Send } from 'lucide-react'
+import { Loader2, AlertTriangle, Pencil, Send } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
@@ -20,53 +20,46 @@ import { PortraitUpload } from '@/components/shared/PortraitUpload'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
-// ── Inline editable text field ──
-function EditableField({ label, value, onSave, multiline }: {
+// ── Editable text field ──
+// Behavior is controlled by a single page-level toggle: when `editing` is
+// true, every field renders as a live input/textarea (changes commit to the
+// store on each keystroke via `onSave`). When false, fields render as
+// read-only text. The previous per-field hover-pencil UX was unreadable.
+function EditableField({ label, value, onSave, multiline, editing }: {
   label: string
   value: string
   onSave: (val: string) => void
   multiline?: boolean
+  editing: boolean
 }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
-
-  const handleSave = () => {
-    onSave(draft)
-    setEditing(false)
-  }
-
   if (editing) {
     return (
-      <div className="mb-1">
-        <div className="text-xs text-coc-text-muted">{label}</div>
-        <div className="flex gap-1 items-start mt-0.5">
-          {multiline ? (
-            <textarea value={draft} onChange={(e) => setDraft(e.target.value)}
-              className="flex-1 px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light min-h-[50px] resize-y" />
-          ) : (
-            <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-              className="flex-1 px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light" />
-          )}
-          <button type="button" onClick={handleSave}
-            className="p-1 text-green-400 hover:text-green-300 cursor-pointer">
-            <Check className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      <div className="mb-2">
+        <label className="block text-xs text-coc-text-muted mb-0.5">{label}</label>
+        {multiline ? (
+          <textarea
+            value={value}
+            onChange={(e) => onSave(e.target.value)}
+            className="w-full px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light min-h-[50px] resize-y"
+          />
+        ) : (
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onSave(e.target.value)}
+            className="w-full px-2 py-1 bg-coc-surface-light border border-coc-accent/30 rounded text-sm text-coc-text focus:outline-none focus:border-coc-accent-light"
+          />
+        )}
       </div>
     )
   }
 
   return (
-    <div className="group mb-1">
+    <div className="mb-1">
       <div className="text-xs text-coc-text-muted">{label}</div>
-      <div className="flex items-start gap-1">
-        <span className="text-sm whitespace-pre-wrap flex-1">{value || <span className="italic text-coc-text-muted/50">puste</span>}</span>
-        <button type="button" onClick={() => { setDraft(value); setEditing(true) }}
-          className="p-0.5 text-coc-text-muted/30 hover:text-coc-accent-light cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-          <Pencil className="w-3 h-3" />
-        </button>
-      </div>
+      <span className="text-sm whitespace-pre-wrap">
+        {value || <span className="italic text-coc-text-muted/50">puste</span>}
+      </span>
     </div>
   )
 }
@@ -82,6 +75,10 @@ export function StepReview() {
   const [editSuccess, setEditSuccess] = useState(false)
   const [granularSubmitting, setGranularSubmitting] = useState(false)
   const [granularError, setGranularError] = useState<string | null>(null)
+  // Page-level edit toggle. When true every editable narrative/backstory
+  // field renders as an input. Single button at the top of the card flips
+  // it. Replaces the old per-field hover-pencil UI which was unreadable.
+  const [editing, setEditing] = useState(false)
 
   const isEditMode = !!store.editMode
   // Granular-commits flow: a server-side draft already exists from
@@ -190,22 +187,36 @@ export function StepReview() {
 
   return (
     <Card title="Podsumowanie">
-      <p className="text-xs text-coc-text-muted mb-4">Najedź na dowolny tekst i kliknij ✏️ żeby edytować.</p>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-coc-text-muted">
+          {editing
+            ? 'Edytujesz dane narracyjne. Zmiany zapisują się na bieżąco.'
+            : 'Sprawdź podsumowanie. Aby zmienić dane narracyjne (imię, opis, fabuła, opisy pozycji/kontaktów) — kliknij „Edytuj".'}
+        </p>
+        <Button
+          size="sm"
+          variant={editing ? 'secondary' : 'ghost'}
+          onClick={() => setEditing((v) => !v)}
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          {editing ? 'Zakończ edycję' : 'Edytuj'}
+        </Button>
+      </div>
 
       {/* Basic Info */}
       <Section title="Dane podstawowe">
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-          <EditableField label="Gracz" value={store.playerName} onSave={(v) => updateBasicInfo('playerName', v)} />
-          <EditableField label="Imię" value={store.name} onSave={(v) => updateBasicInfo('name', v)} />
+          <EditableField label="Gracz" value={store.playerName} onSave={(v) => updateBasicInfo('playerName', v)} editing={editing} />
+          <EditableField label="Imię" value={store.name} onSave={(v) => updateBasicInfo('name', v)} editing={editing} />
           <Field label="Wiek" value={String(store.age)} />
           <Field label="Płeć" value={store.gender} />
           <Field label="Era" value={store.era ? ERA_LABELS[store.era] : ''} />
           <Field label="Zawód" value={occupation?.name ?? ''} />
-          <EditableField label="Miejsce zamieszkania" value={store.residence} onSave={(v) => updateBasicInfo('residence', v)} />
-          <EditableField label="Miejsce urodzenia" value={store.birthplace} onSave={(v) => updateBasicInfo('birthplace', v)} />
+          <EditableField label="Miejsce zamieszkania" value={store.residence} onSave={(v) => updateBasicInfo('residence', v)} editing={editing} />
+          <EditableField label="Miejsce urodzenia" value={store.birthplace} onSave={(v) => updateBasicInfo('birthplace', v)} editing={editing} />
         </div>
         <div className="mt-2">
-          <EditableField label="Wygląd" value={store.appearance} onSave={(v) => updateBasicInfo('appearance', v)} multiline />
+          <EditableField label="Wygląd" value={store.appearance} onSave={(v) => updateBasicInfo('appearance', v)} multiline editing={editing} />
         </div>
       </Section>
 
@@ -280,7 +291,7 @@ export function StepReview() {
           }
           return (
             <EditableField key={key} label={labels[key] ?? key} value={value}
-              onSave={(v) => updateBackstory(key, v)} multiline />
+              onSave={(v) => updateBackstory(key, v)} multiline editing={editing} />
           )
         })}
         {store.backstory.drive && (
@@ -294,7 +305,7 @@ export function StepReview() {
             <div className="text-xs text-coc-text-muted mb-1">Filary Poczytalności</div>
             {store.backstory.pillars.map((p, i) => (
               <EditableField key={i} label={`Filar ${i + 1}`} value={p}
-                onSave={(v) => updatePillar(i, v)} />
+                onSave={(v) => updatePillar(i, v)} editing={editing} />
             ))}
           </div>
         )}
@@ -304,12 +315,12 @@ export function StepReview() {
             {store.backstory.sources.map((s, i) => (
               <div key={i} className="mb-2 pl-2 border-l-2 border-coc-border">
                 <EditableField label={`Źródło ${i + 1}: nazwa`} value={s.name}
-                  onSave={(v) => updateSource(i, 'name', v)} />
+                  onSave={(v) => updateSource(i, 'name', v)} editing={editing} />
                 <div className="text-xs text-coc-text-muted">
                   {s.category === 'person' ? 'Osoba' : s.category === 'place' ? 'Miejsce' : 'Organizacja'}
                 </div>
                 <EditableField label="Opis" value={s.description}
-                  onSave={(v) => updateSource(i, 'description', v)} />
+                  onSave={(v) => updateSource(i, 'description', v)} multiline editing={editing} />
               </div>
             ))}
           </div>
@@ -328,7 +339,7 @@ export function StepReview() {
                 <span className="text-sm font-mono font-bold text-coc-accent-light ml-2">{store.mainPosition.strength_percent}%</span>
               </div>
               <EditableField label="Opis pozycji" value={store.mainPosition.custom_description}
-                onSave={updateMainPositionDesc} multiline />
+                onSave={updateMainPositionDesc} multiline editing={editing} />
             </div>
           )}
           {store.additionalPositions.filter(p => p.option_name).length > 0 && (
@@ -340,7 +351,7 @@ export function StepReview() {
                     {'★'.repeat(p.weight)} {p.option_name} [{p.roll_value}%]{p.pending_st_approval ? ' [ST]' : ''}
                   </div>
                   <EditableField label="Opis" value={p.custom_description}
-                    onSave={(v) => updateAdditionalPositionDesc(i, v)} multiline />
+                    onSave={(v) => updateAdditionalPositionDesc(i, v)} multiline editing={editing} />
                 </div>
               ))}
             </div>
@@ -358,7 +369,7 @@ export function StepReview() {
                       {c.subcategory_name} [{c.roll_value}%]{c.synergy_bonus > 0 ? ' ✨' : ''}{c.pending_st_approval ? ' [ST]' : ''}
                     </div>
                     <EditableField label="Opis kontaktu" value={c.custom_description}
-                      onSave={(v) => updateContactDesc(i, v)} multiline />
+                      onSave={(v) => updateContactDesc(i, v)} multiline editing={editing} />
                   </div>
                 )
               })}
