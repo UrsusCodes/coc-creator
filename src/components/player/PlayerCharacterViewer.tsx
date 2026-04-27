@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Loader2, Pencil, X, Clock, CheckCircle, XCircle, Crop, MessageSquarePlus, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, Save, Loader2, Pencil, X, Clock, CheckCircle, XCircle, Crop, MessageSquarePlus, Trash2, Wrench, Lock } from 'lucide-react'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useCharacterStore } from '@/stores/characterStore'
 import {
   playerGetPending, playerCancelPending,
   playerSelectPortrait, playerSubmitPortraitFeedback,
   playerGetPortraitFeedback, playerDeletePortraitFeedback,
   playerUpdateNarrative, playerUpdateDistinguisher,
+  playerGetEditPermission,
 } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -34,8 +37,17 @@ interface PlayerCharacterViewerProps {
   onUpdate?: (updated: Partial<CharacterSheetData> & { id: string }) => void
 }
 
+interface EditPermissionRow {
+  id: string
+  character_id: string
+  edit_mode: 'lore' | 'standard' | 'full'
+  expires_at: string | null
+}
+
 export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: PlayerCharacterViewerProps) {
   const { token } = usePlayerStore()
+  const loadForPlayerEdit = useCharacterStore((s) => s.loadForPlayerEdit)
+  const navigate = useNavigate()
 
   const [editMode, setEditMode] = useState(false)
   const [editData, setEditData] = useState<CharacterSheetData>(structuredClone(char))
@@ -45,6 +57,9 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
 
   const [pending, setPending] = useState<PendingEdit | null>(null)
   const [pendingLoading, setPendingLoading] = useState(true)
+
+  const [mechanicsPerm, setMechanicsPerm] = useState<EditPermissionRow | null>(null)
+  const [openingMechanicsEdit, setOpeningMechanicsEdit] = useState(false)
 
   useEffect(() => {
     setEditData(structuredClone(char))
@@ -58,6 +73,64 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
       .catch(() => setPending(null))
       .finally(() => setPendingLoading(false))
   }, [token, char.id])
+
+  // Mechanics edit permission — surfaces the gated "Edytuj mechanikę" button.
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    playerGetEditPermission(token, char.id)
+      .then((data) => {
+        if (cancelled) return
+        if (!data) {
+          setMechanicsPerm(null)
+          return
+        }
+        // Treat expired permissions as absent.
+        if (data.expires_at && new Date(data.expires_at).getTime() <= Date.now()) {
+          setMechanicsPerm(null)
+        } else {
+          setMechanicsPerm(data as EditPermissionRow)
+        }
+      })
+      .catch(() => setMechanicsPerm(null))
+    return () => {
+      cancelled = true
+    }
+  }, [token, char.id])
+
+  const handleOpenMechanicsEdit = async () => {
+    if (!token || !mechanicsPerm) return
+    setOpeningMechanicsEdit(true)
+    try {
+      loadForPlayerEdit({
+        characterId: char.id,
+        editMode: mechanicsPerm.edit_mode,
+        character: char as unknown as Record<string, unknown>,
+        era: char.era,
+        perks: ((char as unknown as Record<string, unknown>).perks as string[]) ?? [],
+        maxSkillValue: ((char as unknown as Record<string, unknown>).max_skill_value as number) ?? 80,
+      })
+      navigate('/create')
+    } finally {
+      setOpeningMechanicsEdit(false)
+    }
+  }
+
+  const formatPermExpiry = (expiresAt: string | null): string => {
+    if (!expiresAt) return 'do odwołania'
+    const diff = new Date(expiresAt).getTime() - Date.now()
+    if (diff <= 0) return 'wygasło'
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours < 24) return `wygasa za ${hours}h`
+    const days = Math.floor(hours / 24)
+    return `wygasa za ${days}d`
+  }
+
+  const permLevelLabel: Record<'lore' | 'standard' | 'full', string> = {
+    lore: 'lore (fabuła)',
+    standard: 'standard (od zawodu)',
+    full: 'pełny',
+  }
 
   // ── Edit handlers (same as CharacterViewer) ────────────────────
 
@@ -145,9 +218,36 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
         </Button>
         <div className="flex items-center gap-2">
           {!editMode && (
-            <Button variant="secondary" size="sm" onClick={() => setEditMode(true)}>
-              <Pencil className="w-3.5 h-3.5" /> Edytuj fabułę
-            </Button>
+            <>
+              <Button variant="secondary" size="sm" onClick={() => setEditMode(true)}>
+                <Pencil className="w-3.5 h-3.5" /> Edytuj fabułę
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenMechanicsEdit}
+                disabled={!mechanicsPerm || openingMechanicsEdit}
+                title={
+                  mechanicsPerm
+                    ? `Tryb: ${permLevelLabel[mechanicsPerm.edit_mode]} · ${formatPermExpiry(mechanicsPerm.expires_at)}`
+                    : 'Strażnik Tajemnic musi nadać Ci uprawnienie, żeby edytować mechanikę'
+                }
+              >
+                {openingMechanicsEdit ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : mechanicsPerm ? (
+                  <Wrench className="w-3.5 h-3.5" />
+                ) : (
+                  <Lock className="w-3.5 h-3.5" />
+                )}
+                Edytuj mechanikę
+              </Button>
+              {mechanicsPerm && (
+                <Badge variant="warning">
+                  {permLevelLabel[mechanicsPerm.edit_mode]} · {formatPermExpiry(mechanicsPerm.expires_at)}
+                </Badge>
+              )}
+            </>
           )}
           {editMode && (
             <Button variant="ghost" size="sm" onClick={handleCancel}>
