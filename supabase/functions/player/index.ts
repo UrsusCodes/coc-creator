@@ -119,6 +119,16 @@ function isYoungCharacter(age: number): boolean {
 function getDeductibleStats(age: number): string[] {
   return isYoungCharacter(age) ? ['STR', 'SIZ'] : ['STR', 'CON', 'DEX']
 }
+/**
+ * Mirrors src/lib/ageModifiers.ts — endpoints below pull
+ * `eduImprovementChecks`, `deductionPoints`, `appReduction` off the
+ * returned object. AgeRange already has all three, so this is a thin
+ * alias plus null-on-out-of-range. Kept as a separate function so
+ * call sites read the same as the client lib.
+ */
+function getAgeModifications(age: number): AgeRange | null {
+  return getAgeRange(age) ?? null
+}
 
 // Fields wiped on soft back-step (occupation onwards). Mechanical fields
 // (cechy/wiek/luck/edu/aging/swap) are NOT here — those are wiped only by
