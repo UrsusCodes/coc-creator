@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Eye, Trash2, Loader2, RefreshCw, Search } from 'lucide-react'
+import { Eye, Trash2, Loader2, RefreshCw, Search, Sparkles } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
-import { adminGetCharacters, adminDeleteCharacter } from '@/lib/admin'
+import { adminGetCharacters, adminDeleteCharacter, adminGetCodes } from '@/lib/admin'
 import { ERA_LABELS, METHOD_LABELS } from '@/types/common'
+import type { InviteCode } from '@/types/invite'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -32,8 +33,10 @@ interface CharacterRow {
   created_at: string
   player_name?: string
   invite_code?: string
+  invite_code_id?: string
   admin_notes?: string
   distinguisher?: string
+  rerolls_remaining?: number
 }
 
 export function CharacterList() {
@@ -45,12 +48,22 @@ export function CharacterList() {
   const [autoEdit, setAutoEdit] = useState(false)
   const [search, setSearch] = useState('')
 
+  const [codeLabels, setCodeLabels] = useState<Map<string, string>>(new Map())
+
   const fetchCharacters = useCallback(async () => {
     if (!password) return
     setLoading(true)
     try {
-      const data = await adminGetCharacters(password)
+      const [data, codesData] = await Promise.all([
+        adminGetCharacters(password),
+        adminGetCodes(password).catch(() => [] as InviteCode[]),
+      ])
       setCharacters(data)
+      const labelMap = new Map<string, string>()
+      for (const c of codesData as InviteCode[]) {
+        if (c.label) labelMap.set(c.id, c.label)
+      }
+      setCodeLabels(labelMap)
       setError(null)
     } catch {
       setError('Błąd pobierania postaci.')
@@ -150,9 +163,18 @@ export function CharacterList() {
                   {char.status === 'submitted' ? 'Zatwierdzona' : 'Szkic'}
                 </Badge>
                 {char.invite_code && <Badge variant="default">{char.invite_code}</Badge>}
+                {char.invite_code_id && codeLabels.get(char.invite_code_id) && (
+                  <Badge variant="default">{codeLabels.get(char.invite_code_id)}</Badge>
+                )}
                 <Badge>{ERA_LABELS[char.era as keyof typeof ERA_LABELS] ?? char.era}</Badge>
                 <Badge>{METHOD_LABELS[char.method as keyof typeof METHOD_LABELS] ?? char.method}</Badge>
                 {char.occupation_id && <Badge variant="default">{char.occupation_id}</Badge>}
+                {typeof char.rerolls_remaining === 'number' && char.rerolls_remaining > 0 && (
+                  <Badge variant="warning">
+                    <Sparkles className="w-3 h-3 inline -mt-0.5 mr-0.5" />
+                    {char.rerolls_remaining}
+                  </Badge>
+                )}
               </div>
               <div className="text-xs text-coc-text-muted">
                 {char.age} lat, {char.gender} — utworzono {new Date(char.created_at).toLocaleDateString('pl')}

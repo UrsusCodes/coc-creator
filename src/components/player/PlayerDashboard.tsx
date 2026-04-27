@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, KeyRound, Users, Loader2, RefreshCw, Copy, Check, Eye, PenLine, PlayCircle } from 'lucide-react'
+import { LogOut, KeyRound, Users, Loader2, RefreshCw, Copy, Check, Eye, PenLine, PlayCircle, Sparkles, ChevronDown, ChevronRight } from 'lucide-react'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useCharacterStore } from '@/stores/characterStore'
 import { playerGetCodes, playerGetCharacters, playerGetEditPermissions, playerGetCharacter } from '@/lib/player'
@@ -18,6 +18,9 @@ interface PlayerCode {
   max_tries: number
   times_used: number
   assigned_at: string
+  // Code identity rework (migration 018) — may not be present on legacy rows
+  label?: string
+  reroll_budget?: number
 }
 
 interface PlayerCharacter {
@@ -50,6 +53,7 @@ interface PlayerCharacter {
   max_skill_value?: number
   invite_code_id?: string
   distinguisher?: string
+  rerolls_remaining?: number
 }
 
 interface EditPermission {
@@ -73,6 +77,7 @@ export function PlayerDashboard() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [showFinishedChars, setShowFinishedChars] = useState(false)
 
   const [fetchError, setFetchError] = useState<string | null>(null)
 
@@ -140,6 +145,28 @@ export function PlayerDashboard() {
 
   const isDraft = (char: PlayerCharacter) =>
     (char.created_by === 'admin_draft' || char.created_by === 'player') && char.status === 'draft'
+
+  // Join: code → character (prefer draft over submitted for the same code).
+  const charByCodeId = useMemo(() => {
+    const map = new Map<string, PlayerCharacter>()
+    for (const c of characters) {
+      if (!c.invite_code_id) continue
+      const existing = map.get(c.invite_code_id)
+      if (!existing || (existing.status === 'submitted' && c.status !== 'submitted')) {
+        map.set(c.invite_code_id, c)
+      }
+    }
+    return map
+  }, [characters])
+
+  const draftCharacters = useMemo(
+    () => characters.filter((c) => c.status !== 'submitted'),
+    [characters],
+  )
+  const finishedCharacters = useMemo(
+    () => characters.filter((c) => c.status === 'submitted'),
+    [characters],
+  )
 
   const handleEditCharacter = async (char: PlayerCharacter) => {
     if (!token) return
@@ -239,14 +266,19 @@ export function PlayerDashboard() {
 
         <div className="space-y-2">
           {codes.map((code) => {
-            const available = code.times_used < code.max_tries
+            const linked = charByCodeId.get(code.id)
+            const isFinished = linked?.status === 'submitted'
+            const isStarted = !!linked && linked.status !== 'submitted'
+            const rerollsLeft = linked?.rerolls_remaining ?? code.reroll_budget ?? 0
+            const showUse = !isFinished
+            const useLabel = isStarted ? 'Kontynuuj' : 'Użyj kodu'
             return (
               <div
                 key={code.id}
-                className="flex items-center justify-between p-3 bg-coc-surface-light rounded-lg border border-coc-border"
+                className="flex items-center justify-between p-3 bg-coc-surface-light rounded-lg border border-coc-border gap-3"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono font-bold text-coc-accent-light">{code.code}</span>
                     <button
                       type="button"
@@ -255,27 +287,47 @@ export function PlayerDashboard() {
                     >
                       {copiedCode === code.code ? <Check className="w-3.5 h-3.5 text-coc-accent-light" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
+                    {code.label && (
+                      <span className="text-sm text-coc-text-muted truncate">— {code.label}</span>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-1">
+                    <Badge variant={isFinished ? 'success' : isStarted ? 'warning' : 'default'}>
+                      {isFinished ? 'Zakończony' : isStarted ? 'W trakcie' : 'Niewykorzystany'}
+                    </Badge>
                     <Badge>{ERA_LABELS[code.era as keyof typeof ERA_LABELS] ?? code.era}</Badge>
                     {code.methods?.map((m) => (
                       <Badge key={m} variant="default">{METHOD_LABELS[m as keyof typeof METHOD_LABELS] ?? m}</Badge>
                     ))}
-                    <Badge variant={available ? 'success' : 'warning'}>
-                      {code.times_used}/{code.max_tries} użyć
-                    </Badge>
+                    {linked?.distinguisher && (
+                      <Badge variant="default">„{linked.distinguisher}"</Badge>
+                    )}
+                    {rerollsLeft > 0 && (
+                      <Badge variant="warning">
+                        <Sparkles className="w-3 h-3 inline -mt-0.5 mr-0.5" />
+                        Przerzuty: {rerollsLeft}
+                      </Badge>
+                    )}
                   </div>
                 </div>
-                {available && (
+                {showUse && (
                   <Button
                     size="sm"
                     variant="secondary"
+                    disabled={!!actionLoading}
                     onClick={() => {
-                      const base = window.location.pathname.replace(/\/player.*/, '')
-                      window.location.href = `${base}/create?code=${code.code}`
+                      if (isStarted && linked) {
+                        // Resume the in-flight draft via the same loader
+                        // PlayerDashboard already uses for "Kontynuuj tworzenie".
+                        void handleContinueDraft(linked)
+                      } else {
+                        // Fresh start: send to wizard with code prefilled.
+                        const base = window.location.pathname.replace(/\/player.*/, '')
+                        window.location.href = `${base}/create?code=${code.code}`
+                      }
                     }}
                   >
-                    Użyj kodu
+                    {useLabel}
                   </Button>
                 )}
               </div>
@@ -295,78 +347,134 @@ export function PlayerDashboard() {
         )}
 
         <div className="space-y-2">
-          {characters.map((char) => {
-            const perm = getEditPermission(char.id)
-            const charIsDraft = isDraft(char)
-            const isActionLoading = actionLoading === char.id
-
-            return (
-              <div
-                key={char.id}
-                className="flex items-center justify-between p-3 bg-coc-surface-light rounded-lg border border-coc-border"
-              >
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="font-medium">
-                    {char.name || 'Bez nazwy'}
-                    {char.distinguisher && <span className="text-coc-accent-light font-normal text-sm ml-2">— {char.distinguisher}</span>}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant={char.status === 'submitted' ? 'success' : 'warning'}>
-                      {char.status === 'submitted' ? 'Zatwierdzona' : 'Szkic'}
-                    </Badge>
-                    <Badge>{ERA_LABELS[char.era as keyof typeof ERA_LABELS] ?? char.era}</Badge>
-                    {char.occupation_id && <Badge variant="default">{char.occupation_id}</Badge>}
-                    {perm && (
-                      <>
-                        <Badge variant="warning">
-                          Edycja: jeszcze {formatTimeLeft(perm.expires_at)}
-                        </Badge>
-                        <Badge variant="default">
-                          {getEditLevelLabel(perm.edit_mode)}
-                        </Badge>
-                      </>
-                    )}
-                  </div>
-                  <div className="text-xs text-coc-text-muted">
-                    {char.age} lat, {char.gender} — utworzono {new Date(char.created_at).toLocaleDateString('pl')}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {charIsDraft && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleContinueDraft(char)}
-                      disabled={isActionLoading}
-                    >
-                      {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PlayCircle className="w-3.5 h-3.5" />}
-                      Kontynuuj tworzenie
-                    </Button>
-                  )}
-                  {perm && !charIsDraft && (
-                    hasPendingEdit(char.id) ? (
-                      <Badge variant="warning">Zmiana oczekuje na zatwierdzenie</Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleEditCharacter(char)}
-                        disabled={isActionLoading}
-                      >
-                        {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
-                        Edytuj
-                      </Button>
-                    )
-                  )}
-                  <Button size="sm" variant="secondary" onClick={() => setViewingId(char.id)}>
-                    <Eye className="w-3.5 h-3.5" /> Podgląd
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
+          {draftCharacters.map((char) => renderCharacterRow(
+            char,
+            isDraft(char),
+            actionLoading === char.id,
+            getEditPermission(char.id),
+            handleContinueDraft,
+            handleEditCharacter,
+            setViewingId,
+            hasPendingEdit,
+            formatTimeLeft,
+            getEditLevelLabel,
+          ))}
         </div>
+
+        {finishedCharacters.length > 0 && (
+          <div className="mt-4 border-t border-coc-border pt-3">
+            <button
+              type="button"
+              onClick={() => setShowFinishedChars((s) => !s)}
+              className="flex items-center gap-1.5 text-sm text-coc-text-muted hover:text-coc-text cursor-pointer"
+            >
+              {showFinishedChars ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              Zakończone postacie ({finishedCharacters.length})
+            </button>
+            {showFinishedChars && (
+              <div className="space-y-2 mt-3">
+                {finishedCharacters.map((char) => renderCharacterRow(
+                  char,
+                  false,
+                  actionLoading === char.id,
+                  getEditPermission(char.id),
+                  handleContinueDraft,
+                  handleEditCharacter,
+                  setViewingId,
+                  hasPendingEdit,
+                  formatTimeLeft,
+                  getEditLevelLabel,
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
+    </div>
+  )
+}
+
+function renderCharacterRow(
+  char: PlayerCharacter,
+  charIsDraft: boolean,
+  isActionLoading: boolean,
+  perm: EditPermission | undefined,
+  handleContinueDraft: (c: PlayerCharacter) => void,
+  handleEditCharacter: (c: PlayerCharacter) => void,
+  setViewingId: (id: string) => void,
+  hasPendingEdit: (id: string) => boolean,
+  formatTimeLeft: (e: string | null) => string,
+  getEditLevelLabel: (m: 'lore' | 'standard' | 'full') => string,
+) {
+  const rerollsLeft = char.rerolls_remaining ?? 0
+  return (
+    <div
+      key={char.id}
+      className="flex items-center justify-between p-3 bg-coc-surface-light rounded-lg border border-coc-border"
+    >
+      <div className="space-y-1 min-w-0 flex-1">
+        <div className="font-medium">
+          {char.name || 'Bez nazwy'}
+          {char.distinguisher && <span className="text-coc-accent-light font-normal text-sm ml-2">— {char.distinguisher}</span>}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant={char.status === 'submitted' ? 'success' : 'warning'}>
+            {char.status === 'submitted' ? 'Zatwierdzona' : 'Szkic'}
+          </Badge>
+          <Badge>{ERA_LABELS[char.era as keyof typeof ERA_LABELS] ?? char.era}</Badge>
+          {char.occupation_id && <Badge variant="default">{char.occupation_id}</Badge>}
+          {charIsDraft && rerollsLeft > 0 && (
+            <Badge variant="warning">
+              <Sparkles className="w-3 h-3 inline -mt-0.5 mr-0.5" />
+              Przerzuty: {rerollsLeft}
+            </Badge>
+          )}
+          {perm && (
+            <>
+              <Badge variant="warning">
+                Edycja: jeszcze {formatTimeLeft(perm.expires_at)}
+              </Badge>
+              <Badge variant="default">
+                {getEditLevelLabel(perm.edit_mode)}
+              </Badge>
+            </>
+          )}
+        </div>
+        <div className="text-xs text-coc-text-muted">
+          {char.age} lat, {char.gender} — utworzono {new Date(char.created_at).toLocaleDateString('pl')}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {charIsDraft && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleContinueDraft(char)}
+            disabled={isActionLoading}
+          >
+            {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PlayCircle className="w-3.5 h-3.5" />}
+            Kontynuuj tworzenie
+          </Button>
+        )}
+        {perm && !charIsDraft && (
+          hasPendingEdit(char.id) ? (
+            <Badge variant="warning">Zmiana oczekuje na zatwierdzenie</Badge>
+          ) : (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => handleEditCharacter(char)}
+              disabled={isActionLoading}
+            >
+              {isActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PenLine className="w-3.5 h-3.5" />}
+              Edytuj
+            </Button>
+          )
+        )}
+        <Button size="sm" variant="secondary" onClick={() => setViewingId(char.id)}>
+          <Eye className="w-3.5 h-3.5" /> Podgląd
+        </Button>
+      </div>
     </div>
   )
 }

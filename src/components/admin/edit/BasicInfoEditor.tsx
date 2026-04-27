@@ -34,7 +34,15 @@ export function BasicInfoEditor({ data, onChange }: BasicInfoEditorProps) {
         <Input label="Płeć" value={data.gender} onChange={(e) => onChange('gender', e.target.value)} />
         <Select label="Status" value={data.status} options={STATUS_OPTIONS} onChange={(e) => onChange('status', e.target.value)} />
         <Select label="Zawód" value={data.occupation_id} options={occupationOptions} onChange={(e) => onChange('occupation_id', e.target.value)} />
-        <Input label="Wyróżnik" value={data.distinguisher ?? ''} onChange={(e) => onChange('distinguisher', e.target.value)} placeholder="np. Śledczy, Kapitan..." />
+        <div>
+          <label className="block text-sm font-medium text-coc-text-muted mb-1">Wyróżnik</label>
+          <div className="px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text text-sm">
+            {data.distinguisher || <span className="text-coc-text-muted/50 italic">—</span>}
+          </div>
+          <p className="text-xs text-coc-text-muted mt-1">
+            Identyfikator jest własnością gracza i edytuje go on sam.
+          </p>
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-coc-text-muted mb-1">Wygląd</label>
