@@ -70,6 +70,23 @@ Deno.serve(async (req: Request) => {
         .select()
         .single()
       if (error) throw error
+      // Mirror assigned_player_id into player_codes junction so the player's
+      // /codes endpoint returns the new code immediately. Idempotent: if a
+      // junction row already exists (e.g. from a separate adminAssignCode
+      // call), the unique constraint dedupes via ON CONFLICT.
+      if (body.assigned_player_id) {
+        const { error: linkErr } = await supabase
+          .from('player_codes')
+          .upsert(
+            { player_id: body.assigned_player_id, invite_code_id: data.id },
+            { onConflict: 'player_id,invite_code_id', ignoreDuplicates: true },
+          )
+        if (linkErr) {
+          // Non-fatal — code is created; junction may still be reconciled
+          // manually via POST /players/:id/codes.
+          console.warn('[admin] failed to mirror assigned_player_id to player_codes:', linkErr)
+        }
+      }
       return jsonResponse(data)
     }
 
@@ -87,6 +104,7 @@ Deno.serve(async (req: Request) => {
     // PATCH /codes/:id — edit label/reroll_budget/assignee/perks/era/methods/max_skill_value
     const codePatchMatch = path.match(/^\/codes\/([^/]+)$/)
     if (codePatchMatch && req.method === 'PATCH') {
+      const codeId = codePatchMatch[1]
       const body = await req.json()
       const allowed = [
         'label',
@@ -107,13 +125,49 @@ Deno.serve(async (req: Request) => {
         updateData.method = body.methods[0]
       }
 
+      // Track previous assignee so we can reconcile player_codes junction.
+      let previousAssignee: string | null | undefined
+      if ('assigned_player_id' in body) {
+        const { data: prev } = await supabase
+          .from('invite_codes')
+          .select('assigned_player_id')
+          .eq('id', codeId)
+          .single()
+        previousAssignee = prev?.assigned_player_id ?? null
+      }
+
       const { data, error } = await supabase
         .from('invite_codes')
         .update(updateData)
-        .eq('id', codePatchMatch[1])
+        .eq('id', codeId)
         .select()
         .single()
       if (error) throw error
+
+      // Reconcile player_codes junction with the new assignee. Removes the
+      // old player's assignment (if any) and adds the new one. Skipped when
+      // assigned_player_id wasn't part of this PATCH.
+      if ('assigned_player_id' in body) {
+        const newAssignee = body.assigned_player_id ?? null
+        if (previousAssignee && previousAssignee !== newAssignee) {
+          await supabase
+            .from('player_codes')
+            .delete()
+            .eq('player_id', previousAssignee)
+            .eq('invite_code_id', codeId)
+        }
+        if (newAssignee && newAssignee !== previousAssignee) {
+          const { error: linkErr } = await supabase
+            .from('player_codes')
+            .upsert(
+              { player_id: newAssignee, invite_code_id: codeId },
+              { onConflict: 'player_id,invite_code_id', ignoreDuplicates: true },
+            )
+          if (linkErr) {
+            console.warn('[admin] failed to mirror assigned_player_id to player_codes:', linkErr)
+          }
+        }
+      }
       return jsonResponse(data)
     }
 
