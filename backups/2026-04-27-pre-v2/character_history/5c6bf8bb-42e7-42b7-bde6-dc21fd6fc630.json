@@ -1,0 +1,366 @@
+[
+  {
+    "id": "4f2a0db1-ac88-4e75-8b33-ab658a9d79ca",
+    "character_id": "5c6bf8bb-42e7-42b7-bde6-dc21fd6fc630",
+    "snapshot": {
+      "id": "5c6bf8bb-42e7-42b7-bde6-dc21fd6fc630",
+      "age": 37,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 70 $ | Dobytek: Złoto i kosztowności, Biżuteria, Towary (import/eksport)",
+      "luck": 65,
+      "name": "James Kelly",
+      "perks": [
+        "black_market",
+        "drive_pillars",
+        "swap_characteristics"
+      ],
+      "assets": "1750 $",
+      "gender": "M",
+      "method": "direct",
+      "status": "submitted",
+      "derived": {
+        "db": "+1K4",
+        "hp": 13,
+        "mp": 10,
+        "san": 50,
+        "build": 1,
+        "dodge": 30,
+        "move_rate": 7
+      },
+      "backstory": {
+        "drive": "curiosity",
+        "pillars": [
+          "Godność i wartość człowieka",
+          "Zasady moralne"
+        ],
+        "sources": [
+          {
+            "name": "Gang.",
+            "category": "organization",
+            "description": "To dzięki niemu z bratem wyrwali się ze skrajnej biedy. Odkąd w nim jest już nie pamięta uczucia skrajnego głodu. Tam też poznał mu bliskich przyjaciół."
+          },
+          {
+            "name": "Mary Pickford.",
+            "category": "person",
+            "description": "James nigdy nie interesował się sztuką. Nigdy też nie poznał tej jedynej prawdziwej miłości. Jednak któregoś dnia zobaczył Mary na plakacie filmowym. Po obejrzeniu filmów poczuł ogromne zafascynowanie kobietą. "
+          },
+          {
+            "name": "Kino.",
+            "category": "place",
+            "description": "Tam regularnie chodzi oglądać filmy. To w nim po raz pierwszy obejrzał film z Mary."
+          }
+        ],
+        "other_traits": "Zawsze nosi ze soba złoty naszyjnik. W środku są dwa zdjęcia - jego brata oraz aktorki Mary Pickford.",
+        "appearance_description": "Wysoki i umięśniony mężczyzna z krótko obcietymi ciemnymi włosami. Ma jasne oczy i duży, krzywy nos, który ewidentnie był parę razy złamany."
+      },
+      "equipment": [
+        "[Transport] Komunikacja / taksówki",
+        "[Styl życia] Przeciętny",
+        "[Lokum] Kawalerka (własność)",
+        "[Transport] Komunikacja miejska",
+        "[Lifestyle] ★½☆☆☆ Skromny",
+        "[Ekwipunek] Dobre auto ($1200)",
+        "[Ekwipunek] Latarka (duża) ($5)",
+        "[Ekwipunek] Wytrychy ($10)",
+        "[Ekwipunek] Kłódka ($1)",
+        "[Ekwipunek] Lina (30 m) ($2)",
+        "[Broń] Nóż bojowy / sztylet (1K4+MO, dotyk) ($1)",
+        "[Czarny rynek] Tłumik do pistoletu ($175)",
+        "[Czarny rynek] Nielegalny .45 Colt M1911 ($60)",
+        "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+        "[Dobytek] Złoto / srebro: $1833",
+        "[Dobytek] Biżuteria: $1833",
+        "[Dobytek] Towary / zapasy: $1833"
+      ],
+      "player_id": "74e3931a-2991-4712-b2ae-74f09892afd7",
+      "residence": "Arkham",
+      "appearance": "Wysoki, umięśniony irlandczyk. Ciemne krótkie włosy, jasna karnacja i jasne oczy. Krzywy, duży nos i mała blizna nałuku brwiowym.",
+      "art_prompt": null,
+      "birthplace": "Arkham",
+      "created_at": "2026-03-19T23:15:42.382567+00:00",
+      "created_by": "admin_draft",
+      "draft_step": null,
+      "updated_at": "2026-03-21T22:28:11.043909+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [
+        {
+          "strength": 2,
+          "is_custom": false,
+          "roll_value": 60,
+          "slot_index": 0,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 0,
+          "subcategory_id": "gangi_uliczne",
+          "subcategory_name": "Gangi uliczne",
+          "custom_description": "",
+          "pending_st_approval": false
+        },
+        {
+          "strength": 2,
+          "is_custom": false,
+          "roll_value": 60,
+          "slot_index": 1,
+          "category_id": "PRASA_MEDIA",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W prasie i mediach",
+          "synergy_bonus": 0,
+          "subcategory_id": "plotkarze",
+          "subcategory_name": "Plotkarze i informatorzy",
+          "custom_description": "",
+          "pending_st_approval": false
+        }
+      ],
+      "invite_code": "",
+      "player_name": "Nika",
+      "portrait_url": null,
+      "main_position": {
+        "category": "ROZRYWKA I SPORT",
+        "option_id": "rs_klub_bokserski",
+        "option_name": "Klub bokserski / gimnastyczny",
+        "strength_percent": 70,
+        "unlock_condition": "ZAWSZE",
+        "organization_size": "Mała",
+        "custom_description": "Lokalna siłownia. Zbiorowisko gangsterów, sportowców i atletów. Nikt nie wie kto jest kim choć można się domyślać. Bez zbędnych pytań, ale z braterską energią."
+      },
+      "occupation_id": "bokser_zapasnik",
+      "invite_code_id": "618fa06c-0091-4bbe-a645-f51ac60ca21e",
+      "spending_level": "$25",
+      "characteristics": {
+        "APP": 50,
+        "CON": 60,
+        "DEX": 60,
+        "EDU": 60,
+        "INT": 65,
+        "POW": 50,
+        "SIZ": 75,
+        "STR": 70
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [
+        {
+          "weight": 3,
+          "category": "BOJOWE I FIZYCZNE",
+          "is_custom": false,
+          "option_id": "druzyna_robotnicza",
+          "roll_value": 75,
+          "slot_index": 0,
+          "option_name": "Drużyna robotnicza",
+          "unlocked_by": "walka wrecz bijatyka ≥ 30",
+          "organization_size": "Mała",
+          "custom_description": "Zanim James dołączył do gangu dorabiał na budowie. Teraz dalej utrzymują kontakt. James jako dobry kolega załatwia im alkohol.",
+          "pending_st_approval": false,
+          "is_attribute_special": false
+        }
+      ],
+      "personal_skill_points": {
+        "slusarstwo": 45,
+        "zastraszanie": 5,
+        "bron_palna:krotka": 40,
+        "prowadzenie_samochodu": 40
+      },
+      "occupation_skill_points": {
+        "unik": 40,
+        "majetnosc": 35,
+        "psychologia": 40,
+        "zastraszanie": 50,
+        "spostrzegawczosc": 40,
+        "bron_palna:krotka": 10,
+        "walka_wrecz:bijatyka": 45
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-28T02:07:52.832533+00:00"
+  },
+  {
+    "id": "d8b5fd8a-53d7-4e06-af68-c5142744c4ab",
+    "character_id": "5c6bf8bb-42e7-42b7-bde6-dc21fd6fc630",
+    "snapshot": {
+      "id": "5c6bf8bb-42e7-42b7-bde6-dc21fd6fc630",
+      "age": null,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 70 $ | Dobytek: Złoto i kosztowności, Biżuteria, Towary (import/eksport)",
+      "luck": 65,
+      "name": "James Kelly",
+      "perks": [
+        "black_market",
+        "drive_pillars",
+        "swap_characteristics"
+      ],
+      "assets": "1750 $",
+      "gender": "M",
+      "method": "direct",
+      "status": "submitted",
+      "derived": {
+        "db": "+1K4",
+        "hp": 13,
+        "mp": 10,
+        "san": 50,
+        "build": 1,
+        "dodge": 30,
+        "move_rate": 7
+      },
+      "backstory": {
+        "drive": "curiosity",
+        "pillars": [
+          "Godność i wartość człowieka",
+          "Zasady moralne"
+        ],
+        "sources": [
+          {
+            "name": "Gang.",
+            "category": "organization",
+            "description": "To dzięki niemu z bratem wyrwali się ze skrajnej biedy. Odkąd w nim jest już nie pamięta uczucia skrajnego głodu. Tam też poznał mu bliskich przyjaciół."
+          },
+          {
+            "name": "Mary Pickford.",
+            "category": "person",
+            "description": "James nigdy nie interesował się sztuką. Nigdy też nie poznał tej jedynej prawdziwej miłości. Jednak któregoś dnia zobaczył Mary na plakacie filmowym. Po obejrzeniu filmów poczuł ogromne zafascynowanie kobietą. "
+          },
+          {
+            "name": "Kino.",
+            "category": "place",
+            "description": "Tam regularnie chodzi oglądać filmy. To w nim po raz pierwszy obejrzał film z Mary."
+          }
+        ],
+        "other_traits": "Zawsze nosi ze soba złoty naszyjnik. W środku są dwa zdjęcia - jego brata oraz aktorki Mary Pickford.",
+        "appearance_description": "Wysoki i umięśniony mężczyzna z krótko obcietymi ciemnymi włosami. Ma jasne oczy i duży, krzywy nos, który ewidentnie był parę razy złamany."
+      },
+      "equipment": [
+        "[Transport] Komunikacja / taksówki",
+        "[Styl życia] Przeciętny",
+        "[Lokum] Kawalerka (własność)",
+        "[Transport] Komunikacja miejska",
+        "[Lifestyle] ★½☆☆☆ Skromny",
+        "[Ekwipunek] Dobre auto ($1200)",
+        "[Ekwipunek] Latarka (duża) ($5)",
+        "[Ekwipunek] Wytrychy ($10)",
+        "[Ekwipunek] Kłódka ($1)",
+        "[Ekwipunek] Lina (30 m) ($2)",
+        "[Broń] Nóż bojowy / sztylet (1K4+MO, dotyk) ($1)",
+        "[Czarny rynek] Tłumik do pistoletu ($175)",
+        "[Czarny rynek] Nielegalny .45 Colt M1911 ($60)",
+        "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+        "[Dobytek] Złoto / srebro: $1833",
+        "[Dobytek] Biżuteria: $1833",
+        "[Dobytek] Towary / zapasy: $1833"
+      ],
+      "player_id": "74e3931a-2991-4712-b2ae-74f09892afd7",
+      "residence": "Arkham",
+      "appearance": "Wysoki, umięśniony irlandczyk. Ciemne krótkie włosy, jasna karnacja i jasne oczy. Krzywy, duży nos i mała blizna nałuku brwiowym.",
+      "art_prompt": null,
+      "birthplace": "Arkham",
+      "created_at": "2026-03-19T23:15:42.382567+00:00",
+      "created_by": "admin_draft",
+      "draft_step": null,
+      "updated_at": "2026-03-21T22:08:14.43279+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [
+        {
+          "strength": 2,
+          "is_custom": false,
+          "roll_value": 60,
+          "slot_index": 0,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 0,
+          "subcategory_id": "gangi_uliczne",
+          "subcategory_name": "Gangi uliczne",
+          "custom_description": "",
+          "pending_st_approval": false
+        },
+        {
+          "strength": 2,
+          "is_custom": false,
+          "roll_value": 60,
+          "slot_index": 1,
+          "category_id": "PRASA_MEDIA",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W prasie i mediach",
+          "synergy_bonus": 0,
+          "subcategory_id": "plotkarze",
+          "subcategory_name": "Plotkarze i informatorzy",
+          "custom_description": "",
+          "pending_st_approval": false
+        }
+      ],
+      "invite_code": "",
+      "player_name": "Nika",
+      "portrait_url": null,
+      "main_position": {
+        "category": "ROZRYWKA I SPORT",
+        "option_id": "rs_klub_bokserski",
+        "option_name": "Klub bokserski / gimnastyczny",
+        "strength_percent": 70,
+        "unlock_condition": "ZAWSZE",
+        "organization_size": "Mała",
+        "custom_description": "Lokalna siłownia. Zbiorowisko gangsterów, sportowców i atletów. Nikt nie wie kto jest kim choć można się domyślać. Bez zbędnych pytań, ale z braterską energią."
+      },
+      "occupation_id": "bokser_zapasnik",
+      "invite_code_id": "618fa06c-0091-4bbe-a645-f51ac60ca21e",
+      "spending_level": "$25",
+      "characteristics": {
+        "APP": 50,
+        "CON": 60,
+        "DEX": 60,
+        "EDU": 60,
+        "INT": 65,
+        "POW": 50,
+        "SIZ": 75,
+        "STR": 70
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [
+        {
+          "weight": 3,
+          "category": "BOJOWE I FIZYCZNE",
+          "is_custom": false,
+          "option_id": "druzyna_robotnicza",
+          "roll_value": 75,
+          "slot_index": 0,
+          "option_name": "Drużyna robotnicza",
+          "unlocked_by": "walka wrecz bijatyka ≥ 30",
+          "organization_size": "Mała",
+          "custom_description": "Zanim James dołączył do gangu dorabiał na budowie. Teraz dalej utrzymują kontakt. James jako dobry kolega załatwia im alkohol.",
+          "pending_st_approval": false,
+          "is_attribute_special": false
+        }
+      ],
+      "personal_skill_points": {
+        "slusarstwo": 45,
+        "zastraszanie": 5,
+        "bron_palna:krotka": 40,
+        "prowadzenie_samochodu": 40
+      },
+      "occupation_skill_points": {
+        "unik": 40,
+        "majetnosc": 35,
+        "psychologia": 40,
+        "zastraszanie": 50,
+        "spostrzegawczosc": 40,
+        "bron_palna:krotka": 10,
+        "walka_wrecz:bijatyka": 45
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-21T22:28:10.737678+00:00"
+  }
+]

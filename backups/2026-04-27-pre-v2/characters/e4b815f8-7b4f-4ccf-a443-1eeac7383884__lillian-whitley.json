@@ -1,0 +1,222 @@
+{
+  "id": "e4b815f8-7b4f-4ccf-a443-1eeac7383884",
+  "invite_code_id": "e700201e-cb46-46bd-9663-6f09f8bebcb5",
+  "status": "submitted",
+  "name": "Lillian Whitley",
+  "age": 27,
+  "gender": "F",
+  "appearance": "",
+  "characteristics": {
+    "APP": 65,
+    "CON": 50,
+    "DEX": 70,
+    "EDU": 60,
+    "INT": 70,
+    "POW": 70,
+    "SIZ": 65,
+    "STR": 35
+  },
+  "luck": 25,
+  "derived": {
+    "db": "0",
+    "hp": 11,
+    "mp": 14,
+    "san": 70,
+    "build": 0,
+    "dodge": 35,
+    "move_rate": 8
+  },
+  "occupation_id": "aktor",
+  "occupation_skill_points": {
+    "majetnosc": 40,
+    "psychologia": 30,
+    "urok_osobisty": 50,
+    "charakteryzacja": 16,
+    "spostrzegawczosc": 35,
+    "walka_wrecz:dluga_ostra": 20,
+    "sztuka_rzemioslo:Aktorstwo": 59
+  },
+  "personal_skill_points": {
+    "unik": 35,
+    "ukrywanie": 45,
+    "charakteryzacja": 30,
+    "spostrzegawczosc": 5,
+    "walka_wrecz:dluga_ostra": 25
+  },
+  "backstory": {
+    "drive": "artistic_sensitivity",
+    "pillars": [
+      "Piękno codzienności- odnajduje spokój w rutynach codziennego  życia i dostrzega w nich piękno.",
+      "Epikureizm / życie pełnią",
+      "Sztuka jest wartością, którą człowiek wnosi do świata. Jest ona ważna i potrzebna."
+    ],
+    "sources": [
+      {
+        "name": "Przyjaciółka Julia Thomson ",
+        "category": "person",
+        "description": ""
+      },
+      {
+        "name": "Teatr",
+        "category": "place",
+        "description": ""
+      },
+      {
+        "name": "Grupa teatralna do której należy",
+        "category": "organization",
+        "description": ""
+      },
+      {
+        "name": "Matka ",
+        "category": "person",
+        "description": ""
+      }
+    ],
+    "appearance_description": "Wysoka brunetka o szczupłej sylwetce. Zza długich rzęs błyszczą się zielone, przenikliwe oczy, których nie sposób zapomnieć."
+  },
+  "equipment": [
+    "[Transport] Komunikacja / taksówki",
+    "[Styl życia] Przeciętny",
+    "[Lokum] Kawalerka (własność)",
+    "[Transport] Komunikacja miejska",
+    "[Lifestyle] ★☆··· Przeciętny",
+    "[Ekwipunek] Latarka (duża) ($5)",
+    "[Ekwipunek] Zapalniczka ($1)",
+    "[Ekwipunek] Dyktafon ($50)",
+    "[Ekwipunek] Zegarek na rękę ($15)",
+    "[Broń] Rapier (1K6+1+MO, dotyk) ($20)",
+    "[Broń] Szabla (1K8+1+MO, dotyk) ($15)",
+    "[Dobytek] Konto bankowe: $2167",
+    "[Dobytek] Biżuteria: $2167",
+    "[Dobytek] Złoto / srebro: $2167"
+  ],
+  "cash": "Gotówka: 80 $ | Dobytek: Konto bankowe, Złoto i kosztowności, Biżuteria",
+  "assets": "2000 $",
+  "spending_level": "$25",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-03-23T10:36:05.663987+00:00",
+  "updated_at": "2026-04-26T12:47:25.77835+00:00",
+  "player_name": "Nika",
+  "invite_code": "AQC-3416-FAH",
+  "admin_notes": "",
+  "player_id": "74e3931a-2991-4712-b2ae-74f09892afd7",
+  "main_position": {
+    "category": "SZTUKA I KULTURA",
+    "option_id": "ls_teatr",
+    "option_name": "Teatr repertuarowy",
+    "strength_percent": 70,
+    "unlock_condition": "ZAWSZE",
+    "organization_size": "Mała",
+    "custom_description": "Teatr, w którym gra. To tam pokochała aktorstwo i sztukę. Tam też czuje że przynależy."
+  },
+  "additional_positions": [
+    {
+      "weight": 1,
+      "category": "",
+      "is_custom": false,
+      "option_id": "",
+      "roll_value": 25,
+      "slot_index": 0,
+      "option_name": "",
+      "unlocked_by": "",
+      "organization_size": "",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "KREGGI_TOWARZYSKIE",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W kręgach towarzyskich",
+      "synergy_bonus": 0,
+      "subcategory_id": "towarzystwa_lit",
+      "subcategory_name": "Towarzystwa literackie i artystyczne",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "PRASA_MEDIA",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W prasie i mediach",
+      "synergy_bonus": 0,
+      "subcategory_id": "plotkarze",
+      "subcategory_name": "Plotkarze i informatorzy",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 2,
+      "category_id": "",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "",
+      "synergy_bonus": 0,
+      "subcategory_id": "",
+      "subcategory_name": "",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 3,
+      "category_id": "",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "",
+      "synergy_bonus": 0,
+      "subcategory_id": "",
+      "subcategory_name": "",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/e4b815f8-7b4f-4ccf-a443-1eeac7383884/e5319f20-e9dd-4b66-8544-69b63cf59295.jpg",
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "player",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "Arkham",
+  "birthplace": "Arkham",
+  "sessions": [],
+  "distinguisher": "",
+  "rerolls_remaining": 0,
+  "characteristics_committed_at": "2026-03-23T10:36:05.663987+00:00",
+  "reroll_history": [],
+  "swap_committed_at": null,
+  "age_committed_at": "2026-03-23T10:36:05.663987+00:00",
+  "edu_committed_at": "2026-03-23T10:36:05.663987+00:00",
+  "aging_committed_at": "2026-03-23T10:36:05.663987+00:00",
+  "luck_committed_at": "2026-03-23T10:36:05.663987+00:00",
+  "swap_available": true,
+  "swap_used": false,
+  "edu_rolls": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "77576f5d-f9db-47ef-a04f-53ba72e34077",
+  "code": "STY-3623-NXE",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 2,
+  "times_used": 0,
+  "is_active": true,
+  "created_at": "2026-03-22T13:50:12.684312+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 1,
+  "assigned_player_id": null
+}

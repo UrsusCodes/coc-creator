@@ -1,0 +1,22 @@
+{
+  "id": "6bc16c7c-fd96-46bf-a401-e1347a0a178e",
+  "code": "CLX-5351-MWJ",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 2,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-18T19:38:19.426615+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars",
+    "black_market"
+  ],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 1,
+  "assigned_player_id": null
+}

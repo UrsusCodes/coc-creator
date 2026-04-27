@@ -1,0 +1,22 @@
+{
+  "id": "e47917d6-b464-480a-b3e8-60541561e181",
+  "code": "ZGQ-1377-NCE",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-17T08:36:49.319373+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "black_market",
+    "drive_pillars",
+    "swap_characteristics"
+  ],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 0,
+  "assigned_player_id": null
+}

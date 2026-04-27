@@ -1,0 +1,18 @@
+{
+  "id": "c5fcfe74-a880-4291-a18d-0103c2d616be",
+  "code": "HHB-6261-VJG",
+  "method": "direct",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-04T16:01:47.616813+00:00",
+  "methods": [
+    "direct"
+  ],
+  "perks": [],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 0,
+  "assigned_player_id": null
+}

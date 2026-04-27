@@ -1,0 +1,243 @@
+{
+  "snapshot": "C:\\Users\\Pawel\\coc-creator\\backups\\2026-04-27-pre-v2-deploy",
+  "timestamp": "2026-04-27T19:42:05.488Z",
+  "summary": {
+    "OK": 23,
+    "DRIFT": 0,
+    "NEEDS_REVIEW": 0,
+    "MISSING": 0,
+    "NEW_SINCE_SNAPSHOT": 0
+  },
+  "results": [
+    {
+      "id": "0591a658-22f6-4049-9a14-9088f3f9bbbb",
+      "name": "Arthur McNeil",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "293314a6-1ce5-4c17-8023-19df1d7e3af1",
+      "name": "Cecil Cavendish",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "38142dc5-a0b7-4e65-b75a-a9a130f6a6ce",
+      "name": "Percy Kent",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "53506d36-9a89-4209-aa65-588d6c8da3e0",
+      "name": "Arthur Henry Corwin",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "5c6bf8bb-42e7-42b7-bde6-dc21fd6fc630",
+      "name": "James Kelly",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "7ba34190-a57a-4478-974c-10519e6fdde4",
+      "name": "Friedrich \"Fritz\" Mueller",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "7d54eec4-ee08-4a9e-970e-f2cc72e5fef9",
+      "name": "",
+      "status": "draft",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "7dae4045-b999-43e9-ae97-aad5931c053b",
+      "name": "Mortimer \"Mort\" Flannery",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "8667d7fe-f1fc-4bf5-9f8a-d5b76218a7bc",
+      "name": "Arthur Ashford",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "87931512-dfc9-4ba1-9358-d0af6c120084",
+      "name": "William Smith",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "94be7c25-6210-4069-94dc-ceda225e8eed",
+      "name": "Howard Hayes",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "ab62f9b5-5e43-4e6f-961c-222cb3b23e33",
+      "name": "Herbert West",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "b1c3ceb0-48e2-485c-bd98-34a5acd8fa7b",
+      "name": "Nathan Rosenbaum",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "c5421d60-9c72-40ae-8ee6-c0236f026e5a",
+      "name": "Doktor Steven Price",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "c879b3d5-46cb-4985-9747-d284fbde7c7b",
+      "name": "Wilson Stanford",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "c8ec23e7-8616-4ddf-aa91-8f98d134a6e7",
+      "name": "Jake Wallis",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "cde7872e-0831-4081-b3bc-2e52802a16a2",
+      "name": "Edmund „Ed\" Krawczyk",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "e4b815f8-7b4f-4ccf-a443-1eeac7383884",
+      "name": "Lillian Whitley",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "e7e9c39b-cebe-482b-a893-87598fbde672",
+      "name": "Eleine Howard",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "f7e522cf-0c9b-4d62-9153-f450ca69fbfb",
+      "name": "Cormac McMiller",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "fa56c751-0835-4d6e-a589-2018a37b28e2",
+      "name": "Edward Swanson",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "fb90a60a-7019-4395-ab46-2343b32bbe60",
+      "name": "Joseph Kelly",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    },
+    {
+      "id": "ff567637-c560-4f54-8c80-a70f93b347a9",
+      "name": "James „Jimmy\" Harding",
+      "status": "submitted",
+      "verdict": "OK",
+      "drift": [],
+      "new_fields_added": [],
+      "review": [],
+      "backfill_issues": []
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+[
+  {
+    "id": "0f845b9a-1292-4af3-804b-eac64b141030",
+    "character_id": "fb90a60a-7019-4395-ab46-2343b32bbe60",
+    "snapshot": {
+      "id": "fb90a60a-7019-4395-ab46-2343b32bbe60",
+      "age": 31,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 20 $ | Dobytek: Złoto i kosztowności, Biżuteria, Towary (import/eksport)",
+      "luck": 75,
+      "name": "Joseph Kelly",
+      "perks": [
+        "black_market",
+        "drive_pillars",
+        "swap_characteristics"
+      ],
+      "assets": "500 $",
+      "gender": "M",
+      "method": "direct",
+      "status": "submitted",
+      "derived": {
+        "db": "+1K6",
+        "hp": 14,
+        "mp": 13,
+        "san": 65,
+        "build": 2,
+        "dodge": 27,
+        "move_rate": 8
+      },
+      "backstory": {
+        "drive": "adventure",
+        "pillars": [
+          "Silny może więcej ",
+          "Na rodzinie zawsze można polegać ",
+          "Dla chcącego nic trudnego "
+        ],
+        "sources": [
+          {
+            "name": "Brat James ",
+            "category": "person",
+            "description": ""
+          },
+          {
+            "name": "Gang ",
+            "category": "organization",
+            "description": ""
+          },
+          {
+            "name": "Siłownia ",
+            "category": "place",
+            "description": ""
+          },
+          {
+            "name": "Siedziba gangu",
+            "category": "place",
+            "description": ""
+          }
+        ],
+        "appearance_description": "Wysoki, krępy blondyn o szelmowskim uśmiechu, ale niebezpiecznej iskrze w oku. Schludna fryzura i zadbany zarost, duża bliznaciagnaca się od ucha do ust "
+      },
+      "equipment": [
+        "[Styl życia] Przeciętny",
+        "[Lokum] Wynajęty pokój (wynajem)",
+        "[Transport] Komunikacja + okazj. taksówki",
+        "[Lifestyle] ★½☆☆☆ Skromny",
+        "[Ekwipunek] Latarka (duża) ($5) [x2]",
+        "[Ekwipunek] Radio nadawczo-odbiorcze ($75)",
+        "[Ekwipunek] Lina (30 m) ($2)",
+        "[Ekwipunek] Łańcuch (3 m) ($2)",
+        "[Ekwipunek] Wiertarka ręczna ($3)",
+        "[Ekwipunek] Morfina (dawka) ($1)",
+        "[Ekwipunek] Tytoń i fajka ($1) [x2]",
+        "[Broń] Kastet (1K3+1+MO, dotyk) ($2)",
+        "[Czarny rynek] Tłumik do pistoletu ($175)",
+        "[Czarny rynek] Nielegalny .44 Smith & Wesson ($50)",
+        "[Ekwipunek] Amunicja .44 (50 szt.) ($2.50) [x2]",
+        "[Ekwipunek] Dynamit (laseczka) ($10)",
+        "[Ekwipunek] Lont (metr) ($0.50)",
+        "[Ekwipunek] Zapalnik ($2)",
+        "[Dobytek] Złoto / srebro: $167",
+        "[Dobytek] Biżuteria: $167",
+        "[Dobytek] Towary / zapasy: $167"
+      ],
+      "player_id": "377fe97d-e576-4f8b-b7f9-33529e811e0b",
+      "residence": "Arkham",
+      "appearance": "",
+      "art_prompt": null,
+      "birthplace": "Arkham",
+      "created_at": "2026-03-19T23:14:43.700729+00:00",
+      "created_by": "admin_draft",
+      "draft_step": null,
+      "updated_at": "2026-03-22T11:58:57.863792+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [
+        {
+          "strength": 3,
+          "is_custom": false,
+          "roll_value": 90,
+          "slot_index": 0,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 1,
+          "subcategory_id": "przemytnicy",
+          "subcategory_name": "Przemytnicy (alkohol, towary)",
+          "custom_description": "",
+          "pending_st_approval": false
+        },
+        {
+          "strength": 3,
+          "is_custom": false,
+          "roll_value": 90,
+          "slot_index": 1,
+          "category_id": "POLSWIATEK",
+          "custom_name": "",
+          "slot_source": "occupation",
+          "base_strength": 2,
+          "category_name": "W półświatku",
+          "synergy_bonus": 1,
+          "subcategory_id": "gangi_uliczne",
+          "subcategory_name": "Gangi uliczne",
+          "custom_description": "",
+          "pending_st_approval": false
+        }
+      ],
+      "invite_code": "",
+      "player_name": "Rafał",
+      "portrait_url": null,
+      "main_position": {
+        "category": "PÓŁŚWIATEK",
+        "option_id": "pz_istotny",
+        "option_name": "Istotny gang w dużym mieście",
+        "strength_percent": 65,
+        "unlock_condition": "ZAWSZE",
+        "organization_size": "Średnia",
+        "custom_description": ""
+      },
+      "occupation_id": "przemytnik_alkoholu_bandyta",
+      "invite_code_id": "b0fb4e4c-9a86-4d94-902c-9f3fca4a6e16",
+      "spending_level": "$7",
+      "characteristics": {
+        "APP": 60,
+        "CON": 60,
+        "DEX": 55,
+        "EDU": 55,
+        "INT": 65,
+        "POW": 65,
+        "SIZ": 80,
+        "STR": 85
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [
+        {
+          "weight": 3,
+          "category": "BOJOWE I FIZYCZNE",
+          "is_custom": false,
+          "option_id": "sil_ochroniarz",
+          "roll_value": 75,
+          "slot_index": 0,
+          "option_name": "Ochroniarz",
+          "unlocked_by": "STR ≥ 80",
+          "organization_size": "Mikro",
+          "custom_description": "",
+          "pending_st_approval": false,
+          "is_attribute_special": true
+        }
+      ],
+      "personal_skill_points": {
+        "wspinaczka": 30,
+        "psychoanaliza": 49,
+        "bron_palna:artyleryjska": 51
+      },
+      "occupation_skill_points": {
+        "majetnosc": 10,
+        "ukrywanie": 45,
+        "psychologia": 55,
+        "zastraszanie": 60,
+        "spostrzegawczosc": 50,
+        "walka_wrecz:bijatyka": 50,
+        "prowadzenie_samochodu": 10
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-28T02:07:53.108981+00:00"
+  }
+]

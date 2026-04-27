@@ -1,0 +1,134 @@
+[
+  {
+    "id": "135dec83-02b6-4bba-a7a2-fd8ded8c74f1",
+    "character_id": "f7e522cf-0c9b-4d62-9153-f450ca69fbfb",
+    "snapshot": {
+      "id": "f7e522cf-0c9b-4d62-9153-f450ca69fbfb",
+      "age": 25,
+      "era": "classic_1920s",
+      "cash": "Gotówka: 300 $ | Dobytek: Konto bankowe, Obligacje rządowe, Akcje giełdowe",
+      "luck": 45,
+      "name": "Cormac McMiller",
+      "perks": [],
+      "assets": "1500 $",
+      "gender": "M",
+      "method": "dice",
+      "status": "submitted",
+      "derived": {
+        "db": "0",
+        "hp": 13,
+        "mp": 11,
+        "san": 55,
+        "build": 0,
+        "dodge": 30,
+        "move_rate": 7
+      },
+      "backstory": {
+        "drive": "curiosity",
+        "pillars": [
+          "Wiara w liczby - wszystko jest rachunkiem zysków, strat i logicznych transakcji. Jeśli czegoś nie da się policzyć, trzeba to zastrzelić. ",
+          "Patriotyzm - jest dumny z bycia Irlandczykiem"
+        ],
+        "sources": [
+          {
+            "name": "O'Malley's Pub",
+            "category": "place",
+            "description": "Miejsce, w którym wolny czas spędzają lokalni Irlandczycy. Dla \"swoich\" znajdzie się coś ekstra na zapleczu. Dla obcych - w zaułku za lokalem."
+          },
+          {
+            "name": "Towarzystwo księgowe Arkham",
+            "category": "organization",
+            "description": "Organizacja, która zrzesza lokalnych księgowych i finansistów. Część z nich jest nawet przyzwoita, chociaż nie można tego powiedzieć o najbardziej kreatywnych członkach. Przestrzeń do dyskusji nad legislacją, problemami dnia codziennego w branży, wymiany błyskotliwych rozwiązań i anegdot oraz okropnych plotek o klientach."
+          },
+          {
+            "name": "Stary O'Malley",
+            "category": "person",
+            "description": "To on wziął go pod skrzydła, gdy był jeszcze młodym imigrantem. Zastąpił mu figurę ojca, który za głośno awanturował się z policją i dostał pałką o jeden raz za dużo. O'Malley pomógł mu jak tylko mógł - dobrym słowem, kawałkiem chleba, radą. Cieszę się, ze jako księgowy mogę mu się odwdzięczyć."
+          }
+        ],
+        "drive_detail": "Ciekawość pcha go do badania różnych rzeczy - liczb, plotek, skandali, afer. Śledzi wszystko z zapartym tchem.",
+        "other_traits": "Straszny plotkarz, sprawia wrażenie życzliwego i zatroskanego, bo wie, że mu się to opłaca.",
+        "appearance_description": "Życzliwy mężczyzna, nieco jowialny, rozgadany z zamiłowaniem do książek. Sprawia wrażenie bardzo życzliwego, ciekawskiego. Dużo mówi, ale nigdy nie zdradza za dużo szczegółów. "
+      },
+      "equipment": [
+        "[Lokum] Kawalerka (wynajem)",
+        "[Transport] Regularne taksówki / kolej 1. kl.",
+        "[Lifestyle] ★★☆☆☆ Skromny",
+        "[Czarny rynek] Informacje (od informatora) ($52.50)",
+        "[Broń] Remington dwururka (12 g.) (2K6+2/1K6+1, 10/20 m) ($30)",
+        "[Ekwipunek] Papierosy (paczka) ($0.15)",
+        "[Ekwipunek] Portfel ($1)",
+        "[Ekwipunek] Zegarek kieszonkowy ($5)",
+        "[Ekwipunek] Walizka ($3)",
+        "[Ekwipunek] Zapalniczka ($1)",
+        "[Czarny rynek] Alkohol (przemycany) ($9)",
+        "[Czarny rynek] Trucizna ($30)",
+        "[Ekwipunek] Książka (specjalistyczna) ($5)",
+        "[Ekwipunek] Notes i ołówek ($0.25)",
+        "[Czarny rynek] Fałszywe pozwolenie na broń ($62.50)",
+        "[Ekwipunek] Amunicja 12 gauge (strzelba) (25 szt.) ($2.50)",
+        "[Ekwipunek] Amunicja 12 gauge (strzelba) (25 szt.) ($2.50)",
+        "[Ekwipunek] Nóż / scyzoryk ($0.50)",
+        "[Ekwipunek] Gazeta ($0.05)",
+        "[Ekwipunek] Okulary ($3)",
+        "[Dobytek] Konto bankowe: $500",
+        "[Dobytek] Obligacje rządowe: $500",
+        "[Dobytek] Akcje: $500"
+      ],
+      "player_id": "47867d08-1248-47d0-ae22-5fe569d01cae",
+      "residence": "",
+      "appearance": "Krępy mężczyzna przeciętnego wzrostu. Rudy, poważnie łysiejący, w okularach w rogowej oprawie oraz masywnymi wąsami, nieco pożółkłymi od papierosów. Elegancko ubrany, chociaż zazwyczaj w przydługim płaszczu.",
+      "art_prompt": null,
+      "birthplace": "",
+      "created_at": "2026-03-18T17:15:20.734012+00:00",
+      "created_by": "player",
+      "draft_step": null,
+      "updated_at": "2026-03-19T23:06:36.447256+00:00",
+      "admin_notes": "",
+      "art_gallery": [],
+      "contacts_v2": [],
+      "invite_code": "LKC-9564-WHL",
+      "player_name": "Piotrek",
+      "portrait_url": null,
+      "main_position": null,
+      "occupation_id": "ksiegowy",
+      "invite_code_id": "a9863b0e-58ab-4419-9db3-bde426742b2f",
+      "spending_level": "$7",
+      "characteristics": {
+        "APP": 55,
+        "CON": 65,
+        "DEX": 60,
+        "EDU": 60,
+        "INT": 65,
+        "POW": 55,
+        "SIZ": 65,
+        "STR": 35
+      },
+      "max_skill_value": 80,
+      "draft_locked_step": null,
+      "portrait_crop_data": null,
+      "additional_positions": [],
+      "personal_skill_points": {
+        "wycena": 30,
+        "perswazja": 5,
+        "ksiegowosc": 5,
+        "urok_osobisty": 50,
+        "spostrzegawczosc": 15,
+        "korzystanie_z_bibliotek": 10,
+        "bron_palna:karabin_strzelba": 15
+      },
+      "occupation_skill_points": {
+        "majetnosc": 30,
+        "perswazja": 55,
+        "ksiegowosc": 65,
+        "urok_osobisty": 5,
+        "spostrzegawczosc": 30,
+        "korzystanie_z_bibliotek": 45,
+        "bron_palna:karabin_strzelba": 10
+      }
+    },
+    "changed_by": "admin",
+    "change_comment": "",
+    "created_at": "2026-03-28T02:07:54.007481+00:00"
+  }
+]

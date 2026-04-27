@@ -1,0 +1,20 @@
+{
+  "id": "de0d7386-baa1-4e92-8608-ab3a92112eaa",
+  "code": "TRD-8704-CZL",
+  "method": "dice",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 1,
+  "is_active": true,
+  "created_at": "2026-03-01T17:01:13.548137+00:00",
+  "methods": [
+    "dice"
+  ],
+  "perks": [
+    "swap_characteristics"
+  ],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 0,
+  "assigned_player_id": null
+}

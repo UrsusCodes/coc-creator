@@ -1,0 +1,241 @@
+{
+  "id": "c5421d60-9c72-40ae-8ee6-c0236f026e5a",
+  "invite_code_id": "e700201e-cb46-46bd-9663-6f09f8bebcb5",
+  "status": "submitted",
+  "name": "Doktor Steven Price",
+  "age": 39,
+  "gender": "M",
+  "appearance": "Wysoki zadbany mężczyzna. Perfekcyjnie skrojony grafitowy garnitur, czarne włosy zaczesane na brylantynę, ciemne spokojne i przenikliwe oczy. Ołówkowy wąs dociety co do milimetra. Bije od niego aura spokoju",
+  "characteristics": {
+    "APP": 40,
+    "CON": 55,
+    "DEX": 45,
+    "EDU": 95,
+    "INT": 60,
+    "POW": 85,
+    "SIZ": 40,
+    "STR": 50
+  },
+  "luck": 50,
+  "derived": {
+    "db": "0",
+    "hp": 9,
+    "mp": 17,
+    "san": 85,
+    "build": 0,
+    "dodge": 22,
+    "move_rate": 9
+  },
+  "occupation_id": "lekarz",
+  "occupation_skill_points": {
+    "unik": 28,
+    "medycyna": 79,
+    "majetnosc": 50,
+    "psychologia": 39,
+    "nauka:Farmacja": 39,
+    "pierwsza_pomoc": 40,
+    "spostrzegawczosc": 45,
+    "korzystanie_z_bibliotek": 60
+  },
+  "personal_skill_points": {
+    "perswazja": 65,
+    "bron_palna:krotka": 20,
+    "sztuka_rzemioslo:Aktorstwo": 35
+  },
+  "backstory": {
+    "drive": "arrogance",
+    "pillars": [
+      "Postęp naukowy / wartość intelektu",
+      "Patriotyzm i cnoty narodowe",
+      "Estetyka / wyższe ideały sztuki",
+      "Etos pracy - sumienność i staranność zawsze są nagradzane"
+    ],
+    "sources": [
+      {
+        "name": "John Hopkins University",
+        "category": "place",
+        "description": "Najlepszy uniwersytet medyczny w USA"
+      },
+      {
+        "name": "Union Club of New York",
+        "category": "organization",
+        "description": "Zamknięte środowisko dla bystrych i bogatych. Rozmowy na poziomie, cygara, hierarchia."
+      },
+      {
+        "name": "Astoria Grand Theatre ",
+        "category": "place",
+        "description": "Scena, na której praktykuję aktorstwo. Tu wszyscy mogą mnie zobaczyć i docenić moje umiejętności."
+      },
+      {
+        "name": "Veronica Price",
+        "category": "person",
+        "description": "Kuzynka, przyjaciółka z dzieciństwa. Często korespondują. Zazdrości jej prostych życiowych problemów. Czasami wspiera ją finansowo."
+      },
+      {
+        "name": "The American Society for National Health Advancement",
+        "category": "organization",
+        "description": "Organizacja zrzeszająca lekarzy i badaczy, którzy prowadzą badania na rzecz poprawy ogólnego zdrowia mieszkańców USA"
+      }
+    ],
+    "drive_detail": "Świat późna się na moim geniuszu, w ten czy w inny sposób ",
+    "other_traits": "Ma zaskakująco duże parcie na szkło - jest żądny sławy i uznania.",
+    "appearance_description": "Szczupły, postawny, ogolony. Perfekcyjnie przycięte czarne włosy, zaczesane na brylantynę. Szyty na miarę grafitowy garnitur. Spokojny, opanowany, pewny swojej pozycji społecznej oraz naukowej."
+  },
+  "equipment": [
+    "[Mieszkanie] Luksusowy dom/apartament (własność)",
+    "[Lokum] Drogi apartament (wynajem)",
+    "[Transport] Luksusowe taksówki / szofer",
+    "[Lifestyle] ★★★★· Komfortowy",
+    "[Broń] .44 Smith & Wesson (1K10+2, 15 m) ($25)",
+    "[Ekwipunek] Amunicja .44 (50 szt.) ($2.50)",
+    "[Ekwipunek] Aspiryna (opakowanie) ($0.25) [x2]",
+    "[Ekwipunek] Bandaże (zestaw) ($0.50) [x2]",
+    "[Ekwipunek] Torba lekarska ($15)",
+    "[Ekwipunek] Strzykawka ($1) [x2]",
+    "[Ekwipunek] Morfina (dawka) ($1) [x2]",
+    "[Ekwipunek] Środek znieczulający ($2) [x2]",
+    "[Ekwipunek] Apteczka polowa ($5)",
+    "[Ekwipunek] Szyna unieruchamiająca ($1)",
+    "[Ekwipunek] Nóż / scyzoryk ($0.50)",
+    "[Ekwipunek] Książka (specjalistyczna) ($5)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Ekwipunek] Zegarek na rękę ($15)",
+    "[Ekwipunek] Zapalniczka ($1)",
+    "[Ekwipunek] Latarka (duża) ($5)",
+    "[Ekwipunek] Mikroskop laboratoryjny ($75)",
+    "[Ekwipunek] Latarka (mała) ($3)",
+    "[Ekwipunek] Gazeta ($0.05)",
+    "[Ekwipunek] Walizka ($3)",
+    "[Dobytek] Konto bankowe: $5000",
+    "[Dobytek] Obligacje rządowe: $5000"
+  ],
+  "cash": "Gotówka: 100 $ | Dobytek: Konto bankowe, Obligacje rządowe",
+  "assets": "25 000 $",
+  "spending_level": "$25",
+  "era": "classic_1920s",
+  "method": "dice",
+  "created_at": "2026-03-23T14:28:34.796122+00:00",
+  "updated_at": "2026-04-26T12:47:25.77835+00:00",
+  "player_name": "Piotrek",
+  "invite_code": "",
+  "admin_notes": "",
+  "player_id": "47867d08-1248-47d0-ae22-5fe569d01cae",
+  "main_position": {
+    "category": "MEDYCYNA",
+    "option_id": "mw_tajny",
+    "option_name": "Tajny ośrodek rządowych badań medycznych",
+    "strength_percent": 90,
+    "unlock_condition": "medycyna_60",
+    "organization_size": "Mała",
+    "custom_description": "Ośrodek badań nad zagrożeniami epidemiologicznymi nr 17. Niepozorna placówka bardzo blisko powiązana z armią. Oficjalnie prowadzone są tu studia nad chorobami zakaźnymi, chociaż raczej nikt o tym miejscu wiedzieć nie chce. "
+  },
+  "additional_positions": [
+    {
+      "weight": 1,
+      "category": "",
+      "is_custom": false,
+      "option_id": "",
+      "roll_value": 25,
+      "slot_index": 0,
+      "option_name": "",
+      "unlocked_by": "",
+      "organization_size": "",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "MEDYCY",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "Wśród medyków",
+      "synergy_bonus": 1,
+      "subcategory_id": "lekarze",
+      "subcategory_name": "Lekarze i chirurdzy",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "MEDYCY",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "Wśród medyków",
+      "synergy_bonus": 1,
+      "subcategory_id": "personel_szpitalny",
+      "subcategory_name": "Personel szpitalny",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 2,
+      "category_id": "PRAWNICY_BIZNES",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "Wśród prawników, finansistów i biznesu",
+      "synergy_bonus": 0,
+      "subcategory_id": "bankierzy",
+      "subcategory_name": "Bankierzy i finansiści",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 3,
+      "category_id": "",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "",
+      "synergy_bonus": 0,
+      "subcategory_id": "",
+      "subcategory_name": "",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/c5421d60-9c72-40ae-8ee6-c0236f026e5a/c285d39a-b178-4881-ab9f-dd1f3124fdaa.jpg",
+  "art_prompt": null,
+  "art_gallery": [],
+  "portrait_crop_data": null,
+  "draft_locked_step": null,
+  "created_by": "admin_draft",
+  "perks": [
+    "swap_characteristics",
+    "drive_pillars"
+  ],
+  "max_skill_value": 80,
+  "draft_step": null,
+  "residence": "",
+  "birthplace": "",
+  "sessions": [],
+  "distinguisher": "",
+  "rerolls_remaining": 0,
+  "characteristics_committed_at": "2026-03-23T14:28:34.796122+00:00",
+  "reroll_history": [],
+  "swap_committed_at": null,
+  "age_committed_at": "2026-03-23T14:28:34.796122+00:00",
+  "edu_committed_at": "2026-03-23T14:28:34.796122+00:00",
+  "aging_committed_at": "2026-03-23T14:28:34.796122+00:00",
+  "luck_committed_at": "2026-03-23T14:28:34.796122+00:00",
+  "swap_available": true,
+  "swap_used": false,
+  "edu_rolls": []
+}

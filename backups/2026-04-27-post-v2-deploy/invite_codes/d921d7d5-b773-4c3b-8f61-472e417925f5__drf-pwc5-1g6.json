@@ -1,0 +1,22 @@
+{
+  "id": "d921d7d5-b773-4c3b-8f61-472e417925f5",
+  "code": "DRF-PWC5-1G6",
+  "method": "direct",
+  "era": "classic_1920s",
+  "max_tries": 1,
+  "times_used": 0,
+  "is_active": true,
+  "created_at": "2026-03-19T23:15:32.828908+00:00",
+  "methods": [
+    "direct"
+  ],
+  "perks": [
+    "black_market",
+    "drive_pillars",
+    "swap_characteristics"
+  ],
+  "max_skill_value": 80,
+  "label": "",
+  "reroll_budget": 0,
+  "assigned_player_id": null
+}

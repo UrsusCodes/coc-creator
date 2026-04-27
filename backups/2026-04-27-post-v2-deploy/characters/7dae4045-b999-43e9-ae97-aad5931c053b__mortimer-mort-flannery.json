@@ -1,0 +1,281 @@
+{
+  "id": "7dae4045-b999-43e9-ae97-aad5931c053b",
+  "invite_code_id": "166cb61f-260f-4c85-9763-fc646460b2b7",
+  "status": "submitted",
+  "name": "Mortimer \"Mort\" Flannery",
+  "age": 32,
+  "gender": "M",
+  "appearance": "Otyły mężczyzna (130 kg, 170 cm) o okrągłej, zaczerwienionej twarzy i tłustych blond włosach opadających na czoło. Małe, podejrzliwe oczy za okularami w drucianych oprawkach. Nosi wyłącznie białe garnitury szyte na miarę, jedwabne muchy i lakierowane buty. Zawsze przy nim srebrna laska z kościaną gałką.",
+  "characteristics": {
+    "APP": 25,
+    "CON": 70,
+    "DEX": 30,
+    "EDU": 70,
+    "INT": 65,
+    "POW": 40,
+    "SIZ": 80,
+    "STR": 45
+  },
+  "luck": 65,
+  "derived": {
+    "db": "+1K4",
+    "hp": 15,
+    "mp": 8,
+    "san": 40,
+    "build": 1,
+    "dodge": 15,
+    "move_rate": 7
+  },
+  "occupation_id": "falszerz",
+  "occupation_skill_points": {
+    "wycena": 55,
+    "historia": 40,
+    "majetnosc": 60,
+    "ksiegowosc": 10,
+    "zreczne_palce": 25,
+    "spostrzegawczosc": 10,
+    "korzystanie_z_bibliotek": 5,
+    "sztuka_rzemioslo:Fałszerstwo": 75
+  },
+  "personal_skill_points": {
+    "gadanina": 40,
+    "psychologia": 30,
+    "zastraszanie": 20,
+    "bron_palna:krotka": 15,
+    "prowadzenie_samochodu": 10,
+    "bron_palna:karabin_maszynowy": 15
+  },
+  "backstory": {
+    "drive": "arrogance",
+    "pillars": [
+      "Filar 1: \"Pieniądze dają kontrolę nad światem\" — Mort wierzy, że za gotówkę można kupić wszystko: lojalność, bezpieczeństwo, milczenie. Gdy Mity pokażą mu rzeczy, których nie da się kupić, filar runie.",
+      "Filar 2: \"Rodzina Flannery jest nietykalna\" — klan jest ponad prawem, ponad policją, ponad wszystkim. Moment, gdy coś nadprzyrodzonego uderzy w rodzinę i pieniądze nie pomogą — to złamie Morta."
+    ],
+    "sources": [
+      {
+        "name": "Patrick \"Paddy\" Flannery",
+        "category": "person",
+        "description": "Stryjek, szef gangu, jedyna osoba, przy której Mort czuje się bezpiecznie. Ojciec, którego nigdy nie miał. Gdyby Paddy zginął lub odwrócił się od Morta, to koniec jego świata."
+      },
+      {
+        "name": "Apartament na Beacon Hill",
+        "category": "place",
+        "description": "Jego forteca. Sejf z gotówką, zamki w drzwiach, ochroniarze na dole. Jedyne miejsce, gdzie Mort naprawdę się odporęża. Grube mury między nim a światem."
+      }
+    ],
+    "other_traits": "Nigdy nie rozstaje się ze srebrną laską z kościaną gałką — uważa, że dodaje mu powagi. W stresie obgryza paznokcie, choć publicznie temu zaprzecza. Ma obsesję na punkcie jedzenia — potrafi zamówić kolację na trzy dania w trakcie przesłuchania więźnia. Boi się ciemności, psów i głębokiej wody. Śpi przy zapalonym świetle. Nosi kamizelkę kuloodporną pod garniturem nawet w upał.",
+    "appearance_description": "Mort waży ponad 120 kilogramów przy wzroście 170 cm. Ma okrągłą, zaczerwienioną twarz, tłuste blond włosy opadające na czoło i małe, podejrzliwe oczka za okularami w drucianych oprawkach. Ubiera się wyłącznie w białe garnitury szyte na miarę, nosi jedwabne muchy i lakierowane buty. Zawsze przy nim jest srebrna laska z kościaną gałką — nie potrzebuje jej do chodzenia, ale uważa, że dodaje mu powagi."
+  },
+  "equipment": [
+    "[Lokum] Drogi apartament (własność)",
+    "[Transport] Luksusowe taksówki / szofer",
+    "[Lifestyle] ★★★★· Komfortowy",
+    "[Ekwipunek] Luksusowe auto ($3000)",
+    "[Czarny rynek] Kamizelka kuloodporna ($100)",
+    "[Czarny rynek] Fałszywe dokumenty toż. ($125)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Czarny rynek] Thompson (pistolet maszynowy) ($1000)",
+    "[Czarny rynek] Tłumik ($75)",
+    "[Czarny rynek] Fałszywe pozw. na broń ($62.50)",
+    "[Broń] .45 Colt M1911 (1K10+2, 15 m) ($30)",
+    "[Czarny rynek] Trucizna ($30)",
+    "[Ekwipunek] Zegarek kieszonkowy ($5)",
+    "[Ekwipunek] Laska spacerowa ($5)",
+    "[Ekwipunek] Portfel ($1)",
+    "[Ekwipunek] Cygara (pudełko) ($1)",
+    "[Ekwipunek] Zapalniczka ($1)",
+    "[Ekwipunek] Okulary ($3)",
+    "[Ekwipunek] Parasol ($3)",
+    "[Ekwipunek] Notes i ołówek ($0.25)",
+    "[Ekwipunek] Atrament i pióro ($1)",
+    "[Ekwipunek] Zapałki (pudełko) ($0.05)",
+    "[Ekwipunek] Latarka (duża) ($5)",
+    "[Ekwipunek] Apteczka polowa ($5)",
+    "[Ekwipunek] Aspiryna (opakowanie) ($0.25)",
+    "[Ekwipunek] Morfina (dawka) ($1)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Czarny rynek] Alkohol (przemycany) ($9)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Ekwipunek] Amunicja .45 (50 szt.) ($2.50)",
+    "[Czarny rynek] Kokaina (dawka) ($10)",
+    "[Czarny rynek] Kokaina (dawka) ($10)",
+    "[Czarny rynek] Heroina (dawka) ($12.50)",
+    "[Czarny rynek] Heroina (dawka) ($12.50)",
+    "[Czarny rynek] Granat ręczny ($35)",
+    "[Czarny rynek] Granat dymny ($17.50)",
+    "[Dobytek] Złoto / srebro: $2875",
+    "[Dobytek] Dzieła sztuki: $2875",
+    "[Dobytek] Towary / zapasy: $2875",
+    "[Dobytek] Nieruchomości: $2875"
+  ],
+  "cash": null,
+  "assets": null,
+  "spending_level": null,
+  "era": "classic_1920s",
+  "method": "direct",
+  "created_at": "2026-03-19T23:13:55.154724+00:00",
+  "updated_at": "2026-04-26T12:47:25.77835+00:00",
+  "player_name": "Jakub Mazur",
+  "invite_code": null,
+  "admin_notes": "",
+  "player_id": "3d945188-ead8-492f-9289-d303be222232",
+  "main_position": {
+    "category": "PÓŁŚWIATEK",
+    "option_id": "pd_paserstwo",
+    "option_name": "Sieć paserska",
+    "strength_percent": 75,
+    "unlock_condition": "ZAWSZE",
+    "organization_size": "Mała",
+    "custom_description": ""
+  },
+  "additional_positions": [
+    {
+      "weight": 2,
+      "category": "TOWARZYSKIE I PRESTIŻOWE",
+      "is_custom": false,
+      "option_id": "klub_elitarny",
+      "roll_value": 50,
+      "slot_index": 0,
+      "option_name": "Elitarny klub dżentelmenów",
+      "unlocked_by": "majetnosc ≥ 50",
+      "organization_size": "Mała",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    },
+    {
+      "weight": 2,
+      "category": "OKULTYSTYCZNE I TAJEMNICZE",
+      "is_custom": false,
+      "option_id": "kolekcjonerzy_artefaktow",
+      "roll_value": 50,
+      "slot_index": 1,
+      "option_name": "Kolekcjonerzy artefaktów",
+      "unlocked_by": "okultyzm ≥ 30",
+      "organization_size": "Mikro",
+      "custom_description": "",
+      "pending_st_approval": false,
+      "is_attribute_special": false
+    }
+  ],
+  "contacts_v2": [
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 0,
+      "category_id": "PRAWNICY_BIZNES",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "Wśród prawników, finansistów i biznesu",
+      "synergy_bonus": 0,
+      "subcategory_id": "bankierzy",
+      "subcategory_name": "Bankierzy i finansiści",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 3,
+      "is_custom": false,
+      "roll_value": 90,
+      "slot_index": 1,
+      "category_id": "POLSWIATEK",
+      "custom_name": "",
+      "slot_source": "occupation",
+      "base_strength": 3,
+      "category_name": "W półświatku",
+      "synergy_bonus": 0,
+      "subcategory_id": "paserzy",
+      "subcategory_name": "Paserzy i czarny rynek",
+      "custom_description": "",
+      "pending_st_approval": false
+    },
+    {
+      "strength": 1,
+      "is_custom": false,
+      "roll_value": 30,
+      "slot_index": 2,
+      "category_id": "",
+      "custom_name": "",
+      "slot_source": "additional",
+      "base_strength": 1,
+      "category_name": "",
+      "synergy_bonus": 0,
+      "subcategory_id": "",
+      "subcategory_name": "",
+      "custom_description": "",
+      "pending_st_approval": false
+    }
+  ],
+  "portrait_url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/gemini_variant_2.png",
+  "art_prompt": null,
+  "art_gallery": [
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/gemini_variant_1.png",
+      "label": "Gemini – Wariant 1",
+      "created_at": "2026-03-21T22:26:36.093Z"
+    },
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/gemini_variant_2.png",
+      "label": "Gemini – Wariant 2",
+      "created_at": "2026-03-21T22:26:45.896Z"
+    },
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/gemini_variant_3.png",
+      "label": "Gemini – Wariant 3",
+      "created_at": "2026-03-21T22:26:53.398Z"
+    },
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/sd_variant_1.png",
+      "label": "SD – Wariant 1",
+      "created_at": "2026-03-21T22:26:54.069Z"
+    },
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/sd_variant_2.png",
+      "label": "SD – Wariant 2",
+      "created_at": "2026-03-21T22:26:54.708Z"
+    },
+    {
+      "url": "https://okbrsoomtomexilxxsyd.supabase.co/storage/v1/object/public/portraits/gallery/7dae4045-b999-43e9-ae97-aad5931c053b/sd_variant_3.png",
+      "label": "SD – Wariant 3",
+      "created_at": "2026-03-21T22:26:55.251Z"
+    }
+  ],
+  "portrait_crop_data": null,
+  "draft_locked_step": 0,
+  "created_by": "admin_draft",
+  "perks": [
+    "black_market",
+    "drive_pillars",
+    "swap_characteristics"
+  ],
+  "max_skill_value": 80,
+  "draft_step": 12,
+  "residence": "Beacon Hill, Boston, Massachusetts",
+  "birthplace": "South Boston, Massachusetts",
+  "sessions": [],
+  "distinguisher": "",
+  "rerolls_remaining": 0,
+  "characteristics_committed_at": "2026-03-19T23:13:55.154724+00:00",
+  "reroll_history": [],
+  "swap_committed_at": null,
+  "age_committed_at": "2026-03-19T23:13:55.154724+00:00",
+  "edu_committed_at": "2026-03-19T23:13:55.154724+00:00",
+  "aging_committed_at": "2026-03-19T23:13:55.154724+00:00",
+  "luck_committed_at": "2026-03-19T23:13:55.154724+00:00",
+  "swap_available": true,
+  "swap_used": false,
+  "edu_rolls": []
+}
