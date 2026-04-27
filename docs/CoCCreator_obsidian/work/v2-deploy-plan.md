@@ -17,7 +17,9 @@ Complete punch list from "everything currently in repo" to "v2.0 live on prod wi
 > [!info] What's done already
 > Migrations 016/017/018/019 applied 2026-04-26 (verify 31/31 OK). Edge functions Etap A/B/C committed (`3ac51b3`, `fb500cc`, `53a2674`). Client lib + types committed (`dffe4d2`). Build green.
 >
-> **Sub-session 1 done 2026-04-27** (`e5043eb`): 5 new step components + slim StepInviteCode + `/skip-swap` endpoint + `playerSkipSwap` wrapper. Components compile but are NOT yet wired into WizardShell.
+> **Sub-session 1 done 2026-04-27** (`e5043eb`): 5 new step components + slim StepInviteCode + `/skip-swap` endpoint + `playerSkipSwap` wrapper.
+>
+> **Sub-session 2 done 2026-04-27** (`e6a8fff`): WizardShell rewrite (17-step layout + conditional skips + reroll widget + serverCharacter loading); StepCharacteristics rewrite (server-authoritative); StepAge simplified; DELETED StepAgeModifiers; characterStore cleanup; useDraftSync gated to soft zone; StepReview dual-path submit. **Frontend wizard now runs the full granular-commits flow end-to-end.**
 
 ---
 
@@ -82,7 +84,14 @@ Goal: write the 5 new step components matching the 5 new player endpoints, plus 
 
 ---
 
-## Sub-session 2 — WizardShell + StepCharacteristics rewrite + cleanup
+## Sub-session 2 — WizardShell + StepCharacteristics rewrite + cleanup ✅ DONE 2026-04-27
+
+> [!success] Completed in commit `e6a8fff`
+> All 6 steps below landed except: back-step modal for soft zone (deferred
+> to S3 — `prevStep()` works without server-side wipe, fine until polished),
+> and "auto-skip empty steps" UX (handled both by WizardShell auto-advance
+> and the per-component auto-roll/auto-commit fallback from S1, so the user
+> never sees a blank step).
 
 Goal: rewire wizard navigation around the new step IDs, make StepCharacteristics server-authoritative, remove all client-side locks. Build green + manual click-through smoke test in dev (npm run dev) end at end.
 
@@ -366,8 +375,8 @@ Short Polish message to share with players (Discord / chat). Draft:
 ## Estimated effort
 
 - ~~Sub-session 1 (5 step components): 2-3 hours.~~ ✅ DONE 2026-04-27.
-- Sub-session 2 (WizardShell + StepCharacteristics + cleanup): **3-4 hours.**
+- ~~Sub-session 2 (WizardShell + StepCharacteristics + cleanup): 3-4 hours.~~ ✅ DONE 2026-04-27.
 - Sub-session 3 (UI touches): **2-3 hours.**
 - Pre-deploy + deploy day: **1-2 hours** (mostly waiting + clicking + verification).
 
-Remaining: **6-9 hours** spread across 2-3 sessions before v2.0 lands.
+Remaining: **3-5 hours** before v2.0 lands.

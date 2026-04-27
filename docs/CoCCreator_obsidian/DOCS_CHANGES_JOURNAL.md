@@ -12,6 +12,137 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-27 — Wizard sub-session 2: routing rewrite, server-authoritative steps, store cleanup
+
+**Focus:** end-to-end wire of v2.0 granular-commits flow ([[work/v2-deploy-plan]]
+sub-session 2). After this commit the wizard runs against the new edge
+function endpoints with the new step layout — what remains is admin/dashboard
+polish (sub-session 3) and the actual deploy.
+
+**Done:**
+
+- **`src/components/wizard/WizardShell.tsx` rewrite** (+249/-60 net):
+  - New 17-step layout: invite_code, identifier, characteristics, swap, age,
+    edu, aging, luck, derived, occupation, occupation_skills, personal_skills,
+    equipment, positions_contacts, backstory, basic_info, review.
+  - `useEffect` auto-skips irrelevant hard-zone steps when `serverCharacter`
+    signals `swap_available=false` / `eduImprovementChecks=0` /
+    `physicalDeductionTotal=0`. Direction-aware (forward vs backward).
+  - Loads `serverCharacter` on mount + every step transition (single GET via
+    `playerGetCharacter`). Stored in characterStore.
+  - Reroll widget in the header (visible on hard-zone steps when
+    `rerolls_remaining > 0`); opens Polish confirmation panel listing what
+    will be wiped, then calls `playerReroll` and routes back to
+    StepCharacteristics.
+  - Removed legacy abandon button + `handleAbandon` (replaced by reroll flow).
+
+- **`src/components/wizard/StepCharacteristics.tsx` rewrite** (+200/-280 net):
+  - Server-authoritative. Dice → `playerRollCharacteristics`; point_buy/direct
+    → `playerEditCharacteristics`. Reads `characteristics_committed_at` from
+    `serverCharacter` to gate edits.
+  - Removed: `handleAbandon`, client-side `rollAll`, `characteristicsLocked`
+    check, `characteristicSwap` perk section (separate StepSwap), `Wstecz`
+    button (hard zone — back is via reroll only).
+
+- **`src/components/wizard/StepAge.tsx` simplification** (+50/-90 net):
+  - Drops `ageLocked` / `lockAge` state. Commits via `playerSetAge`, then
+    advances. Luck UI removed (moved to dedicated StepLuck). `Wstecz` removed.
+
+- **DELETED `src/components/wizard/StepAgeModifiers.tsx`** (-315 lines).
+  Replaced by StepEduRolls + StepAgingPenalties (sub-session 1) + auto-skip
+  logic in WizardShell.
+
+- **`src/components/wizard/StepEduRolls.tsx` / `StepAgingPenalties.tsx`**:
+  drop the legacy mirror calls (`setEduRolls` / `setAgeDeductions`).
+  `serverCharacter` is the source of truth; `setServerCharacter` persists it.
+
+- **`src/components/wizard/StepReview.tsx` dual-path submit**: if
+  `serverDraftId` is set (granular flow), `playerSubmitCharacter` flips
+  draft → submitted; otherwise falls back to legacy `useCharacterSubmit`
+  for any pre-v2.0 entry path. Surfaces `granularError` separately.
+
+- **`src/stores/characterStore.ts` cleanup** (+50/-65 net):
+  - NEW: `serverCharacter` field + `setServerCharacter` setter (the
+    server-authoritative snapshot wizard steps read).
+  - REMOVED: `characteristicsLocked`, `ageLocked`, `ageModifiersLocked`,
+    `characteristicSwap`, `ageDeductions`, `eduRolls`, `eduAfterRolls`
+    (and matching setters `lockCharacteristics` / `lockAge` /
+    `lockAgeModifiers` / `setAgeDeductions` / `setEduRolls`). Server commit
+    timestamps replace them.
+  - `loadForPlayerEdit` / `loadDraftForContinuation`: drop the lock fields,
+    remap edit-mode entry steps to the new numbering (lore→14 backstory,
+    standard→9 occupation, full→1 identifier). Resume from `char.draft_step`.
+  - Persist version 9 → 10 with a migrate that strips stale local fields and
+    resets `currentStep` to 0 (old step indexes are meaningless under the
+    new layout — user re-validates the invite code, then WizardShell
+    resumes from server `draft_step`).
+
+- **`src/hooks/useDraftSync.ts` review**:
+  - Strip hard-zone fields from the `/draft` payload (`characteristics`,
+    `luck`, `age`, `era`, `method`, `perks`, `max_skill_value`) — those land
+    via dedicated commit endpoints; PUT `/draft` would 400 on them after
+    Etap B tightening.
+  - Gate autosave on `currentStep >= 8` (StepDerived). Hard-zone steps own
+    their persistence via their commit endpoints.
+
+**Decisions:**
+
+- **Hard-zone "Wstecz" buttons in sub-session 1 components** (StepSwap,
+  StepEduRolls, StepAgingPenalties, StepLuck): left in place. Plan said
+  "blocked at UI level", but in practice clicking lands on a previous
+  hard-zone step that's already committed (renders read-only with only
+  "Dalej" available). No state damage. Tightening to actually hide the
+  buttons can land in sub-session 3 if we feel they confuse players.
+
+- **Edit-mode entry step remap** for new wizard layout (was 1/5/10 → now
+  1/9/14). full-edit still starts at identifier (idx 1), standard at
+  occupation (idx 9), lore at backstory (idx 14). Verified against
+  `getAllowedSteps` consumer in WizardShell — works since `allowedSteps`
+  is just `[14, 15, 16]` / `[9..16]` / `[1..16]` analogue.
+
+- **Persist version 10 migrate is destructive on currentStep**: any saved
+  step pointing at the old numbering becomes step 0 (re-validate invite
+  code). Acceptable: only Rafał has a real draft and he's submitted; the
+  rest are balast pre-deploy.
+
+- **Auto-skip is direction-aware**: WizardShell tracks `lastStepRef` so
+  going *back* through a skipped step (e.g. via reroll → back-step) hops
+  in the same direction.
+
+- **StepReview legacy fallback retained**: easier than ripping
+  `useCharacterSubmit` out today. Deletable in a follow-up after we're
+  confident every entry path goes through StepIdentifier.
+
+**Build:** `npm run build` zielone (tsc -b + vite build, 5.19s, 2078 modules).
+
+**Not done (sub-session 3):**
+- `InviteCodeManager.tsx` rewrite (full UI overhaul: label, status, rerolls,
+  cleanup button, edit modal).
+- `CharacterList.tsx` + `BasicInfoEditor.tsx` touches (code_label column,
+  rerolls_left, distinguisher read-only).
+- `PlayerDashboard.tsx` touches (assigned codes section, "Użyj kodu"
+  routing, collapsible finished section, rerolls badge).
+- Back-step modal for soft zone (currently `prevStep()` works without
+  server-side wipe — fine because `playerGoBackToStep` isn't strictly
+  required for soft moves, but a polished UX would call it explicitly).
+- Hide hard-zone "Wstecz" buttons in StepSwap/EduRolls/AgingPenalties/Luck
+  (low priority — currently harmless).
+
+**Files touched (1 commit, +522 / -736 lines):**
+- `src/components/wizard/WizardShell.tsx`
+- `src/components/wizard/StepCharacteristics.tsx`
+- `src/components/wizard/StepAge.tsx`
+- `src/components/wizard/StepAgeModifiers.tsx` (DELETED)
+- `src/components/wizard/StepEduRolls.tsx`
+- `src/components/wizard/StepAgingPenalties.tsx`
+- `src/components/wizard/StepReview.tsx`
+- `src/stores/characterStore.ts`
+- `src/hooks/useDraftSync.ts`
+
+**Commit:** `e6a8fff`. **No git push** — gated on rest of v2.0 punch list.
+
+---
+
 ## 2026-04-27 — Wizard sub-session 1 + skip-swap endpoint
 
 **Focus:** first frontend sub-session of v2.0 deploy plan

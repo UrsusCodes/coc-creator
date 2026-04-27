@@ -30,7 +30,8 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] **Player endpoints — Etap B** (`fb500cc`): TIGHTEN /draft (strict allowlist), NEW /go-back-to-step, /distinguisher, /narrative, /submit. +327 lines.
 - [x] **Admin endpoint tightening — Etap C** (`53a2674`): /pending-edits/:id/approve allowlist (blocks mechanical pre-occupation fields). +85 lines.
 - [x] **Client lib + types** (`dffe4d2`): 12 new player wrappers + 3 admin wrappers (grantReroll, updateInviteCode, cleanupCodes) + 5 new types (EduRoll, RerollHistoryEntry, SoftZoneStep, AgingDeductions, NarrativeFields) + 8 fields added to CharacterData. +342 lines. Build green.
-- [x] **Wizard sub-session 1 — 5 new step components + slim StepInviteCode + /skip-swap** (`e5043eb`): NEW StepIdentifier, StepSwap, StepEduRolls, StepAgingPenalties, StepLuck (all server-authoritative, mirror updated fields into legacy store fields for compatibility); slimmed StepInviteCode (dropped method picker → moved to StepIdentifier); NEW edge endpoint `POST /skip-swap` + `playerSkipSwap` wrapper. +1018 lines. Build green. **Components NOT YET wired into WizardShell — sub-session 2 will do routing.**
+- [x] **Wizard sub-session 1 — 5 new step components + slim StepInviteCode + /skip-swap** (`e5043eb`): NEW StepIdentifier, StepSwap, StepEduRolls, StepAgingPenalties, StepLuck (all server-authoritative, mirror updated fields into legacy store fields for compatibility); slimmed StepInviteCode (dropped method picker → moved to StepIdentifier); NEW edge endpoint `POST /skip-swap` + `playerSkipSwap` wrapper. +1018 lines. Build green.
+- [x] **Wizard sub-session 2 — routing rewrite, server-authoritative steps, store cleanup** (`e6a8fff`): WizardShell rewrite (17-step layout + conditional skips swap/edu/aging + reroll widget + serverCharacter loading); StepCharacteristics rewrite (server-authoritative dice/point_buy/direct, no locks); StepAge simplified (drop ageLocked, use playerSetAge); DELETED StepAgeModifiers; characterStore cleanup (removed all locks + characteristicSwap/ageDeductions/eduRolls fields, persist v9→v10 migrate); useDraftSync gated to soft zone (currentStep≥8); StepReview dual-path submit (granular playerSubmitCharacter + legacy fallback). +522/-736 lines. Build green.
 
 ### Outstanding for v2.0 release
 
@@ -46,12 +47,12 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] ~~`StepInviteCode.tsx` (slim)~~ — dropped method picker (moved to StepIdentifier). Kept code + validate + resume + submitted-display.
 - [x] ~~Decision: skip-swap UX~~ → **dedicated `/skip-swap` endpoint** (cleaner UX, ~30 lines edge fn). NEW `POST /characters/:id/skip-swap` + `playerSkipSwap` wrapper.
 
-**Wizard rewrite (sub-session 2):**
-- [ ] **`StepCharacteristics.tsx` rewrite** — server-authoritative. Use `playerRollCharacteristics` (dice) or `playerEditCharacteristics` (point_buy/direct). Remove `handleAbandon`, client-side `rollAll`, client locks (`characteristicsLocked`).
-- [ ] **`WizardShell.tsx` routing** — new hard-zone step order: invite_code → identifier → characteristics → swap → age → edu_improvement → aging_penalties → luck → derived → occupation → ... Conditional skip: swap (if !swap_available), edu_improvement (if requiredRolls=0), aging_penalties (if deductionPoints=0). Resume at `draft_step` from server. Reroll button global on hard zone. Back-step confirmation modal in soft zone (lists what will be wiped).
-- [ ] **DELETE `StepAgeModifiers.tsx`** — split into EduRolls + AgingPenalties.
-- [ ] **Cleanup `characterStore.ts`** — remove `characteristicsLocked`, `ageLocked`, `ageModifiersLocked` flags. `eduRolls` becomes server-synced. Swap state from server.
-- [ ] **`useDraftSync.ts`** — narrative-only autosave on post-submit characters (not all fields).
+**Wizard rewrite (sub-session 2) — DONE 2026-04-27:**
+- [x] ~~`StepCharacteristics.tsx` rewrite~~ — server-authoritative. Dice/point_buy/direct paths. Removed handleAbandon, rollAll, characteristicsLocked. Reroll button moved to WizardShell footer.
+- [x] ~~`WizardShell.tsx` routing~~ — 17-step layout with new hard-zone order. Conditional auto-skip via useEffect on serverCharacter (swap if !swap_available, edu/aging if mods.x===0). Resume from server `draft_step` via existing `loadDraftForContinuation` (now points at new step indexes). Reroll widget visible on hard zone. **Note: back-step confirmation modal for soft zone deferred to S3** — soft `prevStep()` works without server-side wipe, fine for now.
+- [x] ~~DELETE `StepAgeModifiers.tsx`~~ — split into EduRolls + AgingPenalties (both already in S1).
+- [x] ~~Cleanup `characterStore.ts`~~ — removed characteristicsLocked, ageLocked, ageModifiersLocked, characteristicSwap, ageDeductions, eduRolls, eduAfterRolls + setters. NEW serverCharacter field + setter. Persist v9→v10 with migrate that strips stale fields and resets currentStep.
+- [x] ~~`useDraftSync.ts`~~ — gated to soft zone (currentStep≥8); strips hard-zone fields from /draft payload (characteristics/luck/age/era/method/perks/max_skill_value).
 
 **Wizard rewrite (sub-session 3) + admin/UI touches:**
 - [ ] **`StepEquipment.tsx` reorder** — majątek section above ekwipunek section (bundle stays, just internal order).
