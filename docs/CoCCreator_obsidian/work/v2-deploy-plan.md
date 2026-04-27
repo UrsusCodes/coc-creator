@@ -1,6 +1,6 @@
 ---
 date: 2026-04-27
-status: active
+status: done
 tags:
   - plan
   - v2
@@ -8,6 +8,11 @@ tags:
 ---
 
 # CoC Creator v2.0 — execution plan to deploy
+
+> [!success] **DEPLOYED 2026-04-27 19:29 UTC** (commit `87340ce`)
+> Edge functions live (admin v15, player v14). Frontend pushed (24 commits,
+> Vercel auto-deploy). DB cleaned up + Rafał draft remapped. Verify 23/23 OK.
+> Outstanding: user browser smoke test + optional player Discord message.
 
 Complete punch list from "everything currently in repo" to "v2.0 live on prod with smoke test passed". Every remaining task. Authored 2026-04-27 after backend (migrations + edge functions + client lib) finished local-only.
 

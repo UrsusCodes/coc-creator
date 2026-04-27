@@ -22,11 +22,18 @@ A Polish-language web application for creating Call of Cthulhu (7e) player chara
 
 ## Current status (2026-04-27)
 
-**v2.0 in flight — full stack complete in repo (backend + client lib + wizard + admin/player UI), only deploy day remains.** Plan v2 from `~/.claude/plans/granular-commits-v2.md` is materialized end-to-end: all 4 migrations (016/017/018/019) **applied to live DB** 2026-04-26 with 31/31 verify OK and Rafał's draft auto-backfilled. All edge function endpoints written (Etap A/B/C — `3ac51b3` `fb500cc` `53a2674`). Client lib + types (`dffe4d2`). **Wizard sub-sessions done 2026-04-27**: S1 (`e5043eb`) — 5 new step components + slim StepInviteCode + `/skip-swap`; S2 (`e6a8fff`) — WizardShell routing rewrite + StepCharacteristics/StepAge rewrites + StepAgeModifiers DELETED + characterStore cleanup + useDraftSync gating + StepReview dual-path submit; S3 (`e3e3a57`) — InviteCodeManager full rewrite + CharacterList/BasicInfoEditor/PlayerDashboard touches.
+**v2.0 LIVE — granular commits rework deployed to production 2026-04-27.** Plan v2 from `~/.claude/plans/granular-commits-v2.md` is fully realized: migrations 016/017/018/019 applied 2026-04-26; edge functions Etap A/B/C committed (`3ac51b3` `fb500cc` `53a2674`); client lib + types (`dffe4d2`); wizard S1 (`e5043eb`) + S2 (`e6a8fff`) + S3 (`e3e3a57`); deploy day commit `87340ce`.
 
-**Production still serves v1 code** — edge functions on prod remain v14/v13 from 2026-03-21, frontend last deployed before that. New DB columns are invisible to old endpoints (additive schema). Players see no change; the entire v2.0 stack is dark-launched.
+**Production runs v2.0**:
+- Edge functions: `admin` v15 (2026-04-27 19:29 UTC), `player` v14 (2026-04-27 19:29 UTC).
+- Frontend pushed (`git push origin master`, 24 commits) → Vercel auto-deployed `f6c447e`.
+- DB state: 23 chars (1 active draft = Rafał on `7d54eec4` step 14 = StepBackstory; 22 submitted). Post-deploy verify 23/23 OK, zero drift vs pre-v2-deploy baseline.
 
-**Outstanding for v2.0 release:** balast cleanup (8 abandoned drafts), pre-deploy snapshot, edge function deploy, frontend `git push` (auto-deploys), smoke test endpoint matrix. Master plan: [[work/v2-deploy-plan]]. **Estimated 1-2 hours of deploy day work remains.**
+**Outstanding** (light-touch):
+- User browser smoke test (admin login → InviteCodeManager / char list; Rafał login → "Kontynuuj" lands on StepBackstory).
+- Optional Polish message to player group about the rework.
+- Eventually: migration 020 to drop `invite_codes.max_tries` (deferred — replaced by `reroll_budget` but `max_tries` still in codebase).
+- Eventually: `git remote set-url origin https://github.com/UrsusCodes/coc-creator.git` (remote moved per push warning).
 
 **Critical constraint:** any `git push` to origin auto-deploys frontend. Frontend changes already committed (sessions/distinguisher/F1) reference endpoints that aren't deployed. **No push until edge functions + remaining frontend are all ready as one big-bang release.**
 
@@ -101,6 +108,7 @@ Summary of what's **standard** vs **modified** vs **custom**:
 
 Low-frequency, durable decisions. Implementation-level decisions go in [[DOCS_CHANGES_JOURNAL]] per session.
 
+- **2026-04-27** — **v2.0 deployed to production** (`87340ce`). Edge functions admin v14→v15, player v13→v14 (19:29 UTC). 24-commit push to origin/master = Vercel auto-deploy. Pre-deploy: 8 balast drafts deleted, Rafał's `7d54eec4` draft_step remapped 10→14 via new `scripts/migrate-draft-step-v1-to-v2.mjs` (one-shot tool). Post-deploy verify: 23/23 OK, zero drift. New DB row count 137 (was 145 before balast). Migration script kept in git for audit. Cold-start 503 on first `/admin/ping` then 200 — known transient pattern after Deno deploys.
 - **2026-04-27** — Wizard sub-session 3 done (`e3e3a57`): InviteCodeManager full rewrite (label/reroll_budget/lifecycle status filter/cleanup preview/in-place edit/+1 reroll); CharacterList gets code label + rerolls badges via parallel join; BasicInfoEditor distinguisher → read-only with helper note; PlayerDashboard codes section gains status/distinguisher/rerolls badges, "Użyj kodu" routes to "Kontynuuj" for in-flight drafts, characters split into drafts + collapsible finished. Lifecycle status (`unused`/`started`/`finished`) derived client-side from joined character — no schema churn.
 - **2026-04-27** — Wizard sub-session 2 done (`e6a8fff`): WizardShell rewrite to 17-step layout with auto-skip for swap/edu/aging based on `serverCharacter`; reroll widget in header; StepCharacteristics + StepAge rewrites (server-authoritative, no locks); StepAgeModifiers deleted; characterStore cleanup (removed locks/scratch fields, persist v9→v10 with destructive currentStep reset); useDraftSync gated to soft zone (currentStep≥8) and stripped of hard-zone fields; StepReview dual-path submit (granular `playerSubmitCharacter` if `serverDraftId`, legacy fallback otherwise). Edit-mode entry steps remapped: lore→14, standard→9, full→1.
 - **2026-04-27** — Wizard sub-session 1 done (`e5043eb`): 5 new server-authoritative step components (Identifier/Swap/EduRolls/AgingPenalties/Luck), slim StepInviteCode, NEW `/skip-swap` edge endpoint + wrapper. Build green; not yet wired into WizardShell. Skip-swap UX decided in favor of dedicated endpoint (over `/set-age` 409 forcing) — cleaner UX with explicit "Pomiń zamianę" click.

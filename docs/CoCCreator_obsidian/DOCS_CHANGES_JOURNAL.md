@@ -12,6 +12,156 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-27 — v2.0 deployed to production
+
+**Focus:** deploy day for the granular-commits rework. Edge functions
+deployed to live (admin v14→v15, player v13→v14), frontend pushed (24
+commits to origin/master), DB cleaned up + Rafał's draft remapped to the
+new step numbering.
+
+**Done (chronological):**
+
+1. **list-drafts (read-only sanity)** — confirmed 31 chars (9 drafts incl.
+   1 active = Rafał's `7d54eec4` step 10, 8 balast).
+
+2. **Snapshot pre-v2** (admin-API JSON) — `backups/2026-04-27-pre-v2/`
+   sha256 `56db2b85…` (31 chars · 59 codes · 1 pending edits).
+
+3. **pgdump pre-v2** (gitignored, contains bcrypt hashes) —
+   `backups/2026-04-27-pre-v2-pgdump/` sha256 `963a6b5e…` (matches the
+   2026-04-26 post-019 dump → DB unchanged since migrations).
+
+4. **Inspected Rafał's draft 7d54eec4** — characteristics committed,
+   age 27, occupation `okultysta`, skills + main_position +
+   contacts_v2 + equipment populated; backstory empty; distinguisher
+   empty; `swap_available=false`; all hard-zone commit timestamps
+   already backfilled by migration 019. Step 10 in v1 numbering =
+   `StepBackstory`.
+
+5. **Balast cleanup** — DELETE 8 chars via admin endpoint
+   `DELETE /admin/characters/:id` (all returned HTTP 200):
+   - `1d172a84` Superbase_trigger
+   - `cf2487f1` test
+   - `6fd1af43`, `a3f36e7a`, `0fdc9f5b` — 3× "Nowa postać" unassigned
+   - `e3cc702f`, `7f610d4c`, `785ff771` — 3× Rafał abandoned
+
+6. **draft_step v1→v2 remap** — wrote one-shot tool
+   `scripts/migrate-draft-step-v1-to-v2.mjs` with explicit mapping
+   table (1→2, 2→4, 3→7, 4→8, 5→9, 6→10, 7→11, 8→12, 9→13, 10→14,
+   11→15, 12→16). Dry-run printed plan, `--execute` applied via admin
+   `PUT /characters/:id`. Result: only Rafał's `7d54eec4` had a
+   non-null `draft_step` after balast cleanup → `10 → 14`
+   (StepBackstory in the new layout, exactly where he should resume).
+
+7. **Snapshot post-cleanup** —
+   `backups/2026-04-27-pre-v2-deploy/` sha256 `4a83e90e…` (23 chars ·
+   59 codes · 1 pending edits). Used as the baseline for post-deploy
+   verify.
+
+8. **Edge function deploys**:
+   ```
+   npx supabase functions deploy admin player --project-ref okbrsoomtomexilxxsyd
+   ```
+   Verified via `supabase functions list`:
+   - `admin`  v15  ACTIVE  2026-04-27 19:29:14 UTC
+   - `player` v14  ACTIVE  2026-04-27 19:29:31 UTC
+
+9. **Curl smoke tests** (all passed — see commit message for full matrix):
+   - admin auth gate (200 with right pass, 401 with wrong, ping cold-start
+     503 once then 200).
+   - admin `/codes` 200 + 59, `/characters` 200 + 23 (1+22),
+     `/codes/cleanup` dry_run 200 + 38 to_delete (NEW Etap C endpoint OK).
+   - all 6 NEW player endpoints (skip-swap, roll-characteristics, set-age,
+     roll-edu, roll-luck, submit) returned 401 without token = routes
+     loaded, auth gate active. Would 404 if not deployed.
+
+10. **`git push origin master`** — 24 commits pushed
+    (`68a9bcb..f6c447e`), Vercel/Netlify auto-deployed. Remote warned
+    "repository moved" to `UrsusCodes/coc-creator` — informational only,
+    push succeeded; remote URL update for next session if desired:
+    `git remote set-url origin https://github.com/UrsusCodes/coc-creator.git`.
+
+11. **Post-deploy verify**:
+    - `snapshot-characters.mjs --tag post-v2-deploy` → sha256
+      `4a83e90e…` IDENTICAL to `pre-v2-deploy` (zero drift, expected —
+      no traffic landed before the snapshot).
+    - `pg-dump-all.mjs --tag post-v2-pgdump` (gitignored) → sha256
+      `db94d5aa…`, 137 rows (8 fewer than pre-v2-pgdump → balast
+      cleanup confirmed at row level).
+    - `verify-characters-post-migration.mjs --snapshot
+      backups/2026-04-27-pre-v2-deploy` → 23/23 OK.
+
+12. **Commit `87340ce`** — staged and committed: migration script,
+    pre-v2 snapshot, pre-v2-deploy snapshot, post-v2-deploy snapshot.
+    pgdump backups remain gitignored (bcrypt + tokens).
+
+**Decisions:**
+
+- **Rafał's draft preserved end-to-end across the deploy.** Migration
+  019 backfilled all hard-zone commit timestamps on 2026-04-26 (because
+  his age + occupation are populated, the DO block conditions matched).
+  All this deploy needed to do was remap his `draft_step` from v1
+  numbering (10 = backstory) to v2 numbering (14 = backstory). After
+  deploy, `loadDraftForContinuation` reads `draft_step=14` and
+  WizardShell lands him on StepBackstory directly — no replay, no data
+  loss.
+
+- **Distinguisher left empty across all 23 chars** (was already empty
+  on every char in v1; migration 018 added the column with default ''
+  and the partial unique index ignores empty strings). Rafał will see
+  empty distinguisher when he resumes; he can fill it via the player
+  flow if he chooses, or leave it (`/distinguisher` PUT works
+  anytime). Submitted chars (22) keep empty distinguisher; admin
+  `BasicInfoEditor` shows "—" with helper note explaining player
+  ownership; players can set their own via `playerUpdateDistinguisher`
+  later if desired.
+
+- **Reroll budget unchanged on existing chars.** Migration 018
+  backfilled `reroll_budget = max(0, max_tries - 1)` for all 59 codes;
+  legacy 1-try codes get 0 rerolls. Future codes use the new form
+  field directly.
+
+- **Migration script kept in git** — `scripts/migrate-draft-step-v1-to-v2.mjs`
+  is one-shot but useful as audit / pattern for similar future remaps.
+  Idempotent against current DB state (no v1-numbered drafts left).
+
+- **`/admin/ping` cold-start 503**: first request after deploy hit
+  Deno's cold start + service initialization. Retry was 200; subsequent
+  requests fine. Worth knowing: first user request after a deploy may
+  see this. Acceptable transient.
+
+- **Repo remote shows "moved"**: GitHub redirect from
+  `storagestation2023/coc-creator` to `UrsusCodes/coc-creator`. Push
+  goes through transparently. Optional cleanup deferred.
+
+**Files (1 commit, +36707 / -0 lines, mostly snapshot JSON):**
+- `scripts/migrate-draft-step-v1-to-v2.mjs` (NEW, +140).
+- `backups/2026-04-27-pre-v2/**` (NEW, snapshot).
+- `backups/2026-04-27-pre-v2-deploy/**` (NEW, baseline for verify).
+- `backups/2026-04-27-post-v2-deploy/**` (NEW, post-deploy snapshot).
+
+**Edge functions live (production):**
+- `admin` v15 → 2026-04-27 19:29:14 UTC.
+- `player` v14 → 2026-04-27 19:29:31 UTC.
+
+**Frontend live:** Vercel/Netlify deployed `f6c447e` automatically after
+push.
+
+**Outstanding (user-side smoke):**
+- Login admin → InviteCodeManager renders + edit/cleanup work.
+- Login Rafał → "Kontynuuj tworzenie" lands on StepBackstory; finish
+  backstory + basic_info + review → submit flips draft → submitted via
+  `playerSubmitCharacter`.
+- Optional player communication (Polish message draft in
+  [[work/v2-deploy-plan#PT.2 — Player communication]]).
+
+**Commit:** `87340ce` "Deploy v2.0 to production: edge functions live +
+frontend pushed".
+
+**Status:** v2.0 LIVE.
+
+---
+
 ## 2026-04-27 — Wizard sub-session 3: admin + player UI for granular-commits
 
 **Focus:** finalize the v2.0 frontend by exposing the new code-identity rework

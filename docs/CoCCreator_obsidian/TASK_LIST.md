@@ -13,12 +13,16 @@ Active work, backlog, and known bugs for CoC Creator.
 > [!note]
 > Completed work from the previous iteration is preserved in `docs/TASKLIST.md` (legacy, read-only). New completions go into [[DOCS_CHANGES_JOURNAL]] with a date, then get checked off here.
 
-## In progress — v2.0 deploy (granular commits rework)
+## ✅ v2.0 LIVE — granular commits rework deployed 2026-04-27
 
-> [!success] Backend complete
-> All migrations applied to live DB (016/017/018/019). All edge function endpoints written and committed locally. Client lib + types written. Build green. **Frontend wizard rewrite + deploy remains.**
+> [!success] v2.0 deployed to production 2026-04-27 19:29 UTC
+> Edge functions: admin v15, player v14. Frontend pushed (commit `f6c447e`,
+> Vercel auto-deploy). DB cleaned up (-8 balast drafts), Rafał's
+> `7d54eec4` draft_step remapped 10 → 14 (StepBackstory ready for resume).
+> Post-deploy verify: 23/23 OK. Deploy commit: `87340ce`.
 >
-> Master plan with full execution steps: [[work/v2-deploy-plan]]
+> Outstanding: user browser smoke test + optional player Discord message.
+> See [[DOCS_CHANGES_JOURNAL#2026-04-27 — v2.0 deployed to production]].
 
 ### Done (in repo, not yet deployed)
 
@@ -61,22 +65,22 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] ~~`CharacterList.tsx` + `BasicInfoEditor.tsx`~~ — code_label badge (parallel fetch+join), rerolls_remaining badge with sparkles icon. BasicInfoEditor: distinguisher read-only with helper note explaining player ownership.
 - [x] ~~`PlayerDashboard.tsx`~~ — codes section shows label/status/distinguisher/rerolls badges; "Użyj kodu" routes to "Kontynuuj" via `handleContinueDraft` when an in-flight draft exists for the code; characters split into drafts (always visible) + collapsible "Zakończone postacie"; rerolls_left badge on draft cards.
 
-**Pre-deploy cleanup:**
-- [ ] **Rafał check** — `node scripts/list-drafts.mjs` → confirm `7d54eec4` is `submitted` OR user accepts wipe. (NB: `e1cd6edf` is already submitted — Herbert West.)
-- [ ] **Balast cleanup** — 8 abandoned/test drafts to delete before deploy. List: `1d172a84` (Superbase_trigger), `cf2487f1` (test), `6fd1af43`/`a3f36e7a`/`0fdc9f5b` (Nowa postać unassigned), `e3cc702f`/`7f610d4c` (Rafał step 1 abandoned), `785ff771` (Rafał step 5 unnamed). Use `scripts/cleanup_legacy_codes.sql` (preview first, then delete) or new `scripts/cleanup-abandoned-drafts.mjs`.
-- [ ] **Final pre-deploy snapshot** — `ADMIN_PASSWORD=… node scripts/snapshot-characters.mjs --tag pre-v2` + `node scripts/pg-dump-all.mjs --tag pre-v2-pgdump`.
+**Pre-deploy cleanup — DONE 2026-04-27:**
+- [x] ~~Rafał check~~ — `7d54eec4` confirmed at draft_step 10 (active in v1 numbering = StepBackstory). draft_step migrated 10 → 14 to land on StepBackstory in v2 layout.
+- [x] ~~Balast cleanup~~ — 8 abandoned/test drafts deleted via admin `DELETE /characters/:id` (all HTTP 200).
+- [x] ~~Final pre-deploy snapshot~~ — `backups/2026-04-27-pre-v2/` (sha256 `56db2b85…`) + `backups/2026-04-27-pre-v2-pgdump/` (sha256 `963a6b5e…`, gitignored). Plus post-cleanup `backups/2026-04-27-pre-v2-deploy/` (sha256 `4a83e90e…`) used as verify baseline.
 
-**Deploy:**
-- [ ] **Build verify** — `npm run build` green.
-- [ ] **Edge functions deploy** — `npx supabase functions deploy admin player --project-ref okbrsoomtomexilxxsyd`. Verify v15+/v14+ in `npx supabase functions list`.
-- [ ] **Smoke test edge functions** — curl each new endpoint with a test player token; expect 200/4xx as appropriate. Cataloged in [[work/v2-deploy-plan#smoke-test-endpoint-matrix]].
-- [ ] **Frontend push** — `git push origin master`. Triggers Vercel/Netlify auto-deploy.
-- [ ] **Frontend smoke test** — admin login OK, player login OK, view existing char OK, create new char end-to-end on test code.
-- [ ] **Verify post-deploy** — pgdump again, diff vs pre-v2 baseline. New mechanical fields on test char only. No drift on production chars.
+**Deploy — DONE 2026-04-27:**
+- [x] ~~Build verify~~ — `npm run build` green throughout S1/S2/S3.
+- [x] ~~Edge functions deploy~~ — `admin` v15 (2026-04-27 19:29:14 UTC), `player` v14 (2026-04-27 19:29:31 UTC).
+- [x] ~~Smoke test edge functions~~ — admin auth gate + 5 endpointów; player auth + all 6 NEW endpoints (skip-swap, roll-characteristics, set-age, roll-edu, roll-luck, submit) returned 401 without token = routes loaded.
+- [x] ~~Frontend push~~ — `git push origin master` (24 commits `68a9bcb..f6c447e`), Vercel auto-deploy. Note: remote shows "moved" to `UrsusCodes/coc-creator` — informational, push works fine.
+- [ ] **Frontend browser smoke test** (USER) — admin login → InviteCodeManager + char list; Rafał login → "Kontynuuj" lands on StepBackstory.
+- [x] ~~Verify post-deploy~~ — `verify-characters-post-migration.mjs --snapshot backups/2026-04-27-pre-v2-deploy` → 23/23 OK. Snapshot post-v2-deploy identyczny payload sha256 (zero drift).
 
 **Post-deploy:**
 - [ ] **Update spec** — `docs/CoCCreator_obsidian/specs/code_identity_rework_spec.md` → frontmatter `status: implemented`, body diff vs plan v2 if any divergences.
-- [ ] **Player communication** — write a short Polish message to share group: "system się zmienił, wasze postaci są nietknięte, drobne UI inaczej, dajcie znać jak coś". Optional but nice — players hit a re-rolled flow at next character creation.
+- [ ] **Player communication** — write a short Polish message to share group. Draft in [[work/v2-deploy-plan#PT.2 — Player communication]]. Optional but nice.
 - [ ] **Follow-up migration 020** (deferred) — drop `invite_codes.max_tries` once edge functions no longer read it. Confirm by grep `max_tries` in `supabase/functions/`.
 
 ### Open items to verify during execution
