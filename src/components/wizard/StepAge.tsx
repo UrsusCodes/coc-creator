@@ -8,8 +8,15 @@ import { getAgeModifications } from '@/lib/ageModifiers'
 import { playerSetAge } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { NumberInput } from '@/components/ui/NumberInput'
 import { Badge } from '@/components/ui/Badge'
+
+const AGE_MIN = 15
+const AGE_MAX = 89
+
+function clampAge(n: number): number {
+  if (Number.isNaN(n)) return AGE_MIN
+  return Math.max(AGE_MIN, Math.min(AGE_MAX, n))
+}
 
 export function StepAge() {
   const store = useCharacterStore()
@@ -22,12 +29,15 @@ export function StepAge() {
   const committedAge = serverCharacter?.age ?? null
   const isCommitted = !!serverCharacter?.age_committed_at
 
-  const [age, setAge] = useState<number>(committedAge ?? store.age ?? 25)
+  const [age, setAgeState] = useState<number>(clampAge(committedAge ?? store.age ?? 25))
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const setAge = (next: number) => setAgeState(clampAge(next))
+  const bump = (delta: number) => setAge(age + delta)
+
   useEffect(() => {
-    if (committedAge != null) setAge(committedAge)
+    if (committedAge != null) setAgeState(clampAge(committedAge))
   }, [committedAge])
 
   const young = isYoungCharacter(age)
@@ -102,7 +112,62 @@ export function StepAge() {
             Wiek wpływa na rzuty na poprawę WYK, obniżenia wiekowe i sposób wyznaczania szczęścia.
           </p>
         )}
-        <NumberInput value={age} onChange={setAge} min={15} max={89} disabled={isCommitted} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => bump(-5)}
+            disabled={isCommitted || age <= AGE_MIN}
+            className="px-3 py-1.5 text-sm font-mono bg-coc-surface-light border border-coc-border rounded-lg hover:bg-coc-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            title="Odejmij 5 lat"
+          >
+            −5
+          </button>
+          <button
+            type="button"
+            onClick={() => bump(-1)}
+            disabled={isCommitted || age <= AGE_MIN}
+            className="px-3 py-1.5 text-sm font-mono bg-coc-surface-light border border-coc-border rounded-lg hover:bg-coc-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            title="Odejmij 1 rok"
+          >
+            −1
+          </button>
+          <input
+            type="number"
+            value={age}
+            onChange={(e) => {
+              const raw = e.target.value
+              if (raw === '') return
+              setAge(parseInt(raw, 10))
+            }}
+            onBlur={(e) => {
+              // On blur, force a clamp so any temporary out-of-range typing
+              // (e.g. while clearing the field) snaps back into bounds.
+              setAge(parseInt(e.target.value, 10))
+            }}
+            min={AGE_MIN}
+            max={AGE_MAX}
+            disabled={isCommitted}
+            className="w-20 text-center px-2 py-1.5 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text font-mono text-lg focus:outline-none focus:border-coc-accent-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <button
+            type="button"
+            onClick={() => bump(1)}
+            disabled={isCommitted || age >= AGE_MAX}
+            className="px-3 py-1.5 text-sm font-mono bg-coc-surface-light border border-coc-border rounded-lg hover:bg-coc-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            title="Dodaj 1 rok"
+          >
+            +1
+          </button>
+          <button
+            type="button"
+            onClick={() => bump(5)}
+            disabled={isCommitted || age >= AGE_MAX}
+            className="px-3 py-1.5 text-sm font-mono bg-coc-surface-light border border-coc-border rounded-lg hover:bg-coc-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            title="Dodaj 5 lat"
+          >
+            +5
+          </button>
+        </div>
       </div>
 
       {/* Age effects preview */}
