@@ -42,6 +42,8 @@ export interface CharacterSheetData {
   method: string
   status: string
   player_name?: string
+  residence?: string
+  birthplace?: string
   invite_code?: string
   admin_notes?: string
   main_position?: MainPosition | null

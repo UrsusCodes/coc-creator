@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { ArrowLeft, Save, Loader2, Pencil, X, Clock, CheckCircle, XCircle, Crop, MessageSquarePlus, Trash2 } from 'lucide-react'
 import { usePlayerStore } from '@/stores/playerStore'
 import {
-  playerProposeEdit, playerGetPending, playerCancelPending,
+  playerGetPending, playerCancelPending,
   playerSelectPortrait, playerSubmitPortraitFeedback,
   playerGetPortraitFeedback, playerDeletePortraitFeedback,
+  playerUpdateNarrative, playerUpdateDistinguisher,
 } from '@/lib/player'
-import { getSkillBase } from '@/data/skills'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -15,14 +15,9 @@ import { ExportButtons } from '@/components/shared/ExportButtons'
 import { PortraitUpload } from '@/components/shared/PortraitUpload'
 import { PortraitCropModal } from './PortraitCropModal'
 import { PortraitFeedbackModal } from './PortraitFeedbackModal'
-import { BasicInfoEditor } from '@/components/admin/edit/BasicInfoEditor'
-import { CharacteristicsEditor } from '@/components/admin/edit/CharacteristicsEditor'
-import { DerivedEditor } from '@/components/admin/edit/DerivedEditor'
-import { SkillsEditor } from '@/components/admin/edit/SkillsEditor'
+import { NarrativeEditor } from './NarrativeEditor'
 import { BackstoryEditor } from '@/components/admin/edit/BackstoryEditor'
-import { EquipmentEditor } from '@/components/admin/edit/EquipmentEditor'
-import { SessionsEditor } from '@/components/admin/edit/SessionsEditor'
-import type { PortraitCropData, PortraitFeedback } from '@/types/character'
+import type { Backstory, NarrativeFields, PortraitCropData, PortraitFeedback } from '@/types/character'
 
 interface PendingEdit {
   id: string
@@ -44,7 +39,6 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
 
   const [editMode, setEditMode] = useState(false)
   const [editData, setEditData] = useState<CharacterSheetData>(structuredClone(char))
-  const [changeComment, setChangeComment] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -71,34 +65,6 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
     setEditData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleCharacteristicChange = (key: string, value: number) => {
-    setEditData((prev) => ({
-      ...prev,
-      characteristics: { ...prev.characteristics, [key]: value },
-    }))
-  }
-
-  const handleDerivedChange = (field: string, value: number | string) => {
-    setEditData((prev) => ({
-      ...prev,
-      derived: { ...prev.derived, [field]: value },
-    }))
-  }
-
-  const handleSkillChange = (skillId: string, totalValue: number) => {
-    const base = getSkillBase(skillId)
-    let baseVal: number
-    if (base === 'half_dex') baseVal = Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
-    else if (base === 'edu') baseVal = editData.characteristics['EDU'] ?? 0
-    else baseVal = base
-    const points = Math.max(0, totalValue - baseVal)
-    setEditData((prev) => ({
-      ...prev,
-      occupation_skill_points: { ...prev.occupation_skill_points, [skillId]: points },
-      personal_skill_points: { ...prev.personal_skill_points },
-    }))
-  }
-
   const handleBackstoryChange = (key: string, value: unknown) => {
     setEditData((prev) => ({
       ...prev,
@@ -106,22 +72,50 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
     }))
   }
 
-  // ── Submit as proposed edit ────────────────────────────────────
+  // ── Save narrative + distinguisher (direct, no admin approval) ──
 
-  const handleSubmitProposal = async () => {
+  const handleSaveNarrative = async () => {
     if (!token) return
     setSaving(true)
     setError(null)
 
     try {
-      const result = await playerProposeEdit(token, char.id, editData as unknown as Record<string, unknown>, changeComment)
-      setPending(result)
+      // Distinguisher writes through its own endpoint (player-owned anytime).
+      const distChanged = (editData.distinguisher ?? '').trim() !== (char.distinguisher ?? '').trim()
+      if (distChanged) {
+        const next = (editData.distinguisher ?? '').trim()
+        if (next.length < 3 || next.length > 60) {
+          setError('Identyfikator musi mieć od 3 do 60 znaków.')
+          setSaving(false)
+          return
+        }
+        await playerUpdateDistinguisher(token, char.id, next)
+      }
+
+      // Narrative payload — backend allowlist accepts only this set.
+      const narrative: NarrativeFields = {
+        name: editData.name,
+        appearance: editData.appearance,
+        residence: editData.residence,
+        birthplace: editData.birthplace,
+        player_name: editData.player_name,
+        gender: editData.gender,
+        backstory: editData.backstory as unknown as Backstory,
+      }
+      await playerUpdateNarrative(token, char.id, narrative)
+
+      // Reflect server truth back into the parent list view.
+      onUpdate?.({
+        id: char.id,
+        ...narrative,
+        distinguisher: distChanged ? (editData.distinguisher ?? '').trim() : char.distinguisher,
+      } as Partial<CharacterSheetData> & { id: string })
+
       setEditMode(false)
-      setChangeComment('')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Błąd wysyłania propozycji')
+      setError(err instanceof Error ? err.message : 'Błąd zapisu fabuły')
     } finally {
       setSaving(false)
     }
@@ -139,12 +133,9 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
 
   const handleCancel = () => {
     setEditData(structuredClone(char))
-    setChangeComment('')
     setEditMode(false)
     setError(null)
   }
-
-  const hasPendingEdit = pending?.status === 'pending'
 
   return (
     <div className="space-y-4">
@@ -153,9 +144,9 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
           <ArrowLeft className="w-4 h-4" /> Wróć do listy
         </Button>
         <div className="flex items-center gap-2">
-          {!editMode && !hasPendingEdit && (
+          {!editMode && (
             <Button variant="secondary" size="sm" onClick={() => setEditMode(true)}>
-              <Pencil className="w-3.5 h-3.5" /> Zaproponuj zmiany
+              <Pencil className="w-3.5 h-3.5" /> Edytuj fabułę
             </Button>
           )}
           {editMode && (
@@ -222,63 +213,35 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
 
         {editMode ? (
           <div className="space-y-6">
-            <div className="p-3 bg-yellow-900/20 border border-yellow-700/30 rounded-lg text-sm text-yellow-200">
-              Edytujesz propozycję zmian. Po wysłaniu Strażnik Tajemnic będzie musiał ją zatwierdzić.
+            <div className="p-3 bg-coc-accent/10 border border-coc-accent/30 rounded-lg text-sm text-coc-accent-light">
+              Edytujesz dane narracyjne (imię, identyfikator, miejsce, wygląd, fabułę).
+              Zmiany zapisują się od razu — bez akceptacji Strażnika Tajemnic.
+              Aby zmienić cechy / umiejętności / ekwipunek, poproś Strażnika Tajemnic o
+              uprawnienie do edycji.
             </div>
 
-            <BasicInfoEditor
+            <NarrativeEditor
               data={editData}
               onChange={(field, value) => handleFieldChange(field, value)}
             />
-            <CharacteristicsEditor
-              characteristics={editData.characteristics}
-              luck={editData.luck}
-              onCharChange={handleCharacteristicChange}
-              onLuckChange={(v) => handleFieldChange('luck', v)}
-            />
-            <DerivedEditor
-              derived={editData.derived as { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }}
-              onChange={handleDerivedChange}
-            />
-            <SkillsEditor
-              occupationSkillPoints={editData.occupation_skill_points}
-              personalSkillPoints={editData.personal_skill_points}
-              characteristics={editData.characteristics}
-              onChange={handleSkillChange}
-            />
+
             <BackstoryEditor
               backstory={editData.backstory}
               onChange={handleBackstoryChange}
             />
-            <EquipmentEditor
-              equipment={editData.equipment}
-              cash={editData.cash}
-              assets={editData.assets}
-              spendingLevel={editData.spending_level}
-              onEquipmentChange={(eq) => handleFieldChange('equipment', eq)}
-              onFieldChange={(field, value) => handleFieldChange(field, value)}
-            />
-            <SessionsEditor
-              sessions={editData.sessions ?? []}
-              onChange={(sessions) => handleFieldChange('sessions', sessions)}
-            />
 
-            {/* Submit section */}
+            {/* Save section */}
             <div className="border-t border-coc-border pt-4 space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-coc-text-muted mb-1">Komentarz do zmian</label>
-                <input
-                  value={changeComment}
-                  onChange={(e) => setChangeComment(e.target.value)}
-                  placeholder="Opisz co i dlaczego zmieniasz..."
-                  className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-sm text-coc-text placeholder:text-coc-text-muted/50 focus:outline-none focus:border-coc-accent-light transition-colors"
-                />
-              </div>
               {error && <p className="text-sm text-coc-danger">{error}</p>}
-              <Button onClick={handleSubmitProposal} disabled={saving}>
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {saved ? 'Wysłano!' : 'Wyślij propozycję zmian'}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveNarrative} disabled={saving}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {saved ? 'Zapisano!' : 'Zapisz zmiany'}
+                </Button>
+                <Button variant="secondary" onClick={handleCancel} disabled={saving}>
+                  Anuluj
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
