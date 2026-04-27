@@ -321,7 +321,11 @@ export function PlayerDashboard() {
                         // PlayerDashboard already uses for "Kontynuuj tworzenie".
                         void handleContinueDraft(linked)
                       } else {
-                        // Fresh start: send to wizard with code prefilled.
+                        // Fresh start: clear any leftover wizard state from a
+                        // previous code/session before navigating, otherwise
+                        // the persisted currentStep / serverDraftId would
+                        // drop the user into the middle of an unrelated draft.
+                        useCharacterStore.getState().reset()
                         const base = window.location.pathname.replace(/\/player.*/, '')
                         window.location.href = `${base}/create?code=${code.code}`
                       }

@@ -290,6 +290,10 @@ export const useCharacterStore = create<WizardState>()(
           maxTries: data.maxTries,
           timesUsed: data.timesUsed,
           maxSkillValue: data.maxSkillValue,
+          // A new code means a new flow — start at step 0 (StepInviteCode).
+          // Without this, a leftover currentStep from a previous code/user
+          // pointed the wizard at the middle of a different draft.
+          currentStep: 0,
           savedStep: 0,
         }),
 
