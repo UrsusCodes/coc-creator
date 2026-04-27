@@ -12,6 +12,119 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-27 — Wizard sub-session 3: admin + player UI for granular-commits
+
+**Focus:** finalize the v2.0 frontend by exposing the new code-identity rework
+features (label, reroll budget, lifecycle status, distinguisher ownership)
+end-to-end across admin and player views ([[work/v2-deploy-plan]] sub-session 3).
+After this commit the only remaining work before deploy is balast cleanup +
+pre-deploy snapshot + deploy day procedure.
+
+**Done:**
+
+- **`src/components/admin/InviteCodeManager.tsx` full rewrite** (+400/-150):
+  - Form (create + edit, shared `CodeForm` component): label, methods, era,
+    `reroll_budget`, perks, `max_skill_value`, `assigned_player_id` (dropdown
+    over `adminGetPlayers`).
+  - List rows show derived lifecycle status (unused / started / finished
+    based on the linked character's `status`), assignee name, methods, era,
+    reroll budget, distinguisher, `rerolls_remaining`, perks, created date.
+  - Filter chips: **Aktywne** (default — hides finished), **Niewykorzystane**,
+    **W trakcie**.
+  - Collapsible **"Kody zużyte/zakończone"** hidden by default (archive view).
+  - **Cleanup button** → `adminCleanupCodes(dryRun:true)` preview modal
+    listing deletable rows → "Potwierdź usunięcie" → `adminCleanupCodes()` +
+    refetch.
+  - **In-place edit**: opens `editForm` under the row, calls
+    `adminUpdateInviteCode`. Cancel + Save buttons.
+  - **"+1 przerzut" action** per linked character → `adminGrantReroll`,
+    optimistic update of `rerolls_remaining` in local state.
+  - Joins three sources client-side (`codes` / `characters` / `players`) on
+    mount via `Promise.all` + per-id `Map`s.
+
+- **`src/components/admin/CharacterList.tsx` touches**:
+  - New "Etykieta kodu" badge (joined from `invite_codes.label` via parallel
+    `adminGetCodes` fetch + `Map<id, label>` lookup).
+  - New "Przerzuty" badge with sparkles icon when `rerolls_remaining > 0`.
+  - `CharacterRow` type extended with `invite_code_id` + `rerolls_remaining`.
+
+- **`src/components/admin/edit/BasicInfoEditor.tsx`**:
+  - Distinguisher input replaced with read-only display + helper note
+    ("Identyfikator jest własnością gracza i edytuje go on sam"). Aligns
+    with v2.0 rule: distinguisher is player-owned and edited via
+    `PUT /distinguisher` only. Admin edit path no longer carries it.
+
+- **`src/components/player/PlayerDashboard.tsx` touches**:
+  - Codes section shows derived lifecycle status (Niewykorzystany / W trakcie
+    / Zakończony based on linked character), label badge, distinguisher
+    badge, `rerolls_left` badge with sparkles icon.
+  - **"Użyj kodu" → "Kontynuuj"** when an in-flight draft exists for the
+    code; routes through `handleContinueDraft` (existing loader) instead of
+    fresh `/create?code=...`. Disabled while another action is loading.
+  - Characters split into **drafts** (always visible) + collapsible
+    **"Zakończone postacie"** (hidden by default).
+  - Rerolls_left badge on draft character cards.
+  - `PlayerCode` extended with `label` + `reroll_budget`; `PlayerCharacter`
+    with `rerolls_remaining`.
+  - Refactored character row rendering into a shared `renderCharacterRow`
+    helper to avoid duplicating the JSX between drafts and finished sections.
+
+- **`src/types/invite.ts`**:
+  - `InviteCode` gains `label?` / `reroll_budget?` / `assigned_player_id?`.
+  - New `InviteCodeStatus = 'unused' | 'started' | 'finished'`.
+
+**Decisions:**
+
+- **Lifecycle status derived client-side, not stored on `invite_codes`.**
+  Each row computes status from the joined character snapshot (no character
+  → unused; draft → started; submitted → finished). Avoids schema churn for
+  what's purely a UI projection. Source of truth stays the character's
+  `status` column.
+
+- **InviteCodeManager joins three datasets locally** (`codes` × `characters`
+  × `players`) instead of returning a precomputed view from the edge
+  function. Keeps `GET /codes` cheap and the join cost is trivial for the
+  expected catalog size (~60 codes, ~30 chars, ~10 players).
+
+- **"Kontynuuj" routing for in-flight drafts** uses the same
+  `handleContinueDraft` path PlayerDashboard already used for "Kontynuuj
+  tworzenie" on character cards. Single code path → consistent resume
+  behavior whether the user clicks the code row or the character row.
+
+- **Distinguisher made read-only in BasicInfoEditor** (admin edit path).
+  Server-side enforcement of player ownership is via the
+  `/distinguisher` endpoint that requires player auth; making the admin
+  field read-only mirrors that boundary in the UI rather than relying on
+  the user to know not to type there.
+
+- **CodeForm shared between create + edit** to keep the create / edit
+  schemas in sync. Submitting an edit funnels through `adminUpdateInviteCode`
+  (PATCH `/codes/:id`); creating goes through `adminCreateCode` (POST
+  `/codes`). Same field set in both modes (sans `code`, which create
+  generates server-side via `generateInviteCode()`).
+
+**Build:** `npm run build` zielone (tsc -b + vite build, 6.47s, 2078 modules).
+
+**Not done (pre-deploy / deploy day):**
+- Balast cleanup — 8 abandoned/test drafts to delete before deploy. Listed
+  in [[work/v2-deploy-plan#PD.2 — Balast cleanup (8 abandoned drafts)]].
+- Final pre-deploy snapshot (`scripts/snapshot-characters.mjs --tag pre-v2`
+  + `scripts/pg-dump-all.mjs --tag pre-v2-pgdump`).
+- Edge function deploy (`npx supabase functions deploy admin player`).
+- Frontend `git push` (auto-deploys via Vercel / Netlify).
+- Smoke test endpoint matrix.
+
+**Files touched (1 commit, +792 / -255 lines):**
+- `src/components/admin/InviteCodeManager.tsx`
+- `src/components/admin/CharacterList.tsx`
+- `src/components/admin/edit/BasicInfoEditor.tsx`
+- `src/components/player/PlayerDashboard.tsx`
+- `src/types/invite.ts`
+
+**Commit:** `e3e3a57`. **No git push** — deploy is the next session.
+
+---
+
 ## 2026-04-27 — Wizard sub-session 2: routing rewrite, server-authoritative steps, store cleanup
 
 **Focus:** end-to-end wire of v2.0 granular-commits flow ([[work/v2-deploy-plan]]

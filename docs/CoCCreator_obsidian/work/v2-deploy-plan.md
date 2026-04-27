@@ -19,7 +19,9 @@ Complete punch list from "everything currently in repo" to "v2.0 live on prod wi
 >
 > **Sub-session 1 done 2026-04-27** (`e5043eb`): 5 new step components + slim StepInviteCode + `/skip-swap` endpoint + `playerSkipSwap` wrapper.
 >
-> **Sub-session 2 done 2026-04-27** (`e6a8fff`): WizardShell rewrite (17-step layout + conditional skips + reroll widget + serverCharacter loading); StepCharacteristics rewrite (server-authoritative); StepAge simplified; DELETED StepAgeModifiers; characterStore cleanup; useDraftSync gated to soft zone; StepReview dual-path submit. **Frontend wizard now runs the full granular-commits flow end-to-end.**
+> **Sub-session 2 done 2026-04-27** (`e6a8fff`): WizardShell rewrite (17-step layout + conditional skips + reroll widget + serverCharacter loading); StepCharacteristics rewrite (server-authoritative); StepAge simplified; DELETED StepAgeModifiers; characterStore cleanup; useDraftSync gated to soft zone; StepReview dual-path submit.
+>
+> **Sub-session 3 done 2026-04-27** (`e3e3a57`): InviteCodeManager full rewrite (label/reroll_budget/lifecycle status filter/cleanup preview/in-place edit/+1 reroll); CharacterList gets code label + rerolls badges; BasicInfoEditor distinguisher → read-only; PlayerDashboard codes section + collapsible finished. **Full v2.0 frontend stack now committed locally — only deploy day remains.**
 
 ---
 
@@ -140,7 +142,12 @@ Goal: rewire wizard navigation around the new step IDs, make StepCharacteristics
 
 ---
 
-## Sub-session 3 — Admin/Player UI touches + InviteCodeManager rewrite
+## Sub-session 3 — Admin/Player UI touches + InviteCodeManager rewrite ✅ DONE 2026-04-27
+
+> [!success] Completed in commit `e3e3a57`
+> All 5 deliverables landed. StepEquipment reorder was already in place
+> (verified during S2 prep; "Podział dobytku" already renders above
+> "Ekwipunek").
 
 Goal: complete remaining UI surface changes (admin code manager, dashboard, character list). Build green. Pre-deploy housekeeping.
 
@@ -376,7 +383,7 @@ Short Polish message to share with players (Discord / chat). Draft:
 
 - ~~Sub-session 1 (5 step components): 2-3 hours.~~ ✅ DONE 2026-04-27.
 - ~~Sub-session 2 (WizardShell + StepCharacteristics + cleanup): 3-4 hours.~~ ✅ DONE 2026-04-27.
-- Sub-session 3 (UI touches): **2-3 hours.**
+- ~~Sub-session 3 (UI touches): 2-3 hours.~~ ✅ DONE 2026-04-27.
 - Pre-deploy + deploy day: **1-2 hours** (mostly waiting + clicking + verification).
 
-Remaining: **3-5 hours** before v2.0 lands.
+Remaining: **deploy day only** (1-2 hours of focused work).
