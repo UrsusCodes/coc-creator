@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react'
-import { Dices } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
+import { usePlayerStore } from '@/stores/playerStore'
 import { isYoungCharacter, getAgeRange } from '@/data/ageRanges'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { getAgeModifications } from '@/lib/ageModifiers'
-import { rollLuck, rollLuckYoung } from '@/lib/dice'
+import { playerSetAge } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { NumberInput } from '@/components/ui/NumberInput'
@@ -12,60 +13,34 @@ import { Badge } from '@/components/ui/Badge'
 
 export function StepAge() {
   const store = useCharacterStore()
-  const isLocked = store.ageLocked
+  const token = usePlayerStore((s) => s.token)
+  const charId = store.serverDraftId
+  const serverCharacter = store.serverCharacter
+  const setServerCharacter = store.setServerCharacter
   const isEditReadonly = store.editMode === 'standard'
 
-  const [age, setAge] = useState<number>(store.age ?? 25)
-  const [luck, setLuck] = useState<number | null>(store.luck)
-  const [luckRolled, setLuckRolled] = useState(store.luck !== null)
+  const committedAge = serverCharacter?.age ?? null
+  const isCommitted = !!serverCharacter?.age_committed_at
+
+  const [age, setAge] = useState<number>(committedAge ?? store.age ?? 25)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (committedAge != null) setAge(committedAge)
+  }, [committedAge])
 
   const young = isYoungCharacter(age)
   const mods = useMemo(() => getAgeModifications(age), [age])
   const ageRange = useMemo(() => getAgeRange(age), [age])
 
-  const handleRollLuck = useCallback(() => {
-    if (isLocked) return
-    const value = young ? rollLuckYoung() : rollLuck()
-    setLuck(value)
-    store.setLuck(value)
-    setLuckRolled(true)
-  }, [young, isLocked, store])
-
-  // When age changes, reset luck if it was already rolled (young/adult may differ)
-  const handleAgeChange = (newAge: number) => {
-    if (isLocked) return
-    setAge(newAge)
-    store.setAge(newAge)
-    if (luckRolled) {
-      const wasYoung = isYoungCharacter(age)
-      const isNowYoung = isYoungCharacter(newAge)
-      if (wasYoung !== isNowYoung) {
-        setLuck(null)
-        setLuckRolled(false)
-        useCharacterStore.setState({ luck: null })
-      }
-    }
-  }
-
-  const method = store.method ?? 'direct'
-  const canContinue = age >= 15 && age <= 89 && luck !== null
-
-  const handleNext = () => {
-    if (!isLocked) {
-      store.setAge(age)
-      store.setLuck(luck!)
-      store.lockAge()
-    }
-    store.nextStep()
-  }
-
   // Standard edit mode: show readonly
   if (isEditReadonly) {
     return (
-      <Card title="Wiek i Szczęście">
+      <Card title="Wiek">
         <div className="mb-4 p-3 bg-coc-surface-light border border-coc-border rounded-lg">
           <p className="text-sm text-coc-text-muted">
-            W trybie Standard wiek i szczęście są tylko do odczytu i nie mogą być zmienione.
+            W trybie Standard wiek jest tylko do odczytu i nie może być zmieniony.
           </p>
         </div>
         <div className="flex gap-8 mb-6">
@@ -73,25 +48,48 @@ export function StepAge() {
             <div className="text-sm text-coc-text-muted mb-1">Wiek</div>
             <div className="text-3xl font-bold font-mono">{age}</div>
           </div>
-          <div>
-            <div className="text-sm text-coc-text-muted mb-1">Szczęście</div>
-            <div className="text-3xl font-bold font-mono">{luck ?? '—'}</div>
-          </div>
         </div>
-        <div className="flex justify-between pt-2">
-          <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+        <div className="flex justify-end pt-2">
           <Button onClick={() => store.nextStep()}>Dalej</Button>
         </div>
       </Card>
     )
   }
 
+  if (!token || !charId) {
+    return (
+      <Card title="Wiek">
+        <p className="text-sm text-coc-danger">
+          Brak danych postaci. Wróć do kroku „Identyfikator".
+        </p>
+      </Card>
+    )
+  }
+
+  const handleSubmit = async () => {
+    if (age < 15 || age > 89) return
+    setError(null)
+    setSubmitting(true)
+    try {
+      const updated = await playerSetAge(token, charId, age)
+      setServerCharacter(updated)
+      store.setAge(age)
+      store.nextStep()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Nie udało się ustawić wieku')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const canContinue = age >= 15 && age <= 89
+
   return (
-    <Card title="Wiek i Szczęście">
-      {isLocked && (
+    <Card title="Wiek">
+      {isCommitted && (
         <div className="mb-4">
           <p className="text-sm text-coc-accent-light">
-            Wiek i Szczęście zostały zatwierdzone i nie mogą być zmienione.
+            Wiek został zatwierdzony. Aby go zmienić, użyj „Przerzut" w pasku u góry.
           </p>
         </div>
       )}
@@ -99,18 +97,12 @@ export function StepAge() {
       {/* Age input */}
       <div className="mb-6">
         <label className="block text-sm font-medium mb-1">Wiek badacza (15–89)</label>
-        {!isLocked && (
+        {!isCommitted && (
           <p className="text-xs text-coc-text-muted mb-2">
-            Wiek wpływa na modyfikatory cech w następnym kroku.
+            Wiek wpływa na rzuty na poprawę WYK, obniżenia wiekowe i sposób wyznaczania szczęścia.
           </p>
         )}
-        <NumberInput
-          value={age}
-          onChange={handleAgeChange}
-          min={15}
-          max={89}
-          disabled={isLocked}
-        />
+        <NumberInput value={age} onChange={setAge} min={15} max={89} disabled={isCommitted} />
       </div>
 
       {/* Age effects preview */}
@@ -122,18 +114,23 @@ export function StepAge() {
           <ul className="text-sm text-coc-text-muted space-y-1">
             {mods.eduImprovementChecks > 0 && (
               <li>
-                Rzuty na poprawę WYK: <span className="text-coc-accent-light font-medium">{mods.eduImprovementChecks}</span>
+                Rzuty na poprawę WYK:{' '}
+                <span className="text-coc-accent-light font-medium">
+                  {mods.eduImprovementChecks}
+                </span>
               </li>
             )}
             {mods.physicalDeductionTotal > 0 && (
               <li>
-                Odliczenia fizyczne: <span className="text-coc-warning font-medium">−{mods.physicalDeductionTotal} pkt</span>
+                Odliczenia fizyczne:{' '}
+                <span className="text-coc-warning font-medium">−{mods.physicalDeductionTotal} pkt</span>
                 {' '}z {mods.deductibleStats.map((s) => CHARACTERISTIC_MAP[s].abbreviation).join(', ')}
               </li>
             )}
             {mods.appReduction > 0 && (
               <li>
-                Wygląd: <span className="text-coc-warning font-medium">−{mods.appReduction} WYG</span>
+                Wygląd:{' '}
+                <span className="text-coc-warning font-medium">−{mods.appReduction} WYG</span>
               </li>
             )}
             {mods.moveReduction > 0 && (
@@ -141,60 +138,36 @@ export function StepAge() {
                 Ruch: <span className="text-coc-warning font-medium">−{mods.moveReduction}</span>
               </li>
             )}
-            {mods.isYoung && (
+            {young && (
               <>
                 <li>
                   Wykształcenie: <span className="text-coc-warning font-medium">−5 WYK</span>
                 </li>
                 <li>
-                  Szczęście: <span className="text-coc-accent-light font-medium">2 rzuty, lepszy wynik</span>
+                  Szczęście:{' '}
+                  <span className="text-coc-accent-light font-medium">2 rzuty, lepszy wynik</span>
                 </li>
               </>
             )}
-            {!mods.isYoung && mods.physicalDeductionTotal === 0 && mods.eduImprovementChecks <= 1 && (
-              <li className="text-coc-accent-light">Brak kar wiekowych.</li>
+            {!young && mods.physicalDeductionTotal === 0 && mods.eduImprovementChecks <= 1 && (
+              <li className="text-coc-accent-light">Brak istotnych kar wiekowych.</li>
             )}
           </ul>
         </div>
       )}
 
-      {/* Luck */}
-      <div className="border-t border-coc-border pt-4 mb-4">
-        <div className="flex items-center gap-4">
-          <div>
-            <div className="text-sm font-medium">Szczęście</div>
-            <div className="text-xs text-coc-text-muted">
-              3K6×5{young ? ' (2 rzuty, lepszy)' : ''}
-            </div>
-          </div>
-          {method === 'dice' || isLocked ? (
-            <>
-              <div className={`text-2xl font-bold font-mono px-4 py-2 rounded-lg border ${
-                luck ? 'border-coc-accent/30 bg-coc-accent/10' : 'border-coc-border bg-coc-surface-light'
-              }`}>
-                {luck ?? '—'}
-              </div>
-              {!luckRolled && !isLocked && (
-                <Button size="sm" onClick={handleRollLuck}>
-                  <Dices className="w-4 h-4" />
-                  Rzuć
-                </Button>
-              )}
-            </>
-          ) : (
-            <NumberInput
-              value={luck ?? 0}
-              onChange={(v) => { setLuck(v); store.setLuck(v); setLuckRolled(true) }}
-              min={1}
-              max={99}
-            />
-          )}
-        </div>
-      </div>
+      {error && <p className="text-sm text-coc-danger mb-4">{error}</p>}
 
-      <div className="flex justify-between pt-2">
-        <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
-        <Button onClick={handleNext} disabled={!canContinue}>Dalej</Button>
+      <div className="flex justify-end pt-2">
+        {isCommitted ? (
+          <Button onClick={() => store.nextStep()} disabled={submitting}>
+            Dalej
+          </Button>
+        ) : (
+          <Button onClick={handleSubmit} disabled={!canContinue || submitting}>
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Zatwierdź wiek'}
+          </Button>
+        )}
       </div>
     </Card>
   )

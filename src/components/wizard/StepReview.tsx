@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, AlertTriangle, Pencil, Check, Send } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
+import { usePlayerStore } from '@/stores/playerStore'
 import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
 import { useEditSubmit } from '@/hooks/useEditSubmit'
+import { playerSubmitCharacter } from '@/lib/player'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
@@ -72,13 +74,21 @@ function EditableField({ label, value, onSave, multiline }: {
 export function StepReview() {
   const store = useCharacterStore()
   const navigate = useNavigate()
-  const { loading, error, submit } = useCharacterSubmit()
+  const playerToken = usePlayerStore((s) => s.token)
+  const { loading: legacyLoading, error: legacyError, submit: legacySubmit } = useCharacterSubmit()
   const { loading: editLoading, error: editError, submitEdit } = useEditSubmit()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [changeComment, setChangeComment] = useState('')
   const [editSuccess, setEditSuccess] = useState(false)
+  const [granularSubmitting, setGranularSubmitting] = useState(false)
+  const [granularError, setGranularError] = useState<string | null>(null)
 
   const isEditMode = !!store.editMode
+  // Granular-commits flow: a server-side draft already exists from
+  // StepIdentifier — submit just flips draft → submitted.
+  const useGranularSubmit = !!store.serverDraftId && !!playerToken && !isEditMode
+  const loading = granularSubmitting || legacyLoading
+  const error = granularError ?? legacyError
 
   const chars = store.characteristics as Characteristics
   const occupation = OCCUPATIONS.find((o) => o.id === store.occupationId)
@@ -97,7 +107,22 @@ export function StepReview() {
 
   const handleSubmit = async () => {
     const inviteCodeId = store.inviteCodeId
-    const success = await submit(store)
+    if (useGranularSubmit) {
+      setGranularError(null)
+      setGranularSubmitting(true)
+      try {
+        await playerSubmitCharacter(playerToken!, store.serverDraftId!)
+        store.reset()
+        navigate('/success', { state: { inviteCodeId } })
+      } catch (e) {
+        setGranularError(e instanceof Error ? e.message : 'Nie udało się zatwierdzić postaci')
+      } finally {
+        setGranularSubmitting(false)
+      }
+      return
+    }
+    // Legacy fallback (no server draft id — pre-v2.0 path).
+    const success = await legacySubmit(store)
     if (success) {
       store.reset()
       navigate('/success', { state: { inviteCodeId } })

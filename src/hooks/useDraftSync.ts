@@ -4,11 +4,15 @@ import { playerSaveDraft, playerCreateDraft } from '@/lib/player'
 
 export type DraftSyncStatus = 'idle' | 'saving' | 'saved' | 'error'
 
+/**
+ * Build the soft-zone draft payload. Hard-zone fields (characteristics, luck,
+ * age, era, method, perks, max_skill_value) are server-canonical post v2.0 —
+ * the edge function's /draft allowlist rejects them with 400. We mirror only
+ * fields the soft zone owns (occupation+, narrative, derived snapshot,
+ * draft_step progression).
+ */
 function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): Record<string, unknown> {
   return {
-    characteristics: store.characteristics,
-    luck: store.luck,
-    age: store.age,
     gender: store.gender,
     name: store.name,
     player_name: store.playerName,
@@ -25,13 +29,18 @@ function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): R
     portrait_url: store.portraitUrl,
     equipment: store.equipment,
     derived: store.derived,
-    era: store.era,
-    method: store.method,
-    perks: store.perks,
-    max_skill_value: store.maxSkillValue,
     draft_step: store.currentStep,
   }
 }
+
+/**
+ * Hard-zone steps that own their state on the server through dedicated
+ * commit endpoints (start-character / roll-characteristics / swap / set-age /
+ * roll-edu / apply-aging-penalties / roll-luck). Autosave skips these — any
+ * mutation that needs to land server-side has already been written by the
+ * step component.
+ */
+const SOFT_ZONE_MIN_STEP = 8 // StepDerived and onwards
 
 /**
  * Safe draft sync hook — saves wizard progress to server via player API.
@@ -58,7 +67,9 @@ export function useDraftSync(): { status: DraftSyncStatus; retry: () => void } {
 
     const store = useCharacterStore.getState()
     if (store.editMode || store.playerEditMode) return
-    if (store.currentStep <= 0) return
+    // Soft-zone autosave only. Hard-zone (steps 0-7) writes happen through
+    // dedicated commit endpoints; PUT /draft would 400 on those fields.
+    if (store.currentStep < SOFT_ZONE_MIN_STEP) return
     if (savingRef.current) return
 
     // SECURITY: Reset serverDraftId if inviteCodeId changed
@@ -112,7 +123,7 @@ export function useDraftSync(): { status: DraftSyncStatus; retry: () => void } {
   // Subscribe to ALL store changes with 5s debounce
   useEffect(() => {
     const unsub = useCharacterStore.subscribe((state) => {
-      if (state.currentStep <= 0) return
+      if (state.currentStep < SOFT_ZONE_MIN_STEP) return
       if (state.editMode || state.playerEditMode) return
 
       if (debounceRef.current) clearTimeout(debounceRef.current)

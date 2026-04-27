@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Characteristics, DerivedAttributes, Backstory, CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
-import type { Era, CreationMethod, CharacteristicKey } from '@/types/common'
+import type { Characteristics, DerivedAttributes, Backstory, CharacterData, CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
+import type { Era, CreationMethod } from '@/types/common'
 
 export interface WizardState {
   // Current step (0-indexed)
@@ -30,21 +30,6 @@ export interface WizardState {
   // Step 3: Characteristics
   characteristics: Partial<Characteristics>
   luck: number | null
-
-  // Step 3 lock: characteristics + luck are locked after proceeding
-  characteristicsLocked: boolean
-  // Swap characteristics perk
-  characteristicSwap: { from: CharacteristicKey; to: CharacteristicKey } | null
-
-  // Age + age modifiers lock
-  ageLocked: boolean
-  ageModifiersLocked: boolean
-
-  // Step 4: Age deductions (player distributes deduction points)
-  ageDeductions: Partial<Record<CharacteristicKey, number>>
-  // EDU improvement rolls are permanent once rolled
-  eduRolls: { roll: number; improved: boolean; newEdu: number }[]
-  eduAfterRolls: number | null
 
   // Step 5: Derived (auto-calculated, stored for convenience)
   derived: DerivedAttributes | null
@@ -113,6 +98,11 @@ export interface WizardState {
   // Server-side draft ID (for wizard auto-save)
   serverDraftId: string | null
 
+  // Server-authoritative snapshot of the character (granular commits flow).
+  // Set by WizardShell on mount/after each commit, read by hard-zone steps
+  // for swap_available/swap_used/*_committed_at/edu_rolls/rerolls_remaining.
+  serverCharacter: CharacterData | null
+
   // Action to load character for player-centric editing
   loadForPlayerEdit: (data: {
     characterId: string
@@ -145,11 +135,6 @@ export interface WizardState {
   setBasicInfo: (data: { playerName: string; name: string; gender: string; appearance: string; residence?: string; birthplace?: string }) => void
   setCharacteristics: (chars: Partial<Characteristics>) => void
   setLuck: (luck: number) => void
-  setAgeDeductions: (deductions: Partial<Record<CharacteristicKey, number>>) => void
-  lockCharacteristics: () => void
-  lockAge: () => void
-  lockAgeModifiers: () => void
-  setEduRolls: (rolls: { roll: number; improved: boolean; newEdu: number }[], eduAfter: number) => void
   setDerived: (derived: DerivedAttributes) => void
   setOccupation: (id: string) => void
   setOccupationSkillPoints: (points: Record<string, number>) => void
@@ -172,6 +157,8 @@ export interface WizardState {
   }) => void
   /** Set the server-side draft ID for auto-save */
   setServerDraftId: (id: string | null) => void
+  /** Replace the server-authoritative character snapshot. */
+  setServerCharacter: (char: CharacterData | null) => void
   /** Update server-side invite code data without resetting character progress */
   updateInviteCodeMeta: (data: { timesUsed: number }) => void
   /** Abandon current character, increment timesUsed, reset character data, go to step 1 */
@@ -188,6 +175,7 @@ const editModeDefaults = {
   isDraftContinuation: false,
   draftLockedStep: null as number | null,
   serverDraftId: null as string | null,
+  serverCharacter: null as CharacterData | null,
 }
 
 const characterDataDefaults = {
@@ -200,13 +188,6 @@ const characterDataDefaults = {
   birthplace: '',
   characteristics: {},
   luck: null,
-  characteristicsLocked: false,
-  characteristicSwap: null,
-  ageLocked: false,
-  ageModifiersLocked: false,
-  ageDeductions: {},
-  eduRolls: [],
-  eduAfterRolls: null,
   derived: null,
   occupationId: null,
   occupationSkillPoints: {},
@@ -327,11 +308,6 @@ export const useCharacterStore = create<WizardState>()(
 
       setCharacteristics: (chars) => set({ characteristics: chars }),
       setLuck: (luck) => set({ luck }),
-      setAgeDeductions: (deductions) => set({ ageDeductions: deductions }),
-      lockCharacteristics: () => set({ characteristicsLocked: true }),
-      lockAge: () => set({ ageLocked: true }),
-      lockAgeModifiers: () => set({ ageModifiersLocked: true }),
-      setEduRolls: (rolls, eduAfter) => set({ eduRolls: rolls, eduAfterRolls: eduAfter }),
       setDerived: (derived) => set({ derived }),
       setOccupation: (id) =>
         set({ occupationId: id, occupationSkillPoints: {}, personalSkillPoints: {} }),
@@ -367,8 +343,15 @@ export const useCharacterStore = create<WizardState>()(
       loadForPlayerEdit: (data) =>
         set(() => {
           const char = data.character
-          const lockChars = data.editMode === 'standard' || data.editMode === 'lore'
-          const startStep = data.editMode === 'lore' ? 10 : data.editMode === 'standard' ? 5 : 1
+          // After v2.0 the wizard uses 17 logical steps (granular commits).
+          // Edit-mode entry points stay roughly equivalent: lore→backstory,
+          // standard→occupation, full→identifier (lets full-edit users tweak
+          // identifier + characteristics without going through invite_code).
+          const startStep = data.editMode === 'lore'
+            ? 14
+            : data.editMode === 'standard'
+              ? 9
+              : 1
           return {
             // Reset to clean state first
             ...initialState,
@@ -418,24 +401,18 @@ export const useCharacterStore = create<WizardState>()(
             spendingFree: (char.spending_free as string) ?? '',
             cash: (char.cash as string) ?? '',
             assets: (char.assets as string) ?? '',
-            // Locks: lore and standard modes lock characteristics/age, full mode leaves them open
-            characteristicsLocked: lockChars,
-            ageLocked: lockChars,
-            ageModifiersLocked: lockChars,
-            // Age deductions already baked into characteristics in DB
-            ageDeductions: {},
-            eduRolls: [],
-            eduAfterRolls: null,
           }
         }),
 
       loadDraftForContinuation: (data) =>
         set(() => {
           const char = data.character
-          // Resume from the furthest point: either past locked steps or saved draft_step
-          const minStep = data.lockedStep < 0 ? 1 : data.lockedStep + 1
-          const savedStep = (char.draft_step as number) ?? 0
-          const startStep = Math.max(minStep, savedStep)
+          // After granular commits, draft_step is the canonical resume point.
+          // Falls back to step 1 (Identifier) if we have a draft but no saved
+          // step (legacy data). Locked-step ranges no longer apply — server
+          // commit timestamps gate forward progress per step.
+          const savedStep = (char.draft_step as number) ?? 1
+          const startStep = Math.max(1, savedStep)
           return {
             // Reset to clean state first
             ...initialState,
@@ -450,9 +427,6 @@ export const useCharacterStore = create<WizardState>()(
             perks: data.perks,
             maxSkillValue: data.maxSkillValue,
             methods: [data.method as import('@/types/common').CreationMethod],
-            characteristicsLocked: data.lockedStep >= 0,
-            ageLocked: data.lockedStep >= 2,
-            ageModifiersLocked: data.lockedStep >= 3,
             currentStep: startStep,
             savedStep: startStep,
             // Map character DB fields to wizard store fields
@@ -487,14 +461,12 @@ export const useCharacterStore = create<WizardState>()(
             spendingFree: (char.spending_free as string) ?? '',
             cash: (char.cash as string) ?? '',
             assets: (char.assets as string) ?? '',
-            // Age deductions already baked into characteristics in DB
-            ageDeductions: {},
-            eduRolls: [],
-            eduAfterRolls: null,
           }
         }),
 
       setServerDraftId: (id) => set({ serverDraftId: id }),
+
+      setServerCharacter: (char) => set({ serverCharacter: char }),
 
       updateInviteCodeMeta: (data) => set({ timesUsed: data.timesUsed }),
 
@@ -517,7 +489,7 @@ export const useCharacterStore = create<WizardState>()(
     }),
     {
       name: 'coc-character-wizard',
-      version: 9,
+      version: 10,
       migrate: (persisted, version) => {
         let state = persisted as Record<string, unknown>
 
@@ -593,6 +565,33 @@ export const useCharacterStore = create<WizardState>()(
         if (version < 9) {
           state = { ...state }
           delete (state as Record<string, unknown>).editToken
+        }
+        // Version 9 → 10: granular commits (v2.0). Step numbering changed
+        // completely (StepIdentifier inserted at index 1, StepAgeModifiers
+        // split into EduRolls + AgingPenalties), so any saved currentStep
+        // pointing into the old numbering is meaningless. Reset to step 0
+        // and let the user re-validate the invite code. Drop stale local
+        // lock/scratch fields (server commit timestamps replace them).
+        if (version < 10) {
+          state = { ...state }
+          for (const k of [
+            'characteristicsLocked',
+            'characteristicSwap',
+            'ageLocked',
+            'ageModifiersLocked',
+            'ageDeductions',
+            'eduRolls',
+            'eduAfterRolls',
+          ]) {
+            delete (state as Record<string, unknown>)[k]
+          }
+          state = {
+            ...state,
+            currentStep: 0,
+            savedStep: 0,
+            serverCharacter: null,
+            serverDraftId: (state.serverDraftId as string) ?? null,
+          }
         }
         return state as unknown as WizardState
       },

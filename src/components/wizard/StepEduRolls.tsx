@@ -5,6 +5,7 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { playerGetCharacter, playerRollEdu } from '@/lib/player'
 import { getAgeModifications } from '@/lib/ageModifiers'
 import type { CharacterData, Characteristics, EduRoll } from '@/types/character'
+// Note: edu_rolls & EDU now live on serverCharacter (single source of truth).
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 
@@ -58,18 +59,11 @@ export function StepEduRolls() {
     try {
       const updated = await playerRollEdu(token, charId)
       setCharacter(updated)
-      // Mirror updated EDU into the existing flat store fields used elsewhere.
+      store.setServerCharacter(updated)
+      // Mirror updated EDU into the existing flat store field used by
+      // legacy consumers (StepDerived calculation, useDraftSync payload).
       if (updated.characteristics) {
         store.setCharacteristics(updated.characteristics)
-      }
-      if (updated.edu_rolls) {
-        const eduAfter = updated.characteristics?.EDU ?? 0
-        const mirrored = (updated.edu_rolls as EduRoll[]).map((r) => ({
-          roll: r.roll,
-          improved: r.improved,
-          newEdu: r.new_edu,
-        }))
-        store.setEduRolls(mirrored, eduAfter)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Nie udało się wykonać rzutów EDU')

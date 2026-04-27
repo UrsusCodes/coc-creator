@@ -66,11 +66,10 @@ export function StepAgingPenalties() {
     try {
       const updated = await playerApplyAgingPenalties(token, charId, payload)
       setCharacter(updated)
+      store.setServerCharacter(updated)
       if (updated.characteristics) {
         store.setCharacteristics(updated.characteristics)
       }
-      // Persist deductions snapshot in store for legacy consumers.
-      store.setAgeDeductions(payload as Partial<Record<CharacteristicKey, number>>)
       store.nextStep()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Nie udało się zastosować obniżeń wiekowych')
