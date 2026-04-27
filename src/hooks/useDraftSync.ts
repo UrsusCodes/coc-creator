@@ -10,6 +10,10 @@ export type DraftSyncStatus = 'idle' | 'saving' | 'saved' | 'error'
  * the edge function's /draft allowlist rejects them with 400. We mirror only
  * fields the soft zone owns (occupation+, narrative, derived snapshot,
  * draft_step progression).
+ *
+ * portrait_url is NOT included — the edge function's /draft allowlist (Etap B)
+ * rejects it; portrait writes go through dedicated PUT /portrait
+ * (playerSelectPortrait) or the cross-cutting PUT /narrative endpoint.
  */
 function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): Record<string, unknown> {
   return {
@@ -26,7 +30,6 @@ function buildDraftData(store: ReturnType<typeof useCharacterStore.getState>): R
     main_position: store.mainPosition,
     additional_positions: store.additionalPositions,
     contacts_v2: store.contactsV2,
-    portrait_url: store.portraitUrl,
     equipment: store.equipment,
     derived: store.derived,
     draft_step: store.currentStep,
