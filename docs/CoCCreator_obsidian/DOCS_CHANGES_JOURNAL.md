@@ -12,6 +12,177 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-04-28 — v2.0 stabilization: 8 hotfixes + UX polish
+
+**Focus:** browser smoke testing the live v2.0 stack uncovered six bugs and
+two UX requests. All fixed and pushed to production the same session.
+
+**Done (chronological — 8 commits, all pushed to origin/master):**
+
+1. **`fb3552b` — Hotfix: drop portrait_url from /draft autosave payload.**
+   First soft-zone autosave 400'd with "Nie udało się zapisać. Nie zamykaj
+   przeglądarki." because `useDraftSync.buildDraftData` was including
+   `portrait_url` but the player edge function's `DRAFT_ALLOWLIST` (Etap B
+   tightening) rejects it — portrait writes have dedicated endpoints
+   (PUT /portrait via `playerSelectPortrait` or PUT /narrative). Client-only
+   fix; one line removed from `buildDraftData`.
+
+2. **`3683c24` — Hotfix: mirror invite_codes.assigned_player_id to
+   player_codes junction.** Player `/codes` endpoint reads from junction
+   table `player_codes`, but admin `POST /codes` and `PATCH /codes` only
+   updated the new `assigned_player_id` column on `invite_codes`. So a code
+   "assigned" via the admin dropdown never appeared in the assigned
+   player's dashboard. Fixed: POST/PATCH now upsert/delete the junction
+   row whenever `assigned_player_id` is in the body. Reconciled the two
+   already-orphaned codes manually via `adminAssignCode`. Edge function
+   admin redeployed v15 → v16.
+
+3. **`c847c50` — Hotfix: clear wizard state on login/logout/code-change.**
+   `usePlayerStore.logout()` cleared the JWT but the persisted
+   characterStore (`coc-character-wizard` in localStorage) survived. Next
+   login inherited the previous user's `currentStep` / `serverDraftId` /
+   characteristics — clicking "Użyj kodu" rebooted the wizard at e.g.
+   step 14 (StepDrivePillars) showing the previous user's draft. Backend
+   was unaffected (player_id ownership gate rejected every cross-owner
+   write), but UX looked like a privacy leak. Three layered fixes:
+   - `usePlayerStore.login()` and `.logout()` call
+     `useCharacterStore.getState().reset()` — every auth boundary clears
+     the slate.
+   - `characterStore.setInviteCode()` resets `currentStep` to 0 (was only
+     resetting `savedStep`).
+   - PlayerDashboard "Użyj kodu" fresh-start branch calls `reset()` before
+     `window.location.href`.
+
+4. **`6aae375` — StepAge: −5/−1/+1/+5 buttons + always-clamped value.**
+   User saw "Wiek 3" displayed despite min=15 — typing in the controlled
+   `<input type="number">` updated the DOM optimistically while
+   `NumberInput.handleInput` silently rejected the value, leaving DOM and
+   state diverged. Replaced StepAge's NumberInput with a bespoke row:
+   `[−5] [−1] [<input>] [+1] [+5]`; every state path goes through
+   `clampAge()`; out-of-range typed values snap on blur. Other wizard
+   steps still use the shared NumberInput (1-99 ranges with less drama).
+
+5. **`15b0921` — Hotfix: define missing getAgeModifications in player
+   edge function.** `/roll-edu` and `/apply-aging-penalties` (Etap A)
+   referenced `getAgeModifications()` but the function was never defined
+   in the Deno runtime. Smoke tests caught only auth (401), so the code
+   path never ran during deploy day. First real call from the wizard
+   surfaced as `ReferenceError` rendered inline as red text. Fix: thin
+   alias above the existing `getAgeRange` helper — endpoints already read
+   `eduImprovementChecks` / `deductionPoints` / `appReduction` off the
+   returned object, all on `AgeRange`. Edge function player redeployed
+   v14 → v15.
+
+6. **`3867e4a` — StepReview: single Edytuj toggle replaces per-field
+   hover-pencil UX.** Per-field 0.30-opacity hover pencils were unreadable
+   and tedious. Replaced with a single page-level `editing` state + one
+   "Edytuj" / "Zakończ edycję" button at the top of the card; in editing
+   mode every field renders as a live input/textarea, changes commit to
+   the wizard store on each keystroke, no separate save click. Read-only
+   mode shows label + value with "puste" placeholder.
+
+7. **`15128f8` — PlayerCharacterViewer: always-on narrative edit (no
+   admin approval).** Previously "Zaproponuj zmiany" opened a single edit
+   form for ALL fields and submitted via `playerProposeEdit` (admin
+   approve queue) — but Etap C blocks mechanical pre-occupation fields
+   from approval, so the UX was misleading. Replaced with:
+   - New `src/components/player/NarrativeEditor.tsx` — clean form for the
+     seven narrative fields the `/narrative` endpoint accepts plus
+     distinguisher (`/distinguisher` endpoint).
+   - Button label "Zaproponuj zmiany" → "Edytuj fabułę", always visible.
+   - Edit mode renders only NarrativeEditor + BackstoryEditor.
+   - Save split into `playerUpdateDistinguisher` (only when changed,
+     client-side validates 3-60 chars) + `playerUpdateNarrative` (single
+     payload for the rest). Both bypass admin approval — server enforces
+     ownership.
+   - Removed change-comment input and propose-edit submit.
+   - `CharacterSheetData` extended with `residence?` / `birthplace?`.
+
+8. **`4c49b76` — PlayerCharacterViewer: add gated 'Edytuj mechanikę'
+   button.** Sits next to "Edytuj fabułę". Wired to the existing
+   edit_permission system (admin already controls from CharacterViewer's
+   "Uprawnienia edycji" panel — Tryb: lore/standard/full, Czas:
+   24h/1tydzień/Do odwołania). Behaviour:
+   - On mount fetches `playerGetEditPermission`. Treats expired rows as
+     absent.
+   - No permission → button disabled, lock icon, hover title:
+     "Strażnik Tajemnic musi nadać Ci uprawnienie…".
+   - Permission present → button enabled, wrench icon, hover title shows
+     level + remaining time. Adjacent badge surfaces same info inline
+     ("standard (od zawodu) · wygasa za 18h").
+   - Click → `loadForPlayerEdit` with the granted `edit_mode` →
+     `navigate('/create')`. Same path PlayerDashboard's "Edytuj" button
+     uses; wizard's existing `getAllowedSteps` filters which steps are
+     reachable.
+   - No backend / admin-side changes — admin lifecycle was already wired,
+     just surfaced as a player-side button.
+
+**Bonus ops (not commits, but state changes):**
+
+- Created tester account via admin endpoint: login `tester`, password
+  `tester`, id `be71d778-af66-468a-b686-1db86d48e993`.
+- Created two test codes assigned to tester:
+  `GCC-4858-EUK` (label "Test smoke deploy v2.0", dice+point_buy+direct,
+  reroll_budget 3, perks: swap_characteristics, classic_1920s, max
+  skill 80) and `VNB-1251-VLP` (user-created, label "do testów v2 #2").
+- Manually backfilled both into `player_codes` junction via
+  `adminAssignCode` (before hotfix `3683c24` landed) — not needed
+  going forward.
+
+**Smoke validated end-to-end:**
+
+- Rafał (`7d54eec4`): "Kontynuuj tworzenie" → lands on StepDrivePillars
+  (step 14 in v2 layout, mapped from v1 step 10 by deploy-day migration).
+- Tester full flow: identifier → cech (dice + reroll button works) →
+  swap (test "Pomiń zamianę") → wiek (new −5/−1/+1/+5 widget) →
+  EDU/aging/luck → derived → soft zone → review (single Edytuj toggle)
+  → submit. Character flipped draft → submitted via
+  `playerSubmitCharacter` (granular submit path).
+- Tester PlayerCharacterViewer post-submit: "Edytuj fabułę" round-trips
+  through `/narrative` + `/distinguisher`. "Edytuj mechanikę" disabled
+  by default, enabled after admin grants edit_permission, wizard opens
+  in the right edit mode.
+
+**Deferred / nice-to-have (none blocking):**
+
+- Hard-zone "Wstecz" buttons in StepSwap/StepEduRolls/StepAgingPenalties/
+  StepLuck — left in place; clicking them harmlessly returns to a step
+  whose data is already committed (renders read-only with only "Dalej").
+  Plan said "blocked at UI level"; lazy compromise.
+- Distinguisher backfill across 22 submitted chars — left empty per
+  deploy-day decision (player-owned, partial unique idx ignores blanks).
+  Players can fill via `playerUpdateDistinguisher` whenever they choose.
+- Soft-zone back-step modal (`playerGoBackToStep` server-side wipe) —
+  client-side `prevStep()` works without server wipe; tracked for a
+  later polish pass.
+- Admin edit duration UI shows 3 options (24h / 1tydzień / Do odwołania).
+  User said "na stałe lub na 24h" — 1-tydzień option kept as bonus.
+- Migration 020 (drop `invite_codes.max_tries`) — still deferred.
+
+**Edge function versions live:**
+
+- `admin` v16 (last deploy 2026-04-28, after junction sync hotfix).
+- `player` v15 (last deploy 2026-04-28, after getAgeModifications hotfix).
+
+**Files touched (8 commits, dozens of small surgical edits):**
+
+- `src/hooks/useDraftSync.ts`
+- `src/stores/playerStore.ts`, `src/stores/characterStore.ts`
+- `src/components/player/PlayerDashboard.tsx`
+- `src/components/player/PlayerCharacterViewer.tsx`
+- `src/components/player/NarrativeEditor.tsx` (NEW)
+- `src/components/wizard/StepAge.tsx`
+- `src/components/wizard/StepReview.tsx`
+- `src/components/shared/CharacterSheet.tsx`
+- `supabase/functions/admin/index.ts`
+- `supabase/functions/player/index.ts`
+
+**Status:** v2.0 stable on production. Smoke validated by browser test
+across both admin and player roles. Tester account + code retained for
+future verification.
+
+---
+
 ## 2026-04-27 — v2.0 deployed to production
 
 **Focus:** deploy day for the granular-commits rework. Edge functions

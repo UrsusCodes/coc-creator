@@ -13,16 +13,19 @@ Active work, backlog, and known bugs for CoC Creator.
 > [!note]
 > Completed work from the previous iteration is preserved in `docs/TASKLIST.md` (legacy, read-only). New completions go into [[DOCS_CHANGES_JOURNAL]] with a date, then get checked off here.
 
-## ✅ v2.0 LIVE — granular commits rework deployed 2026-04-27
+## ✅ v2.0 LIVE + smoke-validated — granular commits rework deployed 2026-04-27, stabilized 2026-04-28
 
-> [!success] v2.0 deployed to production 2026-04-27 19:29 UTC
-> Edge functions: admin v15, player v14. Frontend pushed (commit `f6c447e`,
-> Vercel auto-deploy). DB cleaned up (-8 balast drafts), Rafał's
-> `7d54eec4` draft_step remapped 10 → 14 (StepBackstory ready for resume).
-> Post-deploy verify: 23/23 OK. Deploy commit: `87340ce`.
+> [!success] v2.0 production status (as of 2026-04-28)
+> Edge functions live: **admin v16, player v15** (post-hotfix versions).
+> Frontend last commit `4c49b76`. DB: 23 chars (1 active draft = Rafał +
+> 22 submitted). 8 hotfixes shipped 2026-04-28 after browser smoke
+> uncovered them — all detail in
+> [[DOCS_CHANGES_JOURNAL#2026-04-28 — v2.0 stabilization 8 hotfixes UX polish]].
 >
-> Outstanding: user browser smoke test + optional player Discord message.
-> See [[DOCS_CHANGES_JOURNAL#2026-04-27 — v2.0 deployed to production]].
+> Deploy day journal: [[DOCS_CHANGES_JOURNAL#2026-04-27 — v2.0 deployed to production]].
+>
+> Tester account retained: login `tester` / pass `tester`, has 2 test
+> codes (`GCC-4858-EUK`, `VNB-1251-VLP`) for future verification.
 
 ### Done (in repo, not yet deployed)
 
@@ -82,6 +85,10 @@ Active work, backlog, and known bugs for CoC Creator.
 - [ ] **Update spec** — `docs/CoCCreator_obsidian/specs/code_identity_rework_spec.md` → frontmatter `status: implemented`, body diff vs plan v2 if any divergences.
 - [ ] **Player communication** — write a short Polish message to share group. Draft in [[work/v2-deploy-plan#PT.2 — Player communication]]. Optional but nice.
 - [ ] **Follow-up migration 020** (deferred) — drop `invite_codes.max_tries` once edge functions no longer read it. Confirm by grep `max_tries` in `supabase/functions/`.
+- [ ] **Hard-zone "Wstecz" buttons in S1 stepy** (StepSwap/StepEduRolls/StepAgingPenalties/StepLuck) — currently land harmlessly on a committed previous step that renders read-only. Hide them per plan, optional polish.
+- [ ] **Soft-zone back-step modal** — wire `playerGoBackToStep` server-side wipe to `prevStep()` in soft zone, plus confirmation modal listing what gets wiped. Currently `prevStep()` just navigates without server wipe.
+- [ ] **Distinguisher backfill** — 22 submitted chars have empty distinguisher. Plan was "leave empty, players fill via /distinguisher". Could backfill `LEFT(SPLIT_PART(name,' ',1), 60)` as a one-shot if it becomes annoying.
+- [ ] **Repo remote URL** — `git remote set-url origin https://github.com/UrsusCodes/coc-creator.git` to silence the "repository moved" warning on every push.
 
 ### Open items to verify during execution
 

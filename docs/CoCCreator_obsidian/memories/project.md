@@ -1,5 +1,5 @@
 ---
-date: 2026-04-21
+date: 2026-04-28
 status: active
 tags:
   - memories
@@ -20,20 +20,42 @@ A Polish-language web application for creating Call of Cthulhu (7e) player chara
 - **Language of UI:** Polish. Language of code/docs: English.
 - **Scope:** this is a closed tool for one game group — not a public product.
 
-## Current status (2026-04-27)
+## Current status (2026-04-28)
 
-**v2.0 LIVE — granular commits rework deployed to production 2026-04-27.** Plan v2 from `~/.claude/plans/granular-commits-v2.md` is fully realized: migrations 016/017/018/019 applied 2026-04-26; edge functions Etap A/B/C committed (`3ac51b3` `fb500cc` `53a2674`); client lib + types (`dffe4d2`); wizard S1 (`e5043eb`) + S2 (`e6a8fff`) + S3 (`e3e3a57`); deploy day commit `87340ce`.
+**v2.0 LIVE + smoke-validated.** Granular commits rework deployed
+2026-04-27, stabilized 2026-04-28 with 8 hotfixes after browser smoke.
+Plan v2 from `~/.claude/plans/granular-commits-v2.md` is fully realized
+end-to-end through admin + player surfaces.
 
-**Production runs v2.0**:
-- Edge functions: `admin` v15 (2026-04-27 19:29 UTC), `player` v14 (2026-04-27 19:29 UTC).
-- Frontend pushed (`git push origin master`, 24 commits) → Vercel auto-deployed `f6c447e`.
-- DB state: 23 chars (1 active draft = Rafał on `7d54eec4` step 14 = StepBackstory; 22 submitted). Post-deploy verify 23/23 OK, zero drift vs pre-v2-deploy baseline.
+**Production**:
+- Edge functions: `admin` **v16** (2026-04-28, after junction sync hotfix),
+  `player` **v15** (2026-04-28, after `getAgeModifications` hotfix).
+- Frontend last commit `4c49b76` ("Edytuj mechanikę" gated button).
+- DB: 23 chars (1 active draft = Rafał on `7d54eec4` step 14, 22 submitted).
+- 59 codes, 38 of them `unused` (cleanup-eligible via InviteCodeManager).
+- Tester account retained for future smoke: `tester` / `tester` (id
+  `be71d778-af66-468a-b686-1db86d48e993`), 2 codes assigned.
 
-**Outstanding** (light-touch):
-- User browser smoke test (admin login → InviteCodeManager / char list; Rafał login → "Kontynuuj" lands on StepBackstory).
-- Optional Polish message to player group about the rework.
-- Eventually: migration 020 to drop `invite_codes.max_tries` (deferred — replaced by `reroll_budget` but `max_tries` still in codebase).
-- Eventually: `git remote set-url origin https://github.com/UrsusCodes/coc-creator.git` (remote moved per push warning).
+**Smoke validated 2026-04-28**:
+- Rafał: "Kontynuuj tworzenie" → StepDrivePillars (step 14) ✓
+- Tester: full new-character flow (identifier → cech dice → swap pomiń →
+  wiek 45 → EDU/aging/luck → soft zone → review → submit) ✓
+- Tester post-submit: "Edytuj fabułę" round-trips through /narrative +
+  /distinguisher (no admin approval); "Edytuj mechanikę" gated by
+  edit_permission, opens wizard in granted edit_mode.
+
+**Outstanding** (none blocking, all polish):
+- Hide hard-zone "Wstecz" buttons in StepSwap/EduRolls/AgingPenalties/Luck
+  (currently harmless, plan said hide).
+- Soft-zone back-step modal wiring to `playerGoBackToStep`.
+- Migration 020: drop `invite_codes.max_tries` (deferred).
+- `git remote set-url origin https://github.com/UrsusCodes/coc-creator.git`
+  to silence "repository moved" warning.
+- Optional Polish message to players about the rework.
+
+Detailed deploy + hotfix journal:
+[[DOCS_CHANGES_JOURNAL#2026-04-28 — v2.0 stabilization 8 hotfixes UX polish]],
+[[DOCS_CHANGES_JOURNAL#2026-04-27 — v2.0 deployed to production]].
 
 **Critical constraint:** any `git push` to origin auto-deploys frontend. Frontend changes already committed (sessions/distinguisher/F1) reference endpoints that aren't deployed. **No push until edge functions + remaining frontend are all ready as one big-bang release.**
 
@@ -108,6 +130,7 @@ Summary of what's **standard** vs **modified** vs **custom**:
 
 Low-frequency, durable decisions. Implementation-level decisions go in [[DOCS_CHANGES_JOURNAL]] per session.
 
+- **2026-04-28** — **v2.0 stabilized in production**: 8 hotfixes after browser smoke (`fb3552b` → `4c49b76`). Backend (admin v16, player v15) + frontend updated. Two new product features landed in passing: (a) PlayerCharacterViewer "Edytuj fabułę" — always-on direct narrative+distinguisher edit via dedicated endpoints (no admin approve queue), (b) PlayerCharacterViewer "Edytuj mechanikę" — gated button surfacing the existing edit_permission system as an obvious player-side affordance. Decisions: persisted wizard store MUST clear on every login/logout (privacy / cross-user UX); admin POST/PATCH /codes must mirror `assigned_player_id` to `player_codes` junction (player /codes reads junction, not column); narrative edits are direct, mechanical edits require explicit admin grant.
 - **2026-04-27** — **v2.0 deployed to production** (`87340ce`). Edge functions admin v14→v15, player v13→v14 (19:29 UTC). 24-commit push to origin/master = Vercel auto-deploy. Pre-deploy: 8 balast drafts deleted, Rafał's `7d54eec4` draft_step remapped 10→14 via new `scripts/migrate-draft-step-v1-to-v2.mjs` (one-shot tool). Post-deploy verify: 23/23 OK, zero drift. New DB row count 137 (was 145 before balast). Migration script kept in git for audit. Cold-start 503 on first `/admin/ping` then 200 — known transient pattern after Deno deploys.
 - **2026-04-27** — Wizard sub-session 3 done (`e3e3a57`): InviteCodeManager full rewrite (label/reroll_budget/lifecycle status filter/cleanup preview/in-place edit/+1 reroll); CharacterList gets code label + rerolls badges via parallel join; BasicInfoEditor distinguisher → read-only with helper note; PlayerDashboard codes section gains status/distinguisher/rerolls badges, "Użyj kodu" routes to "Kontynuuj" for in-flight drafts, characters split into drafts + collapsible finished. Lifecycle status (`unused`/`started`/`finished`) derived client-side from joined character — no schema churn.
 - **2026-04-27** — Wizard sub-session 2 done (`e6a8fff`): WizardShell rewrite to 17-step layout with auto-skip for swap/edu/aging based on `serverCharacter`; reroll widget in header; StepCharacteristics + StepAge rewrites (server-authoritative, no locks); StepAgeModifiers deleted; characterStore cleanup (removed locks/scratch fields, persist v9→v10 with destructive currentStep reset); useDraftSync gated to soft zone (currentStep≥8) and stripped of hard-zone fields; StepReview dual-path submit (granular `playerSubmitCharacter` if `serverDraftId`, legacy fallback otherwise). Edit-mode entry steps remapped: lore→14, standard→9, full→1.
