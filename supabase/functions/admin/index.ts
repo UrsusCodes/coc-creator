@@ -938,6 +938,122 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ ...data, new_remaining: newRemaining })
     }
 
+    // ── POST /characters/:id/enhance-prompt ────────────────────────
+    // Admin equivalent of the player endpoint: Gemini Flash text mode
+    // rewrites the deterministic prompt with character visual cues +
+    // CoC-1920s context. Free-tier text mode (no per-call cost), shared
+    // across the project's daily quota.
+    const enhanceMatch = path.match(/^\/characters\/([^/]+)\/enhance-prompt$/)
+    if (enhanceMatch && req.method === 'POST') {
+      const charId = enhanceMatch[1]
+
+      // Confirm character exists (admin has access to all)
+      const { error: charErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .single()
+      if (charErr) return errorResponse('Character not found', 404)
+
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? ''
+      if (!geminiApiKey) {
+        return errorResponse(
+          'Server is not configured for AI prompt enhancement.',
+          503,
+        )
+      }
+
+      const body = await req.json().catch(() => ({}))
+      const rawPrompt = typeof body.rawPrompt === 'string' ? body.rawPrompt.trim() : ''
+      const visualCues = typeof body.visualCues === 'string' ? body.visualCues.trim() : ''
+      const occupationEn =
+        typeof body.occupationEn === 'string' ? body.occupationEn.trim() : ''
+
+      if (!rawPrompt || rawPrompt.length < 50) {
+        return errorResponse('rawPrompt required (≥50 chars)', 400)
+      }
+      if (rawPrompt.length > 4000) {
+        return errorResponse('rawPrompt too long (max 4000 chars)', 400)
+      }
+
+      const systemInstruction =
+        'You are a prompt engineer for 1920s photorealistic portrait generation in a Call of Cthulhu RPG context. ' +
+        'Rewrite the structured prompt below into a single cohesive English paragraph (250-450 words). ' +
+        'Preserve every factual detail (era, framing, aspect ratio, photorealism, color treatment, no-text directive, clothing, background, lighting, props, age, gender, profession, appearance description, modifications). ' +
+        'Use the character visual cues sparingly to add psychological texture (gaze, expression, posture) — only what would actually show in a photograph. ' +
+        'Subtle uneasy / occult atmosphere is welcome ONLY when input mentions it explicitly. No fantasy or supernatural elements unless mentioned. ' +
+        'Output ONLY the rewritten prompt — no preamble, no commentary, no quotes around it.'
+
+      const userMessage =
+        `=== STRUCTURED PROMPT (preserve all details) ===\n${rawPrompt}\n\n` +
+        (occupationEn ? `=== PROFESSION (1920s) ===\n${occupationEn}\n\n` : '') +
+        `=== CHARACTER VISUAL CUES (use sparingly) ===\n${visualCues || '- (none)'}\n\n` +
+        `Output the rewritten prompt now.`
+
+      const geminiUrl =
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+      const geminiRes = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ parts: [{ text: userMessage }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        }),
+      })
+
+      if (!geminiRes.ok) {
+        const txt = await geminiRes.text()
+        const status = geminiRes.status
+        console.error(`[admin/enhance-prompt] Gemini ${status}:`, txt.slice(0, 600))
+        if (status === 429) {
+          return jsonResponse(
+            {
+              error: 'quota_exhausted',
+              detail:
+                'Dzienna pula darmowych ulepszeń AI została wyczerpana. Wróć jutro lub użyj wersji deterministycznej.',
+            },
+            429,
+          )
+        }
+        if (status === 401 || status === 403) {
+          return jsonResponse(
+            { error: 'gemini_auth_failed', detail: txt.slice(0, 200) },
+            502,
+          )
+        }
+        return jsonResponse(
+          { error: 'gemini_error', status, detail: txt.slice(0, 300) },
+          502,
+        )
+      }
+
+      const data = await geminiRes.json()
+      const candidates = data.candidates ?? []
+      const parts = candidates[0]?.content?.parts ?? []
+      const enhancedPrompt = parts
+        .filter((p: { text?: string }) => typeof p.text === 'string')
+        .map((p: { text?: string }) => p.text)
+        .join('')
+        .trim()
+
+      if (!enhancedPrompt) {
+        const finishReason = candidates[0]?.finishReason
+        console.error(
+          `[admin/enhance-prompt] No text in response. finishReason=${finishReason}`,
+        )
+        return jsonResponse(
+          { error: 'no_text_in_response', finishReason: finishReason ?? null },
+          502,
+        )
+      }
+
+      return jsonResponse({ enhancedPrompt })
+    }
+
     return new Response(JSON.stringify({ error: 'Not found' }), {
       status: 404,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -950,8 +1066,16 @@ Deno.serve(async (req: Request) => {
   }
 })
 
-function jsonResponse(data: unknown) {
+function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+function errorResponse(message: string, status: number) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 }

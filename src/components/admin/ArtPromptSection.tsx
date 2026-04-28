@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Copy, Check, RotateCcw, Save, Loader2, Plus, Trash2, ImageIcon } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
-import { adminUpdateCharacter } from '@/lib/admin'
+import { adminUpdateCharacter, adminEnhancePrompt } from '@/lib/admin'
 import { generateArtPrompt, generateNegativePrompt, generateSDParams } from '@/lib/artPrompt'
 import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
@@ -173,6 +173,10 @@ export function ArtPromptSection({ characterId, character, artPrompt: savedPromp
       <GeneratePortraitPanel
         character={character as unknown as CharacterSheetData}
         onAppendVariants={handleAdminAppendVariants}
+        onEnhancePrompt={async (args) => {
+          if (!password) throw new Error('Brak hasła administratora.')
+          return await adminEnhancePrompt(password, characterId, args)
+        }}
       />
 
       {/* Prompt */}

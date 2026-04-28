@@ -148,6 +148,49 @@ export async function adminUpdateCharacter(password: string, charId: string, dat
   return res.json()
 }
 
+// ── AI prompt enhancement (Gemini text mode, free tier) ──
+// Mirrors playerEnhancePrompt but admin-authenticated. Used by the
+// portrait panel embedded in ArtPromptSection.
+
+export interface AdminEnhancePromptArgs {
+  rawPrompt: string
+  visualCues?: string
+  occupationEn?: string
+}
+
+export async function adminEnhancePrompt(
+  password: string,
+  charId: string,
+  args: AdminEnhancePromptArgs,
+): Promise<{ enhancedPrompt: string }> {
+  const res = await adminFetch(`/characters/${charId}/enhance-prompt`, password, {
+    method: 'POST',
+    body: JSON.stringify(args),
+  })
+  if (res.status === 429) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      err.detail ??
+        'Dzienna pula darmowych ulepszeń AI została wyczerpana. Wróć jutro lub użyj wersji deterministycznej.',
+    )
+  }
+  if (res.status === 502) {
+    const err = await res.json().catch(() => ({}))
+    if (err.error === 'gemini_auth_failed') {
+      throw new Error('Klucz Gemini API serwera odrzucony.')
+    }
+    throw new Error('Błąd po stronie Gemini przy ulepszaniu promptu.')
+  }
+  if (res.status === 503) {
+    throw new Error('Ulepszanie AI chwilowo niedostępne (brak konfiguracji serwera).')
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd ulepszania promptu' }))
+    throw new Error(err.error ?? 'Błąd ulepszania promptu')
+  }
+  return res.json()
+}
+
 /**
  * Validate admin password by making a test request
  */
