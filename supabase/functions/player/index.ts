@@ -515,7 +515,8 @@ Deno.serve(async (req: Request) => {
       const systemInstruction =
         'You are a prompt engineer for 1920s photorealistic portrait generation in a Call of Cthulhu RPG context. ' +
         'Rewrite the structured prompt below into a single cohesive English paragraph (250-450 words). ' +
-        'Preserve every factual detail (era, framing, aspect ratio, photorealism, color treatment, no-text directive, clothing, background, lighting, props, age, gender, profession, appearance description, modifications). ' +
+        'Preserve every factual detail (era, framing, aspect ratio, photorealism, color treatment, no-text directive, age, gender, profession, appearance description, modifications). ' +
+        'IMPORTANT — clothing skeleton is intentionally minimal: substitute era-appropriate accessories, jewelry, fabric textures, and small details that fit THIS specific character (their profession, personality cues, age). Do NOT copy the structured clothing list verbatim and do NOT default to stereotypical "feathered headpiece, art deco jewelry" for every elegant woman or "silk pocket square" for every elegant man — vary across requests. ' +
         'Use the character visual cues sparingly to add psychological texture (gaze, expression, posture) — only what would actually show in a photograph. ' +
         'Subtle uneasy / occult atmosphere is welcome ONLY when input mentions it explicitly. No fantasy or supernatural elements unless mentioned. ' +
         'Output ONLY the rewritten prompt — no preamble, no commentary, no quotes around it.'

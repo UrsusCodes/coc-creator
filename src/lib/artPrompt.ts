@@ -231,48 +231,25 @@ export const BACKGROUND_CHIPS: BackgroundChipDef[] = [
 
 const DEFAULT_BACKGROUND_FRAGMENT = BACKGROUND_CHIPS[0].fragment
 
-// ── Clothing matrix: gender × wealth-bucket × type (3 non-professional) ──
-type WealthBucket = 'skromny' | 'zamozny'
+// ── Clothing: gender × chip (wealth-independent) ──
+// Each entry is a short skeleton (1 main garment + 1-2 era anchors). Specific
+// accessories (jewelry, headwear, props beyond what's listed) are intentionally
+// left out so AI prompt-rewrite has room to vary by character. Wealth no longer
+// influences the lookup — chips are deliberate player choices and the "Niedbałe /
+// Codzienne / Eleganckie / Zawodowe" labels carry their own meaning.
 type ClothingChipNonProf = Exclude<ClothingChip, 'zawodowe'>
 
-const CLOTHING_MATRIX: Record<
-  'M' | 'F',
-  Record<WealthBucket, Record<ClothingChipNonProf, string>>
-> = {
+const CLOTHING_BY_CHIP: Record<'M' | 'F', Record<ClothingChipNonProf, string>> = {
   M: {
-    skromny: {
-      niedbale: 'rumpled work shirt with rolled sleeves, suspenders, plain wool trousers',
-      codzienne: 'plain shirt with worn vest, wool trousers, soft cap',
-      eleganckie: 'modest two-piece wool suit with worn collar, plain narrow tie',
-    },
-    zamozny: {
-      niedbale: 'open-collared dress shirt, casual blazer, comfortable flannel trousers',
-      codzienne: 'tailored three-piece suit, silk tie, polished oxfords',
-      eleganckie:
-        'black formal dinner jacket, white bow tie, silk pocket square, cufflinks',
-    },
+    niedbale: 'rumpled work shirt with rolled sleeves, suspenders, plain wool trousers',
+    codzienne: 'neat 1920s shirt and waistcoat, wool trousers, period shoes',
+    eleganckie: '1920s formal evening attire — dinner jacket and bow tie',
   },
   F: {
-    skromny: {
-      niedbale:
-        'simple cotton blouse, ankle-length plain skirt, headscarf or pinned-up hair',
-      codzienne: 'modest belted day dress, low heels, plain wool coat',
-      eleganckie: 'modest drop-waist evening dress in subdued color, simple shawl',
-    },
-    zamozny: {
-      niedbale:
-        'casual drop-waist day dress, soft cashmere cardigan, T-strap low pumps',
-      codzienne: 'fashionable drop-waist dress, cloche hat, pearl strand necklace',
-      eleganckie:
-        'beaded silk evening gown, long satin gloves, feathered headpiece, art deco jewelry',
-    },
+    niedbale: 'simple cotton blouse, ankle-length plain skirt, hair tied back',
+    codzienne: '1920s drop-waist day dress, low heels, neat hairstyle',
+    eleganckie: '1920s elegant evening gown in period style',
   },
-}
-
-/** Wealth tier (A–F from wealth v2) → 2 buckets used by the matrix. */
-function bucketFromWealth(spending_level: string | undefined): WealthBucket {
-  const upper = (spending_level ?? '').trim().toUpperCase()
-  return upper === 'A' || upper === 'B' || upper === 'C' ? 'zamozny' : 'skromny'
 }
 
 /** Default chip selected at panel-open time, derived from wealth tier. */
@@ -388,19 +365,12 @@ export function buildPlayerPortraitPrompt(input: BuildPortraitPromptInput): stri
   } else if (clothingChip === 'zawodowe') {
     clothingFragment = `clothing typical for a ${occupationEn} in 1920s`
   } else {
-    // Chip is a deliberate choice by the player. For `niedbale` and
-    // `eleganckie`, ignore the wealth bucket — those chips ARE the
-    // statement (player wants slovenly / formal regardless of stats).
-    // Wealth only modulates the ambiguous middle: `codzienne`, where
-    // "everyday clothing" honestly depends on station.
+    // Chip is a deliberate player choice — wealth bucket no longer
+    // gates the lookup. The skeleton is intentionally short so AI
+    // rewrite (or Gemini Chat) has room to vary accessories per
+    // character.
     const g = normaliseGender(character.gender)
-    const bucket: WealthBucket =
-      clothingChip === 'eleganckie'
-        ? 'zamozny'
-        : clothingChip === 'niedbale'
-          ? 'skromny'
-          : bucketFromWealth(character.spending_level)
-    clothingFragment = CLOTHING_MATRIX[g][bucket][clothingChip]
+    clothingFragment = CLOTHING_BY_CHIP[g][clothingChip]
   }
 
   // Background

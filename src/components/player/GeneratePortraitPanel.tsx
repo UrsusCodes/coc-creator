@@ -77,6 +77,16 @@ interface GeneratePortraitPanelProps {
   onEnhancePrompt?: (args: EnhancePromptArgs) => Promise<{ enhancedPrompt: string }>
 }
 
+// Suggested wealth ranges per clothing chip (informational only — chips
+// no longer gate by wealth, but the hint helps players match style to
+// their character's station). Wealth is in $/day from CoC 7e Spending Level.
+const CLOTHING_CHIP_HINTS: Record<ClothingChip, string> = {
+  niedbale: '≤ $10/dzień',
+  codzienne: '> $10/dzień',
+  eleganckie: '> $30/dzień',
+  zawodowe: 'dowolne',
+}
+
 const FIELD_DEFS: { key: keyof PortraitFieldOverrides; label: string; placeholder: string }[] = [
   { key: 'face', label: 'Twarz', placeholder: 'np. blizna nad lewą brwią, ciemne podkrążone oczy' },
   { key: 'body', label: 'Ciało', placeholder: 'np. szerokie ramiona, zgarbiona postura' },
@@ -687,13 +697,20 @@ function FormSection(props: FormSectionProps) {
               key={c}
               type="button"
               onClick={() => setClothingChip(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg border transition-colors ${
                 clothingChip === c
                   ? 'bg-coc-accent text-white border-coc-accent'
                   : 'bg-coc-surface-light text-coc-text-muted border-coc-border hover:border-coc-accent-light/50'
               }`}
             >
-              {CLOTHING_CHIP_LABELS[c]}
+              <span className="text-xs">{CLOTHING_CHIP_LABELS[c]}</span>
+              <span
+                className={`text-[9px] leading-tight ${
+                  clothingChip === c ? 'text-white/80' : 'text-coc-text-muted/70'
+                }`}
+              >
+                {CLOTHING_CHIP_HINTS[c]}
+              </span>
             </button>
           ))}
         </div>
