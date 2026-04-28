@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase'
 import {
   buildPlayerPortraitPrompt,
   buildStatHints,
+  buildVisualCues,
   defaultClothingChip,
   sanitizePortraitFreeText,
   BACKGROUND_CHIPS,
@@ -28,6 +29,7 @@ import {
   type PortraitFieldOverrides,
   type PortraitStyle,
 } from '@/lib/artPrompt'
+import { OCCUPATION_NAMES_EN } from '@/data/occupationNamesEn'
 import {
   buildAllStyleVariants,
   STYLE_LABELS_PL,
@@ -52,6 +54,12 @@ export interface AppendVariantsResult {
   gallery_additions: GalleryItem[]
 }
 
+export interface EnhancePromptArgs {
+  rawPrompt: string
+  visualCues?: string
+  occupationEn?: string
+}
+
 interface GeneratePortraitPanelProps {
   character: CharacterSheetData
   /**
@@ -62,6 +70,11 @@ interface GeneratePortraitPanelProps {
   onAppendVariants: (variants: PortraitVariantUploaded[]) => Promise<AppendVariantsResult>
   /** Optional UI hook — called with the same additions so caller can update local state. */
   onVariantsAdded?: (additions: GalleryItem[]) => void
+  /**
+   * Optional — calls Gemini text mode to rewrite the deterministic prompt.
+   * If omitted, the AI-enhance feature is hidden.
+   */
+  onEnhancePrompt?: (args: EnhancePromptArgs) => Promise<{ enhancedPrompt: string }>
 }
 
 const FIELD_DEFS: { key: keyof PortraitFieldOverrides; label: string; placeholder: string }[] = [
@@ -78,6 +91,7 @@ export function GeneratePortraitPanel({
   character,
   onAppendVariants,
   onVariantsAdded,
+  onEnhancePrompt,
 }: GeneratePortraitPanelProps) {
   const characterAsRecord = character as unknown as Record<string, unknown>
   const spendingLevel = (characterAsRecord.spending_level as string | undefined) ?? ''
@@ -98,9 +112,14 @@ export function GeneratePortraitPanel({
   const [fieldsValue, setFieldsValue] = useState<Record<string, string>>({})
   const [korekty, setKorekty] = useState('')
 
-  // Step 1 — generated prompt
+  // Step 1 — generated prompt (deterministic + optional AI-enhanced)
   const [generatedPrompt, setGeneratedPrompt] = useState<string>('')
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle')
+  const [enhancedPrompt, setEnhancedPrompt] = useState<string>('')
+  const [autoEnhance, setAutoEnhance] = useState<boolean>(!!onEnhancePrompt)
+  const [enhancing, setEnhancing] = useState(false)
+  const [enhanceError, setEnhanceError] = useState<string | null>(null)
+  const [copyStatusDet, setCopyStatusDet] = useState<'idle' | 'copied'>('idle')
+  const [copyStatusAi, setCopyStatusAi] = useState<'idle' | 'copied'>('idle')
   const [promptError, setPromptError] = useState<string | null>(null)
 
   // Step 2 — pasted master
@@ -158,10 +177,13 @@ export function GeneratePortraitPanel({
     return out
   }
 
-  // ── Step 1: build prompt ──
-  const handleBuildPrompt = () => {
+  // ── Step 1: build prompt (+ optional AI enhance) ──
+  const handleBuildPrompt = async () => {
     setPromptError(null)
-    setCopyStatus('idle')
+    setEnhanceError(null)
+    setCopyStatusDet('idle')
+    setCopyStatusAi('idle')
+    setEnhancedPrompt('')
 
     const overrides = buildOverrides()
     try {
@@ -182,8 +204,9 @@ export function GeneratePortraitPanel({
       return
     }
 
+    let prompt: string
     try {
-      const prompt = buildPlayerPortraitPrompt({
+      prompt = buildPlayerPortraitPrompt({
         character: {
           age: character.age,
           gender: character.gender,
@@ -201,15 +224,51 @@ export function GeneratePortraitPanel({
       setGeneratedPrompt(prompt)
     } catch (err) {
       setPromptError(err instanceof Error ? err.message : 'Nie udało się złożyć promptu.')
+      return
+    }
+
+    // Optional AI enhancement — fires automatically when checkbox is on
+    if (autoEnhance && onEnhancePrompt) {
+      await runEnhance(prompt)
     }
   }
 
-  const handleCopyPrompt = async () => {
-    if (!generatedPrompt) return
+  const runEnhance = async (basePrompt: string) => {
+    if (!onEnhancePrompt) return
+    setEnhancing(true)
+    setEnhanceError(null)
     try {
-      await navigator.clipboard.writeText(generatedPrompt)
-      setCopyStatus('copied')
-      setTimeout(() => setCopyStatus('idle'), 1500)
+      const cues = buildVisualCues({ characteristics: character.characteristics })
+      const occupationEn =
+        OCCUPATION_NAMES_EN[character.occupation_id] ??
+        character.occupation_id?.replace(/_/g, ' ') ??
+        ''
+      const result = await onEnhancePrompt({
+        rawPrompt: basePrompt,
+        visualCues: cues,
+        occupationEn,
+      })
+      setEnhancedPrompt(result.enhancedPrompt)
+    } catch (err) {
+      setEnhanceError(err instanceof Error ? err.message : 'Błąd ulepszania promptu.')
+    } finally {
+      setEnhancing(false)
+    }
+  }
+
+  const handleManualEnhance = () => {
+    if (generatedPrompt) runEnhance(generatedPrompt)
+  }
+
+  const handleCopy = async (
+    text: string,
+    setter: (s: 'idle' | 'copied') => void,
+  ) => {
+    if (!text) return
+    try {
+      await navigator.clipboard.writeText(text)
+      setter('copied')
+      setTimeout(() => setter('idle'), 1500)
     } catch {
       setPromptError('Nie udało się skopiować — zaznacz tekst ręcznie.')
     }
@@ -337,14 +396,32 @@ export function GeneratePortraitPanel({
 
           {/* ── Step 1: prompt ── */}
           <div className="border-t border-coc-border/50 pt-3 space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <p className="text-xs font-semibold text-coc-text uppercase tracking-wider">
                 1. Skopiuj prompt
               </p>
-              <Button size="sm" variant="secondary" onClick={handleBuildPrompt}>
-                <Sparkles className="w-3.5 h-3.5" />
-                {generatedPrompt ? 'Odśwież' : 'Złóż prompt'}
-              </Button>
+              <div className="flex items-center gap-3">
+                {onEnhancePrompt && (
+                  <label className="flex items-center gap-1.5 text-[11px] text-coc-text-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={autoEnhance}
+                      onChange={(e) => setAutoEnhance(e.target.checked)}
+                      className="cursor-pointer"
+                    />
+                    <Sparkles className="w-3 h-3 text-coc-accent-light" />
+                    Ulepsz przez AI
+                  </label>
+                )}
+                <Button size="sm" variant="secondary" onClick={handleBuildPrompt} disabled={enhancing}>
+                  {enhancing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  {generatedPrompt ? 'Odśwież' : 'Złóż prompt'}
+                </Button>
+              </div>
             </div>
 
             {promptError && (
@@ -356,34 +433,93 @@ export function GeneratePortraitPanel({
 
             {generatedPrompt && (
               <>
-                <textarea
-                  value={generatedPrompt}
-                  readOnly
-                  rows={6}
-                  className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-xs text-coc-text font-mono resize-y"
-                  onFocus={(e) => e.currentTarget.select()}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={handleCopyPrompt}>
-                    {copyStatus === 'copied' ? (
+                {/* Enhanced version (preferred when available) */}
+                {enhancedPrompt && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-medium text-coc-accent-light flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Wersja ulepszona przez AI (zalecana — możesz edytować)
+                    </p>
+                    <textarea
+                      value={enhancedPrompt}
+                      onChange={(e) => setEnhancedPrompt(e.target.value)}
+                      rows={6}
+                      className="w-full px-3 py-2 bg-coc-surface-light border-2 border-coc-accent/40 rounded-lg text-xs text-coc-text font-mono resize-y"
+                    />
+                    <Button size="sm" onClick={() => handleCopy(enhancedPrompt, setCopyStatusAi)}>
+                      {copyStatusAi === 'copied' ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      {copyStatusAi === 'copied' ? 'Skopiowano' : 'Skopiuj wersję AI'}
+                    </Button>
+                  </div>
+                )}
+
+                {/* AI-enhance trigger / status when not auto */}
+                {onEnhancePrompt && !enhancedPrompt && !enhancing && (
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="ghost" onClick={handleManualEnhance}>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Ulepsz przez AI
+                    </Button>
+                  </div>
+                )}
+                {enhancing && (
+                  <p className="text-[11px] text-coc-text-muted flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    AI ulepsza prompt…
+                  </p>
+                )}
+                {enhanceError && (
+                  <div className="flex items-start gap-2 px-3 py-2 bg-coc-danger/10 border border-coc-danger/40 rounded-lg text-xs text-coc-danger">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <span>{enhanceError}</span>
+                  </div>
+                )}
+
+                {/* Deterministic version (always available) */}
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-medium text-coc-text-muted">
+                    Wersja deterministyczna {enhancedPrompt && '(źródłowa)'}
+                  </p>
+                  <textarea
+                    value={generatedPrompt}
+                    readOnly
+                    rows={enhancedPrompt ? 4 : 6}
+                    className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-xs text-coc-text font-mono resize-y"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <Button
+                    size="sm"
+                    variant={enhancedPrompt ? 'ghost' : 'primary'}
+                    onClick={() => handleCopy(generatedPrompt, setCopyStatusDet)}
+                  >
+                    {copyStatusDet === 'copied' ? (
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
-                    {copyStatus === 'copied' ? 'Skopiowano' : 'Skopiuj'}
+                    {copyStatusDet === 'copied'
+                      ? 'Skopiowano'
+                      : enhancedPrompt
+                        ? 'Skopiuj źródłową'
+                        : 'Skopiuj'}
                   </Button>
-                  <a
-                    href={GEMINI_CHAT_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-coc-surface-light border border-coc-border text-coc-text-muted hover:text-coc-text hover:border-coc-accent-light/50 transition-colors"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Otwórz Gemini Chat
-                  </a>
                 </div>
+
+                <a
+                  href={GEMINI_CHAT_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-coc-surface-light border border-coc-border text-coc-text-muted hover:text-coc-text hover:border-coc-accent-light/50 transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Otwórz Gemini Chat
+                </a>
                 <p className="text-[11px] text-coc-text-muted/80">
-                  Wklej prompt w Gemini Chat (darmowe), pobierz / skopiuj wygenerowany obraz,
+                  Wklej prompt w Gemini Chat (darmowe), pobierz wygenerowany obraz,
                   potem wklej go niżej.
                 </p>
               </>

@@ -10,6 +10,7 @@ import {
   playerUpdateNarrative, playerUpdateDistinguisher,
   playerGetEditPermission,
   playerAppendPortraits,
+  playerEnhancePrompt,
 } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -467,6 +468,10 @@ function PortraitGallery({
             if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
             const res = await playerAppendPortraits(token, character.id, variants)
             return { gallery_additions: res.gallery_additions }
+          }}
+          onEnhancePrompt={async (args) => {
+            if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
+            return await playerEnhancePrompt(token, character.id, args)
           }}
           onVariantsAdded={(additions) =>
             setFreshAdditions((prev) => [...prev, ...additions])

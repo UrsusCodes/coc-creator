@@ -518,6 +518,80 @@ export function buildStatHints(character: {
   return hints
 }
 
+// ── Visual cues for AI prompt enhancement (English, terse) ──
+// Produces a short bullet-list of psychological/physical hints derived
+// from extreme stat values. Used as context for Gemini text-mode prompt
+// rewriting — not included in the deterministic prompt.
+//
+// Only extremes (≤35 or ≥75 for most stats) produce a cue. Average rolls
+// stay silent. The cues are written in English photographic terms so
+// Gemini can naturally fold them into the rewritten paragraph.
+export function buildVisualCues(character: {
+  characteristics?: Record<string, number>
+}): string {
+  const c = character.characteristics ?? {}
+  const STR = c.STR ?? 50
+  const CON = c.CON ?? 50
+  const SIZ = c.SIZ ?? 50
+  const DEX = c.DEX ?? 50
+  const APP = c.APP ?? 50
+  const INT = c.INT ?? 50
+  const POW = c.POW ?? 50
+  const EDU = c.EDU ?? 50
+
+  const cues: string[] = []
+
+  // Build (SIZ × STR)
+  if (SIZ >= 75 && STR >= 70)
+    cues.push('Build: large and powerfully muscular, imposing physical presence.')
+  else if (SIZ >= 75 && STR <= 40)
+    cues.push('Build: tall and heavy with a soft, slack frame — overweight or out of shape.')
+  else if (SIZ >= 75) cues.push('Build: tall and large-framed.')
+  else if (SIZ <= 35) cues.push('Build: small and slight, easily overlooked.')
+  else if (STR >= 75) cues.push('Build: athletic and visibly muscular.')
+  else if (STR <= 30) cues.push('Build: weak and frail, lacking physical presence.')
+
+  // Health (CON)
+  if (CON <= 30)
+    cues.push('Health: poor — gaunt features, sickly complexion, hollow or shadowed look.')
+  else if (CON >= 80) cues.push('Health: robust and hearty, healthy color.')
+
+  // Beauty (APP)
+  if (APP >= 80) cues.push('Beauty: striking, captivating features.')
+  else if (APP >= 70) cues.push('Beauty: notably handsome or attractive.')
+  else if (APP <= 25)
+    cues.push('Beauty: ugly or disfigured — off-putting features.')
+  else if (APP <= 35) cues.push('Beauty: plain, forgettable face.')
+
+  // Mind (INT + EDU) — visible in eyes and bearing
+  if (INT >= 75 && EDU >= 70)
+    cues.push('Mind: visibly intelligent and educated — sharp, perceptive eyes; thoughtful, refined expression.')
+  else if (INT >= 80)
+    cues.push('Mind: keenly intelligent — alert, calculating gaze.')
+  else if (INT <= 30 && EDU <= 40)
+    cues.push('Mind: simple and unschooled — naive, unrefined expression and bearing.')
+  else if (EDU <= 30)
+    cues.push('Education: visibly low — rough manner, unschooled bearing.')
+  else if (EDU >= 80)
+    cues.push('Education: highly educated — composed, intellectual demeanor.')
+
+  // Presence (POW) — gaze + sanity proxy
+  if (POW >= 80)
+    cues.push('Presence: magnetic and intense — commanding, focused gaze.')
+  else if (POW <= 30)
+    cues.push(
+      'Presence: weak willpower — anxious or haunted gaze, possibly an obsessive intensity or nervous tic in the eyes.',
+    )
+
+  // Bearing (DEX)
+  if (DEX >= 80) cues.push('Bearing: graceful, fluid posture.')
+  else if (DEX <= 30) cues.push('Bearing: awkward, stiff posture.')
+
+  return cues.length > 0
+    ? cues.map((s) => `- ${s}`).join('\n')
+    : '- No notable physical or psychological extremes — average appearance.'
+}
+
 // ── Free-text sanitiser (used by all 5 fields and Korekty box) ──
 const FREE_TEXT_BLOCKLIST = /\b(nud|naked|nsfw|sex|porn|gore|erotic|fetish)\w*/i
 

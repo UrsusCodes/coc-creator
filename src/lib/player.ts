@@ -366,6 +366,47 @@ export async function playerSelectPortrait(
   return res.json()
 }
 
+// ── Enhance deterministic prompt via Gemini text mode (free tier) ──
+
+export interface PlayerEnhancePromptArgs {
+  rawPrompt: string
+  visualCues?: string
+  occupationEn?: string
+}
+
+export async function playerEnhancePrompt(
+  token: string,
+  charId: string,
+  args: PlayerEnhancePromptArgs,
+): Promise<{ enhancedPrompt: string }> {
+  const res = await playerFetch(`/characters/${charId}/enhance-prompt`, token, {
+    method: 'POST',
+    body: JSON.stringify(args),
+  })
+  if (res.status === 429) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      err.detail ??
+        'Dzienna pula darmowych ulepszeń AI została wyczerpana. Wróć jutro lub użyj wersji deterministycznej.',
+    )
+  }
+  if (res.status === 502) {
+    const err = await res.json().catch(() => ({}))
+    if (err.error === 'gemini_auth_failed') {
+      throw new Error('Klucz Gemini API serwera odrzucony. Skontaktuj się ze Strażnikiem Tajemnic.')
+    }
+    throw new Error('Błąd po stronie Gemini przy ulepszaniu promptu.')
+  }
+  if (res.status === 503) {
+    throw new Error('Ulepszanie AI chwilowo niedostępne (brak konfiguracji serwera).')
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd ulepszania promptu' }))
+    throw new Error(err.error ?? 'Błąd ulepszania promptu')
+  }
+  return res.json()
+}
+
 // ── Append uploaded portrait variants to character's gallery ────
 // Used by the Chat-paste flow: client uploads N variants directly to
 // Storage via supabase-js, then calls this endpoint to register them
