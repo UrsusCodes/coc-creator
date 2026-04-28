@@ -388,8 +388,18 @@ export function buildPlayerPortraitPrompt(input: BuildPortraitPromptInput): stri
   } else if (clothingChip === 'zawodowe') {
     clothingFragment = `clothing typical for a ${occupationEn} in 1920s`
   } else {
+    // Chip is a deliberate choice by the player. For `niedbale` and
+    // `eleganckie`, ignore the wealth bucket — those chips ARE the
+    // statement (player wants slovenly / formal regardless of stats).
+    // Wealth only modulates the ambiguous middle: `codzienne`, where
+    // "everyday clothing" honestly depends on station.
     const g = normaliseGender(character.gender)
-    const bucket = bucketFromWealth(character.spending_level)
+    const bucket: WealthBucket =
+      clothingChip === 'eleganckie'
+        ? 'zamozny'
+        : clothingChip === 'niedbale'
+          ? 'skromny'
+          : bucketFromWealth(character.spending_level)
     clothingFragment = CLOTHING_MATRIX[g][bucket][clothingChip]
   }
 
