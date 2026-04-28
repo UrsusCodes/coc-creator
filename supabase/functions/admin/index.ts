@@ -1001,7 +1001,13 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents: [{ parts: [{ text: userMessage }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+            // Disable thinking mode — gemini-2.5-flash otherwise spends
+            // tokens reasoning before output, truncating the rewrite.
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       })
 

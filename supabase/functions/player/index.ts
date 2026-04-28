@@ -537,7 +537,15 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents: [{ parts: [{ text: userMessage }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+            // gemini-2.5-flash defaults to thinking mode which consumes
+            // tokens before final output. Prompt rewriting doesn't need
+            // deep reasoning — disable to give all budget to the
+            // response and avoid truncation at ~halfway through.
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       })
 
