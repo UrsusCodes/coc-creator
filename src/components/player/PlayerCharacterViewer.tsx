@@ -18,6 +18,7 @@ import { ExportButtons } from '@/components/shared/ExportButtons'
 import { PortraitUpload } from '@/components/shared/PortraitUpload'
 import { PortraitCropModal } from './PortraitCropModal'
 import { PortraitFeedbackModal } from './PortraitFeedbackModal'
+import { GeneratePortraitPanel } from './GeneratePortraitPanel'
 import { NarrativeEditor } from './NarrativeEditor'
 import { BackstoryEditor } from '@/components/admin/edit/BackstoryEditor'
 import type { Backstory, NarrativeFields, PortraitCropData, PortraitFeedback } from '@/types/character'
@@ -377,7 +378,10 @@ function PortraitGallery({
   onPortraitChange: (url: string, cropData?: PortraitCropData | null) => void
 }) {
   const { token } = usePlayerStore()
-  const gallery = (character as unknown as Record<string, unknown>).art_gallery as { url: string; label: string }[] ?? []
+  const persistedGallery =
+    ((character as unknown as Record<string, unknown>).art_gallery as
+      | { url: string; label: string; created_at: string }[]
+      | undefined) ?? []
   const currentCrop = (character as unknown as Record<string, unknown>).portrait_crop_data as PortraitCropData | undefined
 
   const [cropModal, setCropModal] = useState<{ url: string; label: string } | null>(null)
@@ -385,6 +389,16 @@ function PortraitGallery({
   const [feedbackList, setFeedbackList] = useState<PortraitFeedback[]>([])
   const [selectingUrl, setSelectingUrl] = useState<string | null>(null)
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  const [freshAdditions, setFreshAdditions] = useState<{ url: string; label: string; created_at: string }[]>([])
+
+  // Server is the source of truth for art_gallery. `freshAdditions` is a
+  // local-only optimistic merge so AI-generated variants show up
+  // immediately after a successful generate call.
+  const persistedUrls = new Set(persistedGallery.map((g) => g.url))
+  const gallery = [
+    ...persistedGallery,
+    ...freshAdditions.filter((a) => !persistedUrls.has(a.url)),
+  ]
 
   // Load existing feedbacks
   useEffect(() => {
@@ -394,7 +408,7 @@ function PortraitGallery({
       .catch(() => setFeedbackList([]))
   }, [token, character.id, feedbackSubmitted])
 
-  if (gallery.length === 0 && !character.portrait_url) return null
+  // Always render — generation panel is useful even when gallery is empty.
 
   const pendingFeedbackUrls = new Set(
     feedbackList.filter((f) => f.status === 'pending_fix').map((f) => f.variant_url)
@@ -445,6 +459,13 @@ function PortraitGallery({
     <>
       <Card>
         <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">Portrety</h4>
+
+        <GeneratePortraitPanel
+          character={character}
+          onVariantsAdded={(additions) =>
+            setFreshAdditions((prev) => [...prev, ...additions])
+          }
+        />
 
         {gallery.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">

@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import bcryptjs from 'https://esm.sh/bcryptjs@3.0.2'
 const bcryptCompare = (pw: string, hash: string) => bcryptjs.compareSync(pw, hash)
 import { create, verify } from 'https://deno.land/x/djwt@v3.0.2/mod.ts'
+import { Image } from 'https://deno.land/x/imagescript@1.2.17/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -128,6 +129,66 @@ function getDeductibleStats(age: number): string[] {
  */
 function getAgeModifications(age: number): AgeRange | null {
   return getAgeRange(age) ?? null
+}
+
+// ─── Portrait style transforms (post-Gemini, server-side) ──────
+// Spec: docs/CoCCreator_obsidian/specs/portrait_prompt_methodology.md
+// Each Gemini master image is decoded once, then transformed into 4
+// stylistic variants in pixel space:
+//   color  — master untouched, re-encoded as JPEG
+//   faded  — saturation reduced (lerp toward grayscale)
+//   sepia  — classic sepia matrix
+//   bw     — luminance grayscale
+// All 4 returned as JPEG Uint8Arrays for upload to Storage.
+async function buildStyleVariants(
+  master: Image,
+): Promise<Record<'color' | 'faded' | 'sepia' | 'bw', Uint8Array>> {
+  const colorImg = master.clone()
+  const fadedImg = master.clone()
+  const sepiaImg = master.clone()
+  const bwImg = master.clone()
+
+  // imagescript bitmap is RGBA Uint8ClampedArray (4 bytes per pixel).
+  applyPixelTransform(fadedImg, (r, g, b) => {
+    const y = 0.299 * r + 0.587 * g + 0.114 * b
+    // 70% original color + 30% gray → muted
+    return [r * 0.7 + y * 0.3, g * 0.7 + y * 0.3, b * 0.7 + y * 0.3]
+  })
+
+  applyPixelTransform(sepiaImg, (r, g, b) => [
+    Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b),
+    Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b),
+    Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b),
+  ])
+
+  applyPixelTransform(bwImg, (r, g, b) => {
+    const y = 0.299 * r + 0.587 * g + 0.114 * b
+    return [y, y, y]
+  })
+
+  // JPEG quality 85 — good balance for portraits + Storage size
+  const [color, faded, sepia, bw] = await Promise.all([
+    colorImg.encodeJPEG(85),
+    fadedImg.encodeJPEG(85),
+    sepiaImg.encodeJPEG(85),
+    bwImg.encodeJPEG(85),
+  ])
+
+  return { color, faded, sepia, bw }
+}
+
+function applyPixelTransform(
+  img: Image,
+  fn: (r: number, g: number, b: number) => [number, number, number],
+): void {
+  const data = img.bitmap
+  for (let i = 0; i < data.length; i += 4) {
+    const [r, g, b] = fn(data[i], data[i + 1], data[i + 2])
+    data[i] = Math.round(Math.max(0, Math.min(255, r)))
+    data[i + 1] = Math.round(Math.max(0, Math.min(255, g)))
+    data[i + 2] = Math.round(Math.max(0, Math.min(255, b)))
+    // alpha (data[i + 3]) untouched
+  }
 }
 
 // Fields wiped on soft back-step (occupation onwards). Mechanical fields
@@ -408,6 +469,367 @@ Deno.serve(async (req: Request) => {
         .single()
       if (error) throw error
       return jsonResponse(data)
+    }
+
+    // ── POST /characters/:id/generate-portrait ─────────────────────
+    // ⚠️  DEADCODE — disabled 2026-04-28 after Gemini API turned out to
+    //     be paid-only for image generation (~$0.04/image). The CoC
+    //     Creator pivoted to a Chat-paste flow (player runs gemini.google.com
+    //     manually, pastes the result back into the panel, and the
+    //     client does style transforms in canvas) — see
+    //     docs/CoCCreator_obsidian/specs/portrait_prompt_methodology.md.
+    //
+    //     Kept here verbatim because it is a fully-working server-side
+    //     pipeline (rate-limit + Gemini call + 4-style pixel transform +
+    //     Storage upload + log row). Reactivation requires only:
+    //       1) Remove the early-return guard below.
+    //       2) Restore `playerGeneratePortrait` wrapper in src/lib/player.ts.
+    //       3) Set GEMINI_API_KEY (or other provider key) in edge-fn secrets.
+    //       4) Re-add the "Wygeneruj N" button in GeneratePortraitPanel.
+    //
+    //     The accompanying migration (020_portrait_generations) and the
+    //     `imagescript` import stay in place too — both are needed when
+    //     this endpoint comes back.
+    const generateMatch = path.match(/^\/characters\/([^/]+)\/generate-portrait$/)
+    if (generateMatch && req.method === 'POST') {
+      return jsonResponse(
+        {
+          error: 'endpoint_deactivated',
+          detail:
+            'Portrait API generation is currently disabled. The app uses a Chat-paste flow — see GeneratePortraitPanel in the player viewer.',
+        },
+        410, // Gone — semantically correct for "feature retired"
+      )
+      // The body below is unreachable but preserved for reactivation.
+      // eslint-disable-next-line no-unreachable
+      const charId = generateMatch[1]
+
+      // ── 1a. Ownership check ──
+      const { data: charRow, error: ownerErr } = await supabase
+        .from('characters')
+        .select('id, art_gallery')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr || !charRow) return errorResponse('Character not found', 404)
+
+      // ── 1b. Server-side admin key (env, never sent from client) ──
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? ''
+      if (!geminiApiKey) {
+        return errorResponse('Server is not configured for portrait generation', 503)
+      }
+
+      // ── 1c. Parse + validate body ──
+      const body = await req.json().catch(() => ({}))
+      const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
+      const clothingChip = typeof body.clothingChip === 'string' ? body.clothingChip : ''
+      const lightingChip = typeof body.lightingChip === 'string' ? body.lightingChip : ''
+      const backgroundChipId =
+        typeof body.backgroundChipId === 'string' ? body.backgroundChipId : ''
+      const fieldOverrides =
+        body.fieldOverrides && typeof body.fieldOverrides === 'object'
+          ? body.fieldOverrides
+          : {}
+      const korekty = typeof body.korekty === 'string' ? body.korekty : ''
+      const requestedCount = typeof body.count === 'number' ? Math.floor(body.count) : 2
+      const masterCount = Math.max(1, Math.min(3, requestedCount))
+
+      if (!prompt || prompt.length < 50) {
+        return errorResponse('prompt required (≥50 chars)', 400)
+      }
+      if (prompt.length > 4000) {
+        return errorResponse('prompt too long (max 4000 chars)', 400)
+      }
+      if (!['niedbale', 'codzienne', 'eleganckie', 'zawodowe'].includes(clothingChip)) {
+        return errorResponse('clothingChip invalid', 400)
+      }
+      if (!['hollywood', 'natural', 'noir'].includes(lightingChip)) {
+        return errorResponse('lightingChip invalid', 400)
+      }
+
+      // ── 1d. Rate limit ──
+      const since30s = new Date(Date.now() - 30_000).toISOString()
+      const since24h = new Date(Date.now() - 24 * 60 * 60_000).toISOString()
+      const { count: cooldownCount, error: cooldownErr } = await supabase
+        .from('portrait_generations')
+        .select('id', { count: 'exact', head: true })
+        .eq('player_id', playerId)
+        .gte('created_at', since30s)
+      if (cooldownErr) throw cooldownErr
+      if ((cooldownCount ?? 0) > 0) {
+        return jsonResponse(
+          { error: 'rate_limited_cooldown', retry_after_sec: 30 },
+          429,
+        )
+      }
+      const { count: dayCount, error: dayErr } = await supabase
+        .from('portrait_generations')
+        .select('id', { count: 'exact', head: true })
+        .eq('player_id', playerId)
+        .gte('created_at', since24h)
+      if (dayErr) throw dayErr
+      const DAILY_LIMIT = 5
+      if ((dayCount ?? 0) >= DAILY_LIMIT) {
+        return jsonResponse(
+          {
+            error: 'rate_limited_daily',
+            remaining_today: 0,
+            daily_limit: DAILY_LIMIT,
+          },
+          429,
+        )
+      }
+
+      // ── 2. Insert log row up-front (counts towards limit) ──
+      const { data: logRow, error: logErr } = await supabase
+        .from('portrait_generations')
+        .insert({
+          player_id: playerId,
+          character_id: charId,
+          clothing_chip: clothingChip,
+          background_chip_id: backgroundChipId || null,
+          lighting_chip: lightingChip,
+          field_overrides: fieldOverrides,
+          korekty: korekty || null,
+          master_count: masterCount,
+          succeeded_count: 0,
+        })
+        .select('id')
+        .single()
+      if (logErr) throw logErr
+
+      // ── 3. Generate masters + style variants ──
+      const wrappedPrompt =
+        `Generate a portrait image based on this description. ` +
+        `Do not add any text, watermarks, signatures, captions, or borders ` +
+        `to the image.\n\n${prompt}`
+      // Default model is the image-gen variant; override via GEMINI_MODEL
+      // secret if Google rotates the preview alias.
+      const geminiModel =
+        Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash-image'
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`
+
+      const galleryAdditions: { url: string; label: string; created_at: string }[] = []
+      const errors: string[] = []
+      let succeeded = 0
+
+      for (let i = 0; i < masterCount; i++) {
+        try {
+          // 3a. Gemini call
+          const geminiRes = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiApiKey,
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: wrappedPrompt }] }],
+              generationConfig: { responseModalities: ['IMAGE'] },
+            }),
+          })
+
+          if (!geminiRes.ok) {
+            const txt = await geminiRes.text()
+            const status = geminiRes.status
+            console.error(`[generate-portrait] Gemini ${status}:`, txt.slice(0, 800))
+            // Auth issues — fail the whole batch and surface to user
+            if (status === 401 || status === 403) {
+              await supabase
+                .from('portrait_generations')
+                .update({ succeeded_count: succeeded })
+                .eq('id', logRow.id)
+              return jsonResponse(
+                { error: 'gemini_auth_failed', detail: txt.slice(0, 400) },
+                502,
+              )
+            }
+            errors.push(`master_${i + 1}: gemini_${status} — ${txt.slice(0, 250)}`)
+            continue
+          }
+
+          const data = await geminiRes.json()
+          const candidates = data.candidates ?? []
+          const parts = candidates[0]?.content?.parts ?? []
+          const imagePart = parts.find(
+            (p: { inlineData?: { mimeType?: string; data?: string } }) =>
+              p.inlineData?.mimeType?.startsWith('image/'),
+          )
+          if (!imagePart?.inlineData?.data) {
+            // Surface what the model did return (often a text refusal or
+            // safety message) so the player knows what to adjust.
+            const textParts = parts
+              .filter((p: { text?: string }) => p.text)
+              .map((p: { text?: string }) => p.text)
+              .join(' ')
+              .slice(0, 250)
+            const finishReason = candidates[0]?.finishReason
+            console.error(
+              `[generate-portrait] No image in response. finishReason=${finishReason}, text=${textParts}`,
+            )
+            errors.push(
+              `master_${i + 1}: no_image (${finishReason ?? 'unknown'}) ${textParts}`,
+            )
+            continue
+          }
+
+          // 3b. Decode + generate 4 style variants
+          const masterBytes = Uint8Array.from(
+            atob(imagePart.inlineData.data),
+            (c) => c.charCodeAt(0),
+          )
+          const decoded = await Image.decode(masterBytes)
+
+          const variants = await buildStyleVariants(decoded)
+
+          // 3c. Upload all 4, append to gallery
+          const masterUuid = crypto.randomUUID()
+          const masterIdx = i + 1 // 1..masterCount within this batch
+          const styleLabels: Record<keyof typeof variants, string> = {
+            color: 'kolor',
+            faded: 'wyblakły',
+            sepia: 'sepia',
+            bw: 'czarno-białe',
+          }
+          const styleOrder: (keyof typeof variants)[] = [
+            'color',
+            'faded',
+            'sepia',
+            'bw',
+          ]
+
+          for (const styleKey of styleOrder) {
+            const filename = `gallery/${charId}/${masterUuid}-${styleKey}.jpg`
+            const { error: uploadErr } = await supabase.storage
+              .from('portraits')
+              .upload(filename, variants[styleKey], {
+                contentType: 'image/jpeg',
+                upsert: false,
+              })
+            if (uploadErr) {
+              errors.push(`master_${i + 1}_${styleKey}: upload_failed`)
+              continue
+            }
+            const { data: urlData } = supabase.storage
+              .from('portraits')
+              .getPublicUrl(filename)
+            galleryAdditions.push({
+              url: urlData.publicUrl,
+              label: `AI ${masterIdx} ${styleLabels[styleKey]}`,
+              created_at: new Date().toISOString(),
+            })
+          }
+
+          succeeded++
+        } catch (err) {
+          errors.push(
+            `master_${i + 1}: ${err instanceof Error ? err.message : 'unknown'}`,
+          )
+        }
+      }
+
+      // ── 4a. Append to art_gallery ──
+      if (galleryAdditions.length > 0) {
+        const newGallery = [
+          ...(Array.isArray(charRow.art_gallery) ? charRow.art_gallery : []),
+          ...galleryAdditions,
+        ]
+        const { error: updateErr } = await supabase
+          .from('characters')
+          .update({ art_gallery: newGallery })
+          .eq('id', charId)
+        if (updateErr) throw updateErr
+      }
+
+      // ── 4b. Update log row's succeeded_count ──
+      await supabase
+        .from('portrait_generations')
+        .update({ succeeded_count: succeeded })
+        .eq('id', logRow.id)
+
+      return jsonResponse({
+        urls: galleryAdditions.map((g) => g.url),
+        gallery_additions: galleryAdditions,
+        errors,
+        master_count: masterCount,
+        succeeded_count: succeeded,
+        remaining: {
+          daily_limit: DAILY_LIMIT,
+          remaining_today: Math.max(0, DAILY_LIMIT - ((dayCount ?? 0) + 1)),
+          cooldown_sec: 30,
+        },
+      })
+    }
+
+    // ── POST /characters/:id/append-portraits ──────────────────────
+    // Chat-paste flow: client uploaded N×4 style variants directly to
+    // Storage (browser canvas + supabase-js anon key) and sends back the
+    // resulting public URLs. We:
+    //   1. Verify ownership.
+    //   2. Whitelist URLs to belong to this character's gallery prefix
+    //      (defense against another player attempting to inject URLs).
+    //   3. Append entries to art_gallery JSONB.
+    // Body: { variants: [{ url: string, label?: string, style?: string }, ...] }
+    // (max 32 variants per call to keep the JSONB row reasonable.)
+    const appendMatch = path.match(/^\/characters\/([^/]+)\/append-portraits$/)
+    if (appendMatch && req.method === 'POST') {
+      const charId = appendMatch[1]
+
+      // Ownership check + load current gallery
+      const { data: charRow, error: ownerErr } = await supabase
+        .from('characters')
+        .select('id, art_gallery')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr || !charRow) return errorResponse('Character not found', 404)
+
+      const body = await req.json().catch(() => ({}))
+      const variants = Array.isArray(body.variants) ? body.variants : []
+      if (variants.length === 0) return errorResponse('variants required', 400)
+      if (variants.length > 32) return errorResponse('too many variants (max 32)', 400)
+
+      // URL whitelist — must be from this project's portraits bucket and
+      // start with this character's gallery prefix. We accept any path
+      // segment after `gallery/<charId>/` so style suffixes don't matter.
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+      const expectedPrefix = `${supabaseUrl}/storage/v1/object/public/portraits/gallery/${charId}/`
+      const cleaned: { url: string; label: string; created_at: string }[] = []
+      for (const v of variants) {
+        if (!v || typeof v.url !== 'string') {
+          return errorResponse('invalid variant entry', 400)
+        }
+        if (!v.url.startsWith(expectedPrefix)) {
+          return errorResponse(
+            'variant URL outside this character\'s gallery prefix',
+            400,
+          )
+        }
+        const label =
+          typeof v.label === 'string' && v.label.length > 0 && v.label.length <= 60
+            ? v.label
+            : 'AI'
+        cleaned.push({
+          url: v.url,
+          label,
+          created_at: new Date().toISOString(),
+        })
+      }
+
+      const existingGallery = Array.isArray(charRow.art_gallery)
+        ? charRow.art_gallery
+        : []
+      const newGallery = [...existingGallery, ...cleaned]
+
+      const { error: updateErr } = await supabase
+        .from('characters')
+        .update({ art_gallery: newGallery })
+        .eq('id', charId)
+      if (updateErr) throw updateErr
+
+      return jsonResponse({
+        added_count: cleaned.length,
+        gallery_additions: cleaned,
+      })
     }
 
     // ── POST /characters/:id/portrait-feedback — submit feedback ──

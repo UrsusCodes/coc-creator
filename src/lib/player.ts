@@ -366,6 +366,40 @@ export async function playerSelectPortrait(
   return res.json()
 }
 
+// ── Append uploaded portrait variants to character's gallery ────
+// Used by the Chat-paste flow: client uploads N variants directly to
+// Storage via supabase-js, then calls this endpoint to register them
+// in the character's art_gallery JSONB. See spec at
+// docs/CoCCreator_obsidian/specs/portrait_prompt_methodology.md
+
+export interface PortraitVariantToAppend {
+  url: string
+  label?: string
+  /** color | faded | sepia | bw — informational only on this endpoint */
+  style?: string
+}
+
+export interface PlayerAppendPortraitsResult {
+  added_count: number
+  gallery_additions: { url: string; label: string; created_at: string }[]
+}
+
+export async function playerAppendPortraits(
+  token: string,
+  charId: string,
+  variants: PortraitVariantToAppend[],
+): Promise<PlayerAppendPortraitsResult> {
+  const res = await playerFetch(`/characters/${charId}/append-portraits`, token, {
+    method: 'POST',
+    body: JSON.stringify({ variants }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd zapisu portretów' }))
+    throw new Error(err.error ?? 'Błąd zapisu portretów')
+  }
+  return res.json()
+}
+
 export async function playerSubmitPortraitFeedback(
   token: string,
   charId: string,
