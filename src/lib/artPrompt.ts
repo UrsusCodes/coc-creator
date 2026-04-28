@@ -347,11 +347,13 @@ export function buildPlayerPortraitPrompt(input: BuildPortraitPromptInput): stri
   // ── Layer 0 — fixed era constants ──
   const layer0 = [
     '1920s era photograph.',
-    'Full-body portrait, head to feet visible.',
-    '2:3 aspect ratio.',
+    'Half-body portrait, framed tightly from upper chest up to top of head.',
+    'Hands and any held props visible at the bottom edge of frame if applicable.',
+    '3:4 aspect ratio (portrait orientation).',
+    'Face fills approximately one third of the frame.',
     'Photorealistic.',
-    'High detail throughout, especially facial features.',
-    'Muted natural color, slightly desaturated vintage tonal palette.',
+    'High detail on facial features.',
+    'Heavily muted, faded vintage color palette — low saturation, washed-out tones, gentle tonal grading; color preserved (not sepia, not grayscale).',
     'No text, no watermarks, no captions, no borders.',
   ].join(' ')
 
