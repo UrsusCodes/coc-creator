@@ -14,8 +14,6 @@ import {
   ImagePlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { usePlayerStore } from '@/stores/playerStore'
-import { playerAppendPortraits } from '@/lib/player'
 import { supabase } from '@/lib/supabase'
 import {
   buildPlayerPortraitPrompt,
@@ -43,9 +41,27 @@ interface GalleryItem {
   created_at: string
 }
 
+/** Variants ready for append to art_gallery — uploaded to Storage, paths stable. */
+export interface PortraitVariantUploaded {
+  url: string
+  label: string
+  style: PortraitStyle
+}
+
+export interface AppendVariantsResult {
+  gallery_additions: GalleryItem[]
+}
+
 interface GeneratePortraitPanelProps {
   character: CharacterSheetData
-  onVariantsAdded: (additions: GalleryItem[]) => void
+  /**
+   * Caller persists the uploaded variants into art_gallery (player edge fn,
+   * admin-direct PATCH, etc.). Must throw on failure. Returns the canonical
+   * gallery_additions list for UI confirmation.
+   */
+  onAppendVariants: (variants: PortraitVariantUploaded[]) => Promise<AppendVariantsResult>
+  /** Optional UI hook — called with the same additions so caller can update local state. */
+  onVariantsAdded?: (additions: GalleryItem[]) => void
 }
 
 const FIELD_DEFS: { key: keyof PortraitFieldOverrides; label: string; placeholder: string }[] = [
@@ -58,8 +74,11 @@ const FIELD_DEFS: { key: keyof PortraitFieldOverrides; label: string; placeholde
 
 const GEMINI_CHAT_URL = 'https://gemini.google.com/app'
 
-export function GeneratePortraitPanel({ character, onVariantsAdded }: GeneratePortraitPanelProps) {
-  const { token } = usePlayerStore()
+export function GeneratePortraitPanel({
+  character,
+  onAppendVariants,
+  onVariantsAdded,
+}: GeneratePortraitPanelProps) {
   const characterAsRecord = character as unknown as Record<string, unknown>
   const spendingLevel = (characterAsRecord.spending_level as string | undefined) ?? ''
 
@@ -235,7 +254,7 @@ export function GeneratePortraitPanel({ character, onVariantsAdded }: GeneratePo
 
   // ── Step 3: save 4 variants to gallery ──
   const handleSave = async () => {
-    if (!token || !pastedFile) return
+    if (!pastedFile) return
     setSaving(true)
     setSaveError(null)
     setSaveInfo(null)
@@ -250,7 +269,7 @@ export function GeneratePortraitPanel({ character, onVariantsAdded }: GeneratePo
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
-      const uploaded: { url: string; label: string; style: PortraitStyle }[] = []
+      const uploaded: PortraitVariantUploaded[] = []
       const galleryNumber = nextGalleryNumber(character)
 
       for (const style of STYLE_ORDER) {
@@ -268,11 +287,11 @@ export function GeneratePortraitPanel({ character, onVariantsAdded }: GeneratePo
         })
       }
 
-      // 3c. Append to art_gallery via authenticated edge fn
-      const result = await playerAppendPortraits(token, character.id, uploaded)
+      // 3c. Caller persists the variants into art_gallery (player or admin path)
+      const result = await onAppendVariants(uploaded)
 
-      onVariantsAdded(result.gallery_additions)
-      setSaveInfo(`Dodano ${result.added_count} wariantów do galerii.`)
+      onVariantsAdded?.(result.gallery_additions)
+      setSaveInfo(`Dodano ${result.gallery_additions.length} wariantów do galerii.`)
       handleClearPasted()
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Błąd zapisu portretów.')

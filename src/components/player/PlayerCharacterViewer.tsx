@@ -9,6 +9,7 @@ import {
   playerGetPortraitFeedback, playerDeletePortraitFeedback,
   playerUpdateNarrative, playerUpdateDistinguisher,
   playerGetEditPermission,
+  playerAppendPortraits,
 } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -462,6 +463,11 @@ function PortraitGallery({
 
         <GeneratePortraitPanel
           character={character}
+          onAppendVariants={async (variants) => {
+            if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
+            const res = await playerAppendPortraits(token, character.id, variants)
+            return { gallery_additions: res.gallery_additions }
+          }}
           onVariantsAdded={(additions) =>
             setFreshAdditions((prev) => [...prev, ...additions])
           }

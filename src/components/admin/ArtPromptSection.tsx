@@ -6,6 +6,8 @@ import { generateArtPrompt, generateNegativePrompt, generateSDParams } from '@/l
 import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { GeneratePortraitPanel } from '@/components/player/GeneratePortraitPanel'
+import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 
 interface GalleryItem {
   url: string
@@ -147,9 +149,31 @@ export function ArtPromptSection({ characterId, character, artPrompt: savedPromp
 
   const fullPrompt = `${prompt}\n\nNegative prompt: ${negativePrompt}\n\nSteps: ${sdParams.steps}, CFG: ${sdParams.cfg}, Size: ${sdParams.width}x${sdParams.height}`
 
+  const handleAdminAppendVariants = async (
+    variants: { url: string; label: string; style: string }[],
+  ) => {
+    if (!password) throw new Error('Brak hasła administratora.')
+    const additions = variants.map((v) => ({
+      url: v.url,
+      label: v.label,
+      created_at: new Date().toISOString(),
+    }))
+    const newGallery = [...gallery, ...additions]
+    await adminUpdateCharacter(password, characterId, { art_gallery: newGallery })
+    setGallery(newGallery)
+    onUpdate({ art_gallery: newGallery })
+    return { gallery_additions: additions }
+  }
+
   return (
     <Card>
       <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">Grafika / Art Prompt</h4>
+
+      {/* New: AI portrait generation (Chat-paste flow) */}
+      <GeneratePortraitPanel
+        character={character as unknown as CharacterSheetData}
+        onAppendVariants={handleAdminAppendVariants}
+      />
 
       {/* Prompt */}
       <div className="space-y-2 mb-4">
