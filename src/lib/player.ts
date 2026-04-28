@@ -395,7 +395,12 @@ export async function playerEnhancePrompt(
     if (err.error === 'gemini_auth_failed') {
       throw new Error('Klucz Gemini API serwera odrzucony. Skontaktuj się ze Strażnikiem Tajemnic.')
     }
-    throw new Error('Błąd po stronie Gemini przy ulepszaniu promptu.')
+    const tail = err.detail
+      ? ` — ${String(err.detail).slice(0, 200)}`
+      : err.status
+        ? ` (status ${err.status})`
+        : ''
+    throw new Error(`Błąd po stronie Gemini przy ulepszaniu promptu.${tail}`)
   }
   if (res.status === 503) {
     throw new Error('Ulepszanie AI chwilowo niedostępne (brak konfiguracji serwera).')
