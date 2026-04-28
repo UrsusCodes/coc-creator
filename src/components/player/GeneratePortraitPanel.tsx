@@ -77,13 +77,14 @@ interface GeneratePortraitPanelProps {
   onEnhancePrompt?: (args: EnhancePromptArgs) => Promise<{ enhancedPrompt: string }>
 }
 
-// Suggested wealth ranges per clothing chip (informational only — chips
-// no longer gate by wealth, but the hint helps players match style to
-// their character's station). Wealth is in $/day from CoC 7e Spending Level.
+// Suggested wealth-rating ranges per clothing chip (informational only —
+// chips no longer gate by wealth, but the hint helps players match style
+// to their character's station). Refers to lifestyle_rating (0-100 scale
+// from wealth v2).
 const CLOTHING_CHIP_HINTS: Record<ClothingChip, string> = {
-  niedbale: '≤ $10/dzień',
-  codzienne: '> $10/dzień',
-  eleganckie: '> $30/dzień',
+  niedbale: 'majętność < 10',
+  codzienne: 'majętność ≥ 10',
+  eleganckie: 'majętność ≥ 30',
   zawodowe: 'dowolne',
 }
 
