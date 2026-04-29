@@ -63,11 +63,13 @@ export interface EnhancePromptArgs {
 interface GeneratePortraitPanelProps {
   character: CharacterSheetData
   /**
-   * Caller persists the uploaded variants into art_gallery (player edge fn,
-   * admin-direct PATCH, etc.). Must throw on failure. Returns the canonical
-   * gallery_additions list for UI confirmation.
+   * Optional — when omitted, the paste + save-to-gallery (4 style
+   * variants) flow is hidden and the panel is prompt-only. Workshop
+   * page uses the prompt-only mode (the live editor below it owns the
+   * paste/save flow). PlayerCharacterViewer compact mode still passes
+   * a handler for backward-compat.
    */
-  onAppendVariants: (variants: PortraitVariantUploaded[]) => Promise<AppendVariantsResult>
+  onAppendVariants?: (variants: PortraitVariantUploaded[]) => Promise<AppendVariantsResult>
   /** Optional UI hook — called with the same additions so caller can update local state. */
   onVariantsAdded?: (additions: GalleryItem[]) => void
   /**
@@ -154,9 +156,12 @@ export function GeneratePortraitPanel({
     }
   }, [pastedPreview])
 
-  // Listen for clipboard paste events when panel is open
+  // Listen for clipboard paste events when panel is open AND the legacy
+  // 4-variant paste flow is active (workshop mode hides it via the
+  // optional onAppendVariants prop, in which case the editor below the
+  // panel owns the paste handler).
   useEffect(() => {
-    if (!open) return
+    if (!open || !onAppendVariants) return
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items
       if (!items) return
@@ -175,7 +180,7 @@ export function GeneratePortraitPanel({
     window.addEventListener('paste', handlePaste)
     return () => window.removeEventListener('paste', handlePaste)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, onAppendVariants])
 
   const buildOverrides = (): PortraitFieldOverrides => {
     const out: PortraitFieldOverrides = {}
@@ -320,7 +325,7 @@ export function GeneratePortraitPanel({
 
   // ── Step 3: save 4 variants to gallery ──
   const handleSave = async () => {
-    if (!pastedFile) return
+    if (!pastedFile || !onAppendVariants) return
     setSaving(true)
     setSaveError(null)
     setSaveInfo(null)
@@ -525,7 +530,8 @@ export function GeneratePortraitPanel({
             )}
           </div>
 
-          {/* ── Step 2: paste image ── */}
+          {/* ── Step 2: paste image (legacy 4-variant flow, hidden when caller has its own editor) ── */}
+          {onAppendVariants && (
           <div className="border-t border-coc-border/50 pt-3 space-y-2">
             <p className="text-xs font-semibold text-coc-text uppercase tracking-wider">
               2. Wklej obrazek
@@ -580,9 +586,10 @@ export function GeneratePortraitPanel({
               </div>
             )}
           </div>
+          )}
 
-          {/* ── Step 3: save ── */}
-          {pastedFile && (
+          {/* ── Step 3: save (legacy 4-variant flow) ── */}
+          {onAppendVariants && pastedFile && (
             <div className="border-t border-coc-border/50 pt-3 space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold text-coc-text uppercase tracking-wider">

@@ -2,19 +2,34 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { usePlayerStore } from '@/stores/playerStore'
-import { playerGetCharacter } from '@/lib/player'
+import {
+  playerGetCharacter,
+  playerSetProfilePortrait,
+  playerSetCardPortrait,
+  playerEnhancePrompt,
+} from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { PortraitGallery } from '@/components/player/PlayerCharacterViewer'
+import { GeneratePortraitPanel } from '@/components/player/GeneratePortraitPanel'
+import { PortraitEditor } from '@/components/player/PortraitEditor'
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import type { PortraitCropData } from '@/types/character'
 
 /**
- * Dedicated full-page workshop for portrait generation + management.
- * Reachable from PlayerCharacterViewer's "Zrób / załaduj portret"
- * button. Embeds the same PortraitGallery container the character
- * viewer uses (Generate panel + variant grid + crop/feedback modals),
- * but on its own page with a clean header.
+ * Full-page workshop split into two sections:
+ *
+ *   1. Generator promptu — chips + 5 fields + Korekty + base/AI prompt
+ *      with copy buttons for Gemini / ChatGPT / Grok shortcuts. (Output
+ *      of this section is text only; the player runs it through a chat
+ *      AI and brings the resulting image back.)
+ *
+ *   2. Edytor portretu — paste / drop / pick the chat-generated image,
+ *      live preview with filter toggle (none / faded / sepia / bw) and
+ *      crop overlay. Two save buttons: profile (filter only, full image)
+ *      and card (filter + 3:4 crop). Each writes its respective new
+ *      column added in migration 021.
+ *
+ * Reachable from PlayerCharacterViewer's "Zrób / załaduj portret" CTA.
  */
 export function PlayerPortraitWorkshopPage() {
   const { charId } = useParams<{ charId: string }>()
@@ -31,23 +46,45 @@ export function PlayerPortraitWorkshopPage() {
     setError(null)
     playerGetCharacter(token, charId)
       .then((data) => setCharacter(data as CharacterSheetData))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Nie udało się załadować postaci.'))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : 'Nie udało się załadować postaci.'),
+      )
       .finally(() => setLoading(false))
   }, [token, charId, isAuthenticated])
 
   if (!isAuthenticated) return <Navigate to="/player" replace />
 
-  const handlePortraitChange = (url: string, cropData?: PortraitCropData | null) => {
+  // ── Save handlers — single source of truth for the editor ──
+
+  const handleSetProfilePortrait = async (publicUrl: string) => {
+    if (!token || !character) return
+    await playerSetProfilePortrait(token, character.id, publicUrl)
+    setCharacter((prev) =>
+      prev ? ({ ...prev, profile_portrait_url: publicUrl } as CharacterSheetData) : prev,
+    )
+  }
+
+  const handleSetCardPortrait = async (publicUrl: string, cropData: PortraitCropData) => {
+    if (!token || !character) return
+    await playerSetCardPortrait(token, character.id, publicUrl, cropData)
     setCharacter((prev) =>
       prev
         ? ({
             ...prev,
-            portrait_url: url,
-            portrait_crop_data: cropData ?? undefined,
+            card_portrait_url: publicUrl,
+            card_portrait_crop_data: cropData,
           } as CharacterSheetData)
         : prev,
     )
   }
+
+  // Pick the most up-to-date avatar for the header thumbnail
+  const headerThumbUrl =
+    (character as unknown as Record<string, unknown> | null)?.profile_portrait_url as
+      | string
+      | undefined
+    ?? character?.portrait_url
+    ?? null
 
   return (
     <div className="space-y-4">
@@ -67,20 +104,19 @@ export function PlayerPortraitWorkshopPage() {
           </div>
         </div>
 
-        {/* Current portrait preview */}
-        {character?.portrait_url && (
+        {headerThumbUrl && (
           <div className="flex items-center gap-2">
             <img
-              src={character.portrait_url}
+              src={headerThumbUrl}
               alt="Aktualny portret"
               className="w-12 h-16 object-cover rounded border border-coc-border"
             />
-            <span className="text-xs text-coc-text-muted">na karcie</span>
+            <span className="text-xs text-coc-text-muted">profil</span>
           </div>
         )}
       </div>
 
-      {/* Loading / error / content */}
+      {/* Loading / error */}
       {loading && (
         <Card>
           <div className="flex items-center justify-center gap-2 text-coc-text-muted py-6">
@@ -100,10 +136,28 @@ export function PlayerPortraitWorkshopPage() {
       )}
 
       {character && !loading && !error && (
-        <PortraitGallery
-          character={character}
-          onPortraitChange={handlePortraitChange}
-        />
+        <>
+          {/* Section 1: prompt generator (no save flow — just text output) */}
+          <Card>
+            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">
+              Generator promptu
+            </h4>
+            <GeneratePortraitPanel
+              character={character}
+              onEnhancePrompt={async (args) => {
+                if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
+                return await playerEnhancePrompt(token, character.id, args)
+              }}
+            />
+          </Card>
+
+          {/* Section 2: live editor */}
+          <PortraitEditor
+            character={character}
+            onSetProfilePortrait={handleSetProfilePortrait}
+            onSetCardPortrait={handleSetCardPortrait}
+          />
+        </>
       )}
     </div>
   )
