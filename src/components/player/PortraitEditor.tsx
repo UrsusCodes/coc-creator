@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase'
 import {
   applyFilterToBlob,
   applyFilterAndCropToBlob,
+  smartCompressBlob,
   FILTER_LABELS_PL,
   type PortraitFilter,
 } from '@/lib/portraitEditor'
@@ -95,27 +96,26 @@ export function PortraitEditor({
       return
     }
 
-    // Always run the master through the canvas pipeline:
-    // - Re-encoded as JPEG q85, max long-edge 1200px (handled inside
-    //   applyFilterToBlob via drawScaled).
-    // - The original (potentially 20 MB+) Blob is dropped — only the
-    //   compact resized version is held in state from here on, so
-    //   subsequent filter/crop steps don't repeatedly process the giant
-    //   source on every preview rebuild.
+    // Run through smartCompressBlob: keeps full natural resolution +
+    // high JPEG quality when the file is already <10 MB; only escalates
+    // to dimension shrinking + lower quality if the source is huge
+    // (e.g. 20 MB phone-camera shots). This is far less aggressive
+    // than the previous "always 1200 px / q85" policy.
     setResizing(true)
     try {
-      const resized = await applyFilterToBlob(file, 'none')
+      const compressed = await smartCompressBlob(file, 10 * 1024 * 1024)
       if (masterUrl) URL.revokeObjectURL(masterUrl)
-      setMaster(resized)
-      setMasterUrl(URL.createObjectURL(resized))
+      setMaster(compressed)
+      setMasterUrl(URL.createObjectURL(compressed))
       setCropData(null) // new master ⇒ clear crop
       setFilter('none')
 
       const origMb = file.size / (1024 * 1024)
-      const newMb = resized.size / (1024 * 1024)
-      if (origMb >= 1 && origMb / newMb > 1.5) {
+      const newMb = compressed.size / (1024 * 1024)
+      // Only surface info when we actually changed the file meaningfully
+      if (compressed !== file && origMb / newMb > 1.2) {
         setInfo(
-          `Obraz zmniejszony: ${origMb.toFixed(1)} MB → ${newMb.toFixed(2)} MB (max 1200 px na dłuższym boku).`,
+          `Obraz zmniejszony: ${origMb.toFixed(1)} MB → ${newMb.toFixed(2)} MB (cel ≤ 10 MB).`,
         )
       }
     } catch (err) {
@@ -260,7 +260,8 @@ export function PortraitEditor({
             albo wklej z schowka (<span className="font-mono">Ctrl+V</span>).
           </p>
           <p className="text-[10px] text-coc-text-muted/60 mt-1">
-            Max 20 MB. Większe pliki są automatycznie zmniejszane do 1200 px.
+            Max 20 MB. Pliki większe niż ~10 MB są automatycznie kompresowane
+            (jakość maksymalnie zachowana).
           </p>
           <input
             ref={fileInputRef}
@@ -309,7 +310,7 @@ export function PortraitEditor({
               className="w-full"
             >
               <CropIcon className="w-4 h-4" />
-              {cropData ? 'Zmień kadrowanie' : 'Kadruj (3:4)'}
+              {cropData ? 'Zmień kadrowanie' : 'Przytnij portret do karty'}
             </Button>
 
             <div>

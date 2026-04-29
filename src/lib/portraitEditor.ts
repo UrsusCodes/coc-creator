@@ -23,8 +23,10 @@ export const FILTER_LABELS_PL: Record<PortraitFilter, string> = {
   bw: 'Czarno-biały',
 }
 
-const MAX_LONG_EDGE = 1200
-const JPEG_QUALITY = 0.85
+// Default re-encode pass for filter / crop steps (master is already
+// compressed by smartCompressBlob, so this is just to bake the shader).
+const MAX_LONG_EDGE = 1600
+const JPEG_QUALITY = 0.88
 
 type Shader = (r: number, g: number, b: number) => [number, number, number]
 
@@ -95,6 +97,80 @@ function applyShader(ctx: CanvasRenderingContext2D, shader: Shader): void {
     data[i + 2] = Math.max(0, Math.min(255, Math.round(b)))
   }
   ctx.putImageData(imageData, 0, 0)
+}
+
+/**
+ * Smart compression for incoming master uploads.
+ * Tries successively more aggressive parameters until the resulting
+ * JPEG is at most `targetMaxBytes`. Preserves natural resolution and
+ * high quality at first; only shrinks long-edge or drops quality when
+ * the image is genuinely too big. Iteration cap of 7 attempts.
+ *
+ * Used by the editor on master upload (raise the user's limit to
+ * ~10 MB without flooding Storage with 20 MB phone-camera blobs).
+ */
+export async function smartCompressBlob(
+  source: Blob,
+  targetMaxBytes: number = 10 * 1024 * 1024,
+): Promise<Blob> {
+  // Already-small JPEGs pass through unchanged — preserve max quality
+  if (source.size <= targetMaxBytes && source.type === 'image/jpeg') {
+    return source
+  }
+
+  const img = await decodeImage(source)
+  const naturalLong = Math.max(img.naturalWidth, img.naturalHeight)
+
+  // Each row: longEdge cap (null = natural) and JPEG quality. We try
+  // gentle settings first, then escalate.
+  const passes: { longEdge: number | null; quality: number }[] = [
+    { longEdge: null, quality: 0.95 },
+    { longEdge: null, quality: 0.9 },
+    { longEdge: null, quality: 0.85 },
+    { longEdge: 2400, quality: 0.88 },
+    { longEdge: 2000, quality: 0.85 },
+    { longEdge: 1600, quality: 0.82 },
+    { longEdge: 1200, quality: 0.8 },
+  ]
+
+  let last: Blob | null = null
+  for (const pass of passes) {
+    const targetLong = pass.longEdge ?? naturalLong
+    // Skip "shrink" passes when the natural is already smaller — they'd
+    // be no-ops and waste a roundtrip
+    if (pass.longEdge !== null && naturalLong <= pass.longEdge && last) {
+      continue
+    }
+    const blob = await encodeAtParams(img, targetLong, pass.quality)
+    last = blob
+    if (blob.size <= targetMaxBytes) return blob
+  }
+
+  return last!
+}
+
+async function encodeAtParams(
+  img: HTMLImageElement,
+  longEdge: number,
+  quality: number,
+): Promise<Blob> {
+  const naturalLong = Math.max(img.naturalWidth, img.naturalHeight)
+  const scale = naturalLong > longEdge ? longEdge / naturalLong : 1
+  const w = Math.round(img.naturalWidth * scale)
+  const h = Math.round(img.naturalHeight * scale)
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Twoja przeglądarka nie wspiera Canvas 2D.')
+  ctx.drawImage(img, 0, 0, w, h)
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('toBlob failed'))),
+      'image/jpeg',
+      quality,
+    )
+  })
 }
 
 /** Apply a filter to the full master image — used for "profile" save (no crop). */

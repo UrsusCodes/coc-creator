@@ -10,9 +10,12 @@ interface PortraitCropModalProps {
   onCancel: () => void
 }
 
-/** Crop is locked to 3:4 visual aspect (portrait orientation, matches the
- *  card portrait slot + the Gemini output we generate). */
-const TARGET_VISUAL_ASPECT = 3 / 4 // width / height, in real pixels
+/** Crop aspect locked to the actual PDF card portrait slot. Computed
+ *  from cardFieldLayouts.ts: photo field is 18.58%×19.88% on an A4
+ *  page (595×842), giving real pixel dims 110.55×167.39 — aspect ≈ 0.66
+ *  (slimmer than 3:4, close to 2:3). Locking here means what the player
+ *  sees in the crop preview is exactly what gets embedded in the card. */
+const TARGET_VISUAL_ASPECT = (18.58 * 595) / (19.88 * 842)
 
 type DragType =
   | 'move'
@@ -162,7 +165,7 @@ export function PortraitCropModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <div className="bg-coc-surface border border-coc-border rounded-xl shadow-2xl w-full max-w-2xl">
         <div className="flex items-center justify-between px-4 py-3 border-b border-coc-border">
-          <h3 className="font-semibold text-coc-text">Przytnij portret</h3>
+          <h3 className="font-semibold text-coc-text">Przytnij portret do karty</h3>
           <button
             onClick={onCancel}
             className="text-coc-text-muted hover:text-coc-text transition-colors"
@@ -173,8 +176,8 @@ export function PortraitCropModal({
 
         <div className="p-4">
           <p className="text-xs text-coc-text-muted mb-3">
-            Przeciągnij ramkę (3:4) — środek do przesuwania, rogi do skalowania.
-            Aspekt jest stały, dopasowany do slotu portretu na karcie.
+            Przeciągnij ramkę — środek do przesuwania, rogi do skalowania.
+            Aspekt jest stały, dopasowany do slotu portretu na karcie postaci (PDF).
           </p>
 
           <div className="relative inline-block select-none w-full max-h-[70vh]">
@@ -259,7 +262,7 @@ export function PortraitCropModal({
 
           <p className="text-xs text-coc-text-muted mt-2 text-right">
             {Math.round(crop.x)}%, {Math.round(crop.y)}% — {Math.round(crop.width)}×
-            {Math.round(crop.height)}% (3:4)
+            {Math.round(crop.height)}% (aspekt karty)
           </p>
         </div>
 
