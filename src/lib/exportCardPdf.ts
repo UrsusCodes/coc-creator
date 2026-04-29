@@ -40,7 +40,10 @@ interface ExportCharacter {
   main_position?: MainPosition | null
   additional_positions?: AdditionalPosition[]
   contacts_v2?: ContactV2[]
+  /** Legacy avatar URL (pre-migration 021). Used as fallback if card_portrait_url unset. */
   portrait_url?: string
+  /** PDF-card portrait set via the workshop editor (cropped + filtered). Migration 021. */
+  card_portrait_url?: string
 }
 
 type Derived = { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
@@ -622,11 +625,14 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const frontImg = await pdfDoc.embedPng(frontImgBytes)
   const backImg = await pdfDoc.embedPng(backImgBytes)
 
-  // Load portrait if available
+  // Load portrait if available — prefer the workshop-edited card variant
+  // (already cropped + filtered, ready to embed), fall back to the
+  // legacy portrait_url for characters that haven't been re-edited yet.
   let portraitImage: PDFImage | null = null
-  if (char.portrait_url) {
+  const portraitSource = char.card_portrait_url || char.portrait_url
+  if (portraitSource) {
     try {
-      const portraitBytes = await fetch(char.portrait_url).then((r) => r.arrayBuffer())
+      const portraitBytes = await fetch(portraitSource).then((r) => r.arrayBuffer())
       // Try JPEG first (our uploads are JPEG), fallback to PNG
       try {
         portraitImage = await pdfDoc.embedJpg(portraitBytes)

@@ -365,15 +365,10 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
         )}
       </Card>
 
-      {/* Portrait gallery */}
-      {!editMode && (
-        <PortraitGallery
-          character={char}
-          onPortraitChange={(url, cropData) =>
-            onUpdate?.({ id: char.id, portrait_url: url, portrait_crop_data: cropData ?? undefined })
-          }
-        />
-      )}
+      {/* Portrait management moved to dedicated workshop page —
+          accessible via the "Zrób / załaduj portret postaci" CTA at the
+          top of this viewer. The legacy embedded PortraitGallery was
+          removed to keep the character view focused. */}
 
       {/* Export buttons */}
       {!editMode && (

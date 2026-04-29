@@ -30,6 +30,10 @@ interface ExportCharacter {
   main_position?: Record<string, unknown> | null
   additional_positions?: Record<string, unknown>[]
   contacts_v2?: Record<string, unknown>[]
+  /** Legacy avatar URL (pre-migration 021); used as fallback for card export. */
+  portrait_url?: string
+  /** Workshop-edited card portrait — cropped + filtered, ready for PDF. Migration 021. */
+  card_portrait_url?: string
 }
 
 interface ExportButtonsProps {
