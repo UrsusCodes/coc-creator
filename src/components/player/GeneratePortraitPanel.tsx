@@ -96,7 +96,11 @@ const FIELD_DEFS: { key: keyof PortraitFieldOverrides; label: string; placeholde
   { key: 'background', label: 'Tło', placeholder: 'np. zaśnieżony park, mglisty wieczór' },
 ]
 
-const GEMINI_CHAT_URL = 'https://gemini.google.com/app'
+const AI_CHAT_LINKS: { id: string; label: string; url: string }[] = [
+  { id: 'gemini', label: 'Otwórz Gemini', url: 'https://gemini.google.com/app' },
+  { id: 'chatgpt', label: 'Otwórz ChatGPT', url: 'https://chatgpt.com/' },
+  { id: 'grok', label: 'Otwórz Grok', url: 'https://grok.com/' },
+]
 
 export function GeneratePortraitPanel({
   character,
@@ -403,7 +407,7 @@ export function GeneratePortraitPanel({
               <p className="text-xs font-semibold text-coc-text uppercase tracking-wider">
                 1. Skopiuj prompt
               </p>
-              <Button size="sm" variant="secondary" onClick={handleBuildPrompt}>
+              <Button size="sm" variant="success" onClick={handleBuildPrompt}>
                 <Sparkles className="w-3.5 h-3.5" />
                 {generatedPrompt ? 'Odśwież' : 'Złóż prompt'}
               </Button>
@@ -445,7 +449,7 @@ export function GeneratePortraitPanel({
                 {onEnhancePrompt && !enhancedPrompt && (
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="success"
                     onClick={handleManualEnhance}
                     disabled={enhancing}
                   >
@@ -499,17 +503,22 @@ export function GeneratePortraitPanel({
                   </div>
                 )}
 
-                <a
-                  href={GEMINI_CHAT_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-coc-surface-light border border-coc-border text-coc-text-muted hover:text-coc-text hover:border-coc-accent-light/50 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Otwórz Gemini Chat
-                </a>
+                <div className="flex flex-wrap gap-2">
+                  {AI_CHAT_LINKS.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-coc-surface-light border border-coc-border text-coc-text-muted hover:text-coc-text hover:border-coc-accent-light/50 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
                 <p className="text-[11px] text-coc-text-muted/80">
-                  Wklej prompt (bazowy lub rozwinięty) w Gemini Chat (darmowe), pobierz
+                  Wklej prompt (bazowy lub rozwinięty) w wybranym czacie AI, pobierz
                   wygenerowany obraz, potem wklej go niżej.
                 </p>
               </>
