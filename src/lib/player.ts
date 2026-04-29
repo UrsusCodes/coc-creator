@@ -412,6 +412,47 @@ export async function playerEnhancePrompt(
   return res.json()
 }
 
+// ── Profile portrait (in-app avatar, no crop) ──────────────────
+
+export async function playerSetProfilePortrait(
+  token: string,
+  charId: string,
+  url: string,
+): Promise<{ id: string; profile_portrait_url: string }> {
+  const res = await playerFetch(`/characters/${charId}/profile-portrait`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ url }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd zapisu portretu profilowego' }))
+    throw new Error(err.error ?? 'Błąd zapisu portretu profilowego')
+  }
+  return res.json()
+}
+
+// ── Card portrait (PDF render, with optional crop) ─────────────
+
+export async function playerSetCardPortrait(
+  token: string,
+  charId: string,
+  url: string,
+  cropData?: { x: number; y: number; width: number; height: number } | null,
+): Promise<{
+  id: string
+  card_portrait_url: string
+  card_portrait_crop_data: { x: number; y: number; width: number; height: number } | null
+}> {
+  const res = await playerFetch(`/characters/${charId}/card-portrait`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ url, crop_data: cropData ?? null }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Błąd zapisu portretu na kartę' }))
+    throw new Error(err.error ?? 'Błąd zapisu portretu na kartę')
+  }
+  return res.json()
+}
+
 // ── Append uploaded portrait variants to character's gallery ────
 // Used by the Chat-paste flow: client uploads N variants directly to
 // Storage via supabase-js, then calls this endpoint to register them

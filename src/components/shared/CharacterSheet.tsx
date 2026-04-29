@@ -53,6 +53,9 @@ export interface CharacterSheetData {
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
   portrait_crop_data?: { x: number; y: number; width: number; height: number } | null
+  profile_portrait_url?: string
+  card_portrait_url?: string
+  card_portrait_crop_data?: { x: number; y: number; width: number; height: number } | null
   sessions?: string[]
   distinguisher?: string
 }

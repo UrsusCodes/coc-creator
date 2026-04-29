@@ -960,6 +960,72 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    // ── PUT /characters/:id/profile-portrait ────────────────────────
+    // Sets the in-app avatar (full image, no crop). Migration 021 split
+    // legacy portrait_url into profile + card variants — this endpoint
+    // owns the profile side.
+    const profilePortraitMatch = path.match(/^\/characters\/([^/]+)\/profile-portrait$/)
+    if (profilePortraitMatch && req.method === 'PUT') {
+      const charId = profilePortraitMatch[1]
+
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const body = await req.json()
+      const { url } = body
+      if (typeof url !== 'string' || !url) {
+        return errorResponse('url required', 400)
+      }
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update({ profile_portrait_url: url })
+        .eq('id', charId)
+        .select('id, profile_portrait_url')
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
+    // ── PUT /characters/:id/card-portrait ───────────────────────────
+    // Sets the PDF-card portrait (cropped/filtered image). Optional
+    // crop_data is stored alongside for future render-time adjustments.
+    const cardPortraitMatch = path.match(/^\/characters\/([^/]+)\/card-portrait$/)
+    if (cardPortraitMatch && req.method === 'PUT') {
+      const charId = cardPortraitMatch[1]
+
+      const { error: ownerErr } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('id', charId)
+        .eq('player_id', playerId)
+        .single()
+      if (ownerErr) return errorResponse('Character not found', 404)
+
+      const body = await req.json()
+      const { url, crop_data } = body
+      if (typeof url !== 'string' || !url) {
+        return errorResponse('url required', 400)
+      }
+
+      const updateData: Record<string, unknown> = { card_portrait_url: url }
+      if (crop_data !== undefined) updateData.card_portrait_crop_data = crop_data
+
+      const { data, error } = await supabase
+        .from('characters')
+        .update(updateData)
+        .eq('id', charId)
+        .select('id, card_portrait_url, card_portrait_crop_data')
+        .single()
+      if (error) throw error
+      return jsonResponse(data)
+    }
+
     // ── POST /characters/:id/portrait-feedback — submit feedback ──
     const feedbackPostMatch = path.match(/^\/characters\/([^/]+)\/portrait-feedback$/)
     if (feedbackPostMatch && req.method === 'POST') {

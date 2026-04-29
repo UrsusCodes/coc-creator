@@ -162,10 +162,18 @@ export interface CharacterData {
   assets_breakdown?: AssetBreakdown[]
   equipment_catalogs_available?: string[]
   // Portrait fields
+  /** @deprecated Use profile_portrait_url + card_portrait_url instead. Kept for backward-compat. */
   portrait_url?: string
+  /** @deprecated Use card_portrait_crop_data instead. Kept for backward-compat. */
+  portrait_crop_data?: PortraitCropData
+  /** Full-resolution avatar shown in app UI (no crop applied). Migration 021. */
+  profile_portrait_url?: string
+  /** Image used at PDF card export, with card_portrait_crop_data applied. Migration 021. */
+  card_portrait_url?: string
+  /** Crop region (% based) applied to card_portrait_url at PDF render time. */
+  card_portrait_crop_data?: PortraitCropData
   art_prompt?: string
   art_gallery?: { url: string; label: string; created_at: string }[]
-  portrait_crop_data?: PortraitCropData
   // Sessions & distinguisher
   sessions?: string[]
   distinguisher?: string
