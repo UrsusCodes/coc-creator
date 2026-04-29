@@ -45,6 +45,7 @@ export function PortraitEditor({
 
   const [cropModalOpen, setCropModalOpen] = useState(false)
 
+  const [resizing, setResizing] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingCard, setSavingCard] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,22 +83,46 @@ export function PortraitEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const acceptMaster = (file: File | Blob) => {
+  const acceptMaster = async (file: File | Blob) => {
     setError(null)
     setInfo(null)
     if (!file.type.startsWith('image/')) {
       setError('To nie jest obraz.')
       return
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setError('Plik za duży (max 8 MB).')
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Plik za duży (max 20 MB).')
       return
     }
-    if (masterUrl) URL.revokeObjectURL(masterUrl)
-    setMaster(file)
-    setMasterUrl(URL.createObjectURL(file))
-    setCropData(null) // new master ⇒ clear crop
-    setFilter('none')
+
+    // Always run the master through the canvas pipeline:
+    // - Re-encoded as JPEG q85, max long-edge 1200px (handled inside
+    //   applyFilterToBlob via drawScaled).
+    // - The original (potentially 20 MB+) Blob is dropped — only the
+    //   compact resized version is held in state from here on, so
+    //   subsequent filter/crop steps don't repeatedly process the giant
+    //   source on every preview rebuild.
+    setResizing(true)
+    try {
+      const resized = await applyFilterToBlob(file, 'none')
+      if (masterUrl) URL.revokeObjectURL(masterUrl)
+      setMaster(resized)
+      setMasterUrl(URL.createObjectURL(resized))
+      setCropData(null) // new master ⇒ clear crop
+      setFilter('none')
+
+      const origMb = file.size / (1024 * 1024)
+      const newMb = resized.size / (1024 * 1024)
+      if (origMb >= 1 && origMb / newMb > 1.5) {
+        setInfo(
+          `Obraz zmniejszony: ${origMb.toFixed(1)} MB → ${newMb.toFixed(2)} MB (max 1200 px na dłuższym boku).`,
+        )
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się przetworzyć obrazu.')
+    } finally {
+      setResizing(false)
+    }
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -219,7 +244,7 @@ export function PortraitEditor({
       </h4>
 
       {/* Empty state — no master yet */}
-      {!master && (
+      {!master && !resizing && (
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -234,6 +259,9 @@ export function PortraitEditor({
             Przeciągnij plik tutaj, kliknij żeby wybrać,
             albo wklej z schowka (<span className="font-mono">Ctrl+V</span>).
           </p>
+          <p className="text-[10px] text-coc-text-muted/60 mt-1">
+            Max 20 MB. Większe pliki są automatycznie zmniejszane do 1200 px.
+          </p>
           <input
             ref={fileInputRef}
             type="file"
@@ -241,6 +269,13 @@ export function PortraitEditor({
             className="hidden"
             onChange={handleFileInputChange}
           />
+        </div>
+      )}
+
+      {!master && resizing && (
+        <div className="border-2 border-dashed border-coc-border rounded-lg px-4 py-10 text-center">
+          <Loader2 className="w-6 h-6 mx-auto text-coc-text-muted animate-spin mb-2" />
+          <p className="text-sm text-coc-text-muted">Zmniejszanie obrazu…</p>
         </div>
       )}
 
