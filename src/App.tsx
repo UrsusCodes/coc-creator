@@ -8,6 +8,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 import { SharedCharacterPage } from '@/pages/SharedCharacterPage'
 import { PlayerPage } from '@/pages/PlayerPage'
 import { AdminDraftPage } from '@/pages/AdminDraftPage'
+import { PlayerPortraitWorkshopPage } from '@/pages/PlayerPortraitWorkshopPage'
 
 const TestPdfPage = lazy(() => import('@/pages/TestPdfPage').then(m => ({ default: m.TestPdfPage })))
 const TestRollPage = lazy(() => import('@/pages/TestRollPage').then(m => ({ default: m.TestRollPage })))
@@ -28,6 +29,7 @@ function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/draft" element={<AdminDraftPage />} />
           <Route path="/player" element={<PlayerPage />} />
+          <Route path="/portrait/:charId" element={<PlayerPortraitWorkshopPage />} />
           <Route path="/c/:token" element={<SharedCharacterPage />} />
           <Route path="/test-pdf" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestPdfPage /></Suspense>} />
           <Route path="/test-roll" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestRollPage /></Suspense>} />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Loader2, Pencil, X, Clock, CheckCircle, XCircle, Crop, MessageSquarePlus, Trash2, Wrench, Lock } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Pencil, X, Clock, CheckCircle, XCircle, Crop, MessageSquarePlus, Trash2, Wrench, Lock, Palette } from 'lucide-react'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useCharacterStore } from '@/stores/characterStore'
 import {
@@ -260,6 +260,19 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
         </div>
       </div>
 
+      {/* Big eye-catching button to portrait workshop (player only) */}
+      {!editMode && (
+        <button
+          type="button"
+          onClick={() => navigate(`/portrait/${char.id}`)}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-coc-accent to-coc-accent-light text-white font-medium text-base shadow-lg hover:shadow-xl hover:brightness-110 transition-all border border-coc-accent-light/40 cursor-pointer"
+        >
+          <Palette className="w-5 h-5" />
+          <span>Zrób / załaduj portret postaci</span>
+          <ArrowLeft className="w-4 h-4 rotate-180" />
+        </button>
+      )}
+
       {/* Pending edit status banner */}
       {!pendingLoading && pending && (
         <Card>
@@ -372,7 +385,7 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
   )
 }
 
-function PortraitGallery({
+export function PortraitGallery({
   character,
   onPortraitChange,
 }: {
