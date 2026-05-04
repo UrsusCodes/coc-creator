@@ -131,7 +131,7 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
             <MiniStat label="PO" value={derived.db} />
             <MiniStat label="Krzepa" value={derived.build} />
             <MiniStat label="Ruch" value={derived.move_rate} />
-            <MiniStat label="Unik" value={derived.dodge} />
+            <MiniStat label="Unik" value={derived.dodge + (allSkillPoints['unik'] ?? 0)} />
           </div>
         </>
       )}

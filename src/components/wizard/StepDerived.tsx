@@ -17,6 +17,13 @@ export function StepDerived() {
   const derived = calculateDerived(chars)
   const mods = getAgeModifications(age)
   const moveRate = mods ? derived.move_rate - mods.moveReduction : derived.move_rate
+  // Unik in CoC 7e is both a derived stat (½DEX) and a developable skill —
+  // the card should show the final skill value, not the bare ½DEX. Mirror
+  // the same logic used by the PDF export (exportCardPdf.ts).
+  const unikPoints =
+    (store.occupationSkillPoints['unik'] ?? 0) +
+    (store.personalSkillPoints['unik'] ?? 0)
+  const dodgeFinal = derived.dodge + unikPoints
 
   useEffect(() => {
     store.setDerived({ ...derived, move_rate: moveRate })
@@ -55,7 +62,7 @@ export function StepDerived() {
         <DerivedStat label="PO" sublabel="Premia do Obrażeń" value={derived.db} />
         <DerivedStat label="Krzepa" value={derived.build} />
         <DerivedStat label="Ruch" value={moveRate} />
-        <DerivedStat label="Unik" value={derived.dodge} />
+        <DerivedStat label="Unik" value={dodgeFinal} />
       </div>
 
       <div className="flex justify-between pt-2">
