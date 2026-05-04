@@ -200,6 +200,11 @@ export function PlayerDashboard() {
       // Admin-created drafts: lock steps up to draft_locked_step
       const isPlayerDraft = char.created_by === 'player'
       const lockedStep = isPlayerDraft ? -1 : (char.draft_locked_step ?? 0)
+      // Server's GET /characters returns the raw row, which only has
+      // invite_code_id (no invite_code text). Resolve the code text from
+      // the already-loaded `codes` list so the wizard's StepIdentifier
+      // doesn't see an empty inviteCode after a back-step / reroll.
+      const linkedCode = codes.find((c) => c.id === char.invite_code_id)
       loadDraftForContinuation({
         character: fullChar,
         era: char.era,
@@ -207,7 +212,7 @@ export function PlayerDashboard() {
         maxSkillValue: char.max_skill_value ?? 80,
         lockedStep,
         inviteCodeId: char.invite_code_id ?? '',
-        inviteCode: char.invite_code ?? '',
+        inviteCode: linkedCode?.code ?? char.invite_code ?? '',
         method: char.method,
       })
       navigate('/create')
