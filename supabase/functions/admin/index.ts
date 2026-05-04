@@ -66,6 +66,8 @@ Deno.serve(async (req: Request) => {
           assigned_player_id: body.assigned_player_id ?? null,
           perks: body.perks ?? [],
           max_skill_value: body.max_skill_value ?? 99,
+          max_wealth: body.max_wealth ?? null,
+          max_luck: body.max_luck ?? null,
         })
         .select()
         .single()
@@ -112,6 +114,8 @@ Deno.serve(async (req: Request) => {
         'assigned_player_id',
         'perks',
         'max_skill_value',
+        'max_wealth',
+        'max_luck',
         'era',
         'methods',
         'is_active',

@@ -16,6 +16,9 @@ export interface InviteCode {
   label?: string
   reroll_budget?: number
   assigned_player_id?: string | null
+  // Optional ceilings (migration 022). NULL/undefined = no ceiling.
+  max_wealth?: number | null
+  max_luck?: number | null
 }
 
 /** Lifecycle bucket derived from the linked character (none/draft/submitted). */

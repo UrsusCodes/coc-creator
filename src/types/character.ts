@@ -183,6 +183,10 @@ export interface CharacterData {
   created_by?: string
   perks?: string[]
   max_skill_value?: number
+  // Optional per-code ceilings (migration 022). Mirrored from invite_codes
+  // at /start-character. NULL/undefined = no ceiling.
+  max_wealth?: number | null
+  max_luck?: number | null
   // Code-identity rework (migration 018)
   rerolls_remaining?: number
   characteristics_committed_at?: string | null

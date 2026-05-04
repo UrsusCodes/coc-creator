@@ -29,6 +29,10 @@ export function StepOccupationSkills() {
   const chars = store.characteristics as Characteristics
   const era = store.era as Era
   const maxSkillValue = store.maxSkillValue
+  // Optional per-code wealth ceiling (migration 022). NULL/undefined = no
+  // ceiling — fall back to occupation.credit_rating range. When set, hard
+  // occupation-range validation becomes a soft warning.
+  const wealthCeiling: number | null = store.serverCharacter?.max_wealth ?? null
   const occupation = useMemo(
     () => OCCUPATIONS.find((o) => o.id === store.occupationId) ?? null,
     [store.occupationId]
@@ -147,7 +151,7 @@ export function StepOccupationSkills() {
     const current = skillPoints[skillId] ?? 0
     const base = getBaseValue(skillId, chars)
     const maxForSkill = skillId === 'majetnosc'
-      ? Math.max(0, (occupation?.credit_rating.max ?? maxSkillValue) - base)
+      ? Math.max(0, (wealthCeiling ?? occupation?.credit_rating.max ?? maxSkillValue) - base)
       : Math.max(0, maxSkillValue - base)
     const newVal = Math.min(maxForSkill, Math.max(0, current + effectiveDelta))
     const newPoints = { ...skillPoints, [skillId]: newVal }
@@ -168,12 +172,17 @@ export function StepOccupationSkills() {
     setChosenSlotSkills((prev) => ({ ...prev, [slotIndex]: skillId }))
   }
 
-  // Credit rating validation
+  // Credit rating validation. When the invite code carries `max_wealth`,
+  // we relax the hard occupation-range gate into a soft warning — admin
+  // explicitly opted into the ceiling, so the character may legitimately
+  // sit outside the typical range for the chosen occupation.
   const creditRatingBase = getBaseValue('majetnosc', chars)
   const creditRatingTotal = creditRatingBase + creditRatingPoints
-  const creditRatingValid =
+  const wealthCeilingActive = wealthCeiling !== null
+  const inOccupationRange =
     creditRatingTotal >= occupation.credit_rating.min &&
     creditRatingTotal <= occupation.credit_rating.max
+  const creditRatingValid = wealthCeilingActive ? true : inOccupationRange
 
   const canContinue = remainingOccupationPoints === 0 && creditRatingValid
 
@@ -464,11 +473,18 @@ export function StepOccupationSkills() {
             baseValue={creditRatingBase}
             addedPoints={creditRatingPoints}
             onPointsChange={(d) => handlePointChange('majetnosc', d)}
-            maxAdd={occupation.credit_rating.max - creditRatingBase}
+            maxAdd={(wealthCeiling ?? occupation.credit_rating.max) - creditRatingBase}
           />
-          {!creditRatingValid && (
+          {!wealthCeilingActive && !inOccupationRange && (
             <p className="text-xs text-coc-danger px-2">
               Majętność musi być w zakresie {occupation.credit_rating.min}–{occupation.credit_rating.max}
+            </p>
+          )}
+          {wealthCeilingActive && !inOccupationRange && (
+            <p className="text-xs text-coc-warning px-2">
+              Twoja majętność ({creditRatingTotal}) jest poza typowym zakresem zawodu
+              ({occupation.credit_rating.min}–{occupation.credit_rating.max}) — prawdopodobnie
+              nie pracujesz już w tym zawodzie.
             </p>
           )}
           {creditRatingTotal > 0 && era && (() => {

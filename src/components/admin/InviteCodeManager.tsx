@@ -72,6 +72,9 @@ interface CodeFormData {
   perks: string[]
   maxSkillValue: number
   assignedPlayerId: string
+  // Optional ceilings (migration 022). null = no ceiling.
+  maxWealth: number | null
+  maxLuck: number | null
 }
 
 const emptyForm: CodeFormData = {
@@ -82,6 +85,8 @@ const emptyForm: CodeFormData = {
   perks: [],
   maxSkillValue: 80,
   assignedPlayerId: '',
+  maxWealth: null,
+  maxLuck: null,
 }
 
 function CodeForm({
@@ -185,6 +190,45 @@ function CodeForm({
             ...players.map((p) => ({ value: p.id, label: `${p.name} (${p.login})` })),
           ]}
         />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-coc-text-muted">Maks. majętność (sufit)</label>
+          <input
+            type="number"
+            min={0}
+            max={99}
+            value={value.maxWealth ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value
+              onChange({ ...value, maxWealth: raw === '' ? null : Math.max(0, Math.min(99, parseInt(raw) || 0)) })
+            }}
+            placeholder="bez limitu"
+            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text focus:outline-none focus:border-coc-accent-light"
+          />
+          <p className="text-xs text-coc-text-muted">
+            Pusto = bez limitu. Sufit wyłącza twardy zakres majętności zawodu — pojawi się tylko miękkie ostrzeżenie.
+          </p>
+        </div>
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-coc-text-muted">Maks. szczęście (sufit)</label>
+          <input
+            type="number"
+            min={0}
+            max={99}
+            value={value.maxLuck ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value
+              onChange({ ...value, maxLuck: raw === '' ? null : Math.max(0, Math.min(99, parseInt(raw) || 0)) })
+            }}
+            placeholder="bez limitu"
+            className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text focus:outline-none focus:border-coc-accent-light"
+          />
+          <p className="text-xs text-coc-text-muted">
+            Pusto = bez limitu. Wynik rzutu 3K6×5 zostanie przycięty do tej wartości.
+          </p>
+        </div>
       </div>
 
       {PERKS.length > 0 && (
@@ -320,6 +364,8 @@ export function InviteCodeManager() {
         label: createForm.label || undefined,
         reroll_budget: createForm.rerollBudget,
         assigned_player_id: createForm.assignedPlayerId || null,
+        max_wealth: createForm.maxWealth,
+        max_luck: createForm.maxLuck,
       })
       setCodes((prev) => [created, ...prev])
       setCreateForm(emptyForm)
@@ -360,6 +406,8 @@ export function InviteCodeManager() {
       perks: code.perks ?? [],
       maxSkillValue: code.max_skill_value ?? 80,
       assignedPlayerId: code.assigned_player_id ?? '',
+      maxWealth: code.max_wealth ?? null,
+      maxLuck: code.max_luck ?? null,
     })
   }
 
@@ -380,6 +428,8 @@ export function InviteCodeManager() {
         perks: editForm.perks,
         max_skill_value: editForm.maxSkillValue,
         assigned_player_id: editForm.assignedPlayerId || null,
+        max_wealth: editForm.maxWealth,
+        max_luck: editForm.maxLuck,
       })
       setCodes((prev) => prev.map((c) => (c.id === editingId ? { ...c, ...(updated as InviteCode) } : c)))
       cancelEdit()

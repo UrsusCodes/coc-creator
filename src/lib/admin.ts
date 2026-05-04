@@ -41,6 +41,9 @@ export async function adminCreateCode(
     label?: string
     reroll_budget?: number
     assigned_player_id?: string | null
+    // Optional ceilings (migration 022)
+    max_wealth?: number | null
+    max_luck?: number | null
   },
 ) {
   const res = await adminFetch('/codes', password, {
@@ -71,6 +74,8 @@ export async function adminUpdateInviteCode(
     assigned_player_id: string | null
     perks: string[]
     max_skill_value: number
+    max_wealth: number | null
+    max_luck: number | null
     era: string
     methods: string[]
     is_active: boolean

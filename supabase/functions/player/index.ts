@@ -1426,6 +1426,8 @@ Deno.serve(async (req: Request) => {
         era: inviteCode.era,
         perks,
         max_skill_value: inviteCode.max_skill_value ?? 99,
+        max_wealth: inviteCode.max_wealth ?? null,
+        max_luck: inviteCode.max_luck ?? null,
         // No mechanical state yet — rolled by dedicated endpoints.
         characteristics: {},
         luck: 0,
@@ -1838,7 +1840,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: char, error: charErr } = await supabase
         .from('characters')
-        .select('id, status, age, aging_committed_at, luck_committed_at')
+        .select('id, status, age, aging_committed_at, luck_committed_at, max_luck')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
@@ -1848,7 +1850,10 @@ Deno.serve(async (req: Request) => {
       if (!char.aging_committed_at) return errorResponse('Apply aging penalties first', 409)
       if (char.luck_committed_at) return errorResponse('Luck already committed', 409)
 
-      const luck = rollLuckForAge(char.age as number ?? 30)
+      let luck = rollLuckForAge(char.age as number ?? 30)
+      if (typeof char.max_luck === 'number') {
+        luck = Math.min(luck, char.max_luck)
+      }
       const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('characters')
