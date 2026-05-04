@@ -52,6 +52,22 @@ export function StepEduRolls() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character, token, charId])
 
+  // Auto-advance when there's nothing to roll (age 40+) and the commit
+  // already landed. Guarantees aging/luck gates further down the hard zone
+  // can read edu_committed_at without forcing the user to click "Dalej" on
+  // a step that has no actionable UI.
+  const autoAdvancedRef = useRef(false)
+  useEffect(() => {
+    if (!character || autoAdvancedRef.current) return
+    if (!character.edu_committed_at) return
+    const age = character.age ?? store.age ?? 25
+    const mods = getAgeModifications(age)
+    if ((mods?.eduImprovementChecks ?? 0) > 0) return
+    autoAdvancedRef.current = true
+    store.nextStep()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character])
+
   const rollEdu = async () => {
     if (!token || !charId) return
     setError(null)

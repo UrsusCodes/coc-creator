@@ -6,7 +6,6 @@ import { useCharacterStore, getAllowedSteps } from '@/stores/characterStore'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useDraftSync } from '@/hooks/useDraftSync'
 import { playerGetCharacter, playerReroll } from '@/lib/player'
-import { getAgeModifications } from '@/lib/ageModifiers'
 import { PL } from '@/data/i18n'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -118,7 +117,7 @@ function isHardZoneStep(step: number): boolean {
 function shouldSkip(
   step: number,
   character: CharacterData | null,
-  age: number | null,
+  _age: number | null,
 ): boolean {
   if (!character) return false
   if (step === STEP_SWAP) {
@@ -126,13 +125,14 @@ function shouldSkip(
     if (character.swap_used) return true
     return false
   }
-  if (step === STEP_EDU || step === STEP_AGING) {
-    if (age == null) return false
-    const mods = getAgeModifications(age)
-    if (!mods) return false
-    if (step === STEP_EDU && mods.eduImprovementChecks === 0) return true
-    if (step === STEP_AGING && mods.physicalDeductionTotal === 0) return true
-  }
+  // Note: STEP_EDU and STEP_AGING are intentionally NOT skipped here, even
+  // when their respective requirements are zero (eduImprovementChecks === 0
+  // or physicalDeductionTotal === 0). The components must mount so they can
+  // call the server endpoints (/roll-edu, /apply-aging-penalties), which set
+  // edu_committed_at / aging_committed_at — required gates for the next
+  // hard-zone step (/roll-luck). Both components auto-commit and advance
+  // the wizard themselves when there is no work to do, so the user only
+  // sees a brief flicker.
   return false
 }
 
