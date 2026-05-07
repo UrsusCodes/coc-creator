@@ -28,6 +28,10 @@ backups/*-pgdump/
 # Supabase CLI local cache (pooler-url, version pins, linked-project meta)
 supabase/.temp/
 
+# Debug output from scripts/render-card-frame-v2.mjs (regenerable; the
+# committed source of truth is the .generated.ts file alongside the PDF).
+scripts/output/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

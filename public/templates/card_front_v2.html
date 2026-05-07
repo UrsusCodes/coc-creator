@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Karta Badacza — wersja B v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600&family=EB+Garamond:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
+<style>
+  /* ════════════════════════════════════════════════════════════
+     SLOTY ASSETÓW — wszystkie domyślnie `none` (karta działa
+     czystym CSS-em). Podstaw URL gdy będziesz miał PNG-i.
+     ──────────────────────────────────────────────────────────── */
+  :root {
+    /* ── WYMAGANE (do podstawienia, do tej pory CSS-only) ── */
+    --asset-bg-paper:        none;       /* tekstura papieru (cała karta) */
+    --asset-bg-field:        none;       /* tekstura jaśniejsza pod pola tekstowe */
+    --asset-corner-tl:       none;
+    --asset-corner-tr:       none;
+    --asset-corner-bl:       none;
+    --asset-corner-br:       none;
+    --asset-edge-top:        none;
+    --asset-edge-bottom:     none;
+    --asset-edge-left:       none;
+    --asset-edge-right:      none;
+
+    /* ── OPCJONALNE ── */
+    --asset-watermark-center: none;      /* Cthulhu pod umiejętnościami */
+    --asset-system-logo:      none;      /* pieczęć w stopce centralnie */
+    --asset-portrait-overlay: none;      /* opcjonalny ornament przy portrecie */
+
+    /* ── Paleta ── */
+    --paper:      #f3e8c7;
+    --paper-warm: #e8d8a8;
+    --paper-edge: #1a2620;       /* zewnętrzna ciemna ramka */
+    --dark-bg:    #1c2a23;       /* pasek sekcji */
+    --dark-bg2:   #0e1612;
+    --gold:       #b08a3e;
+    --gold-light: #d6b760;
+    --gold-soft:  #c9a955;
+    --ink:        #1a2a22;
+    --ink-light:  #4a5a50;
+    --line:       #6a5a30;       /* podkreślniki pól */
+    --line-soft:  rgba(106, 90, 48, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #1d1d1d; font-family: 'EB Garamond', Georgia, serif; color: var(--ink); }
+  .page-wrap { display: flex; justify-content: center; padding: 24px; }
+
+  /* ─────── KARTA ─────── */
+  .card {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    background-color: var(--paper-edge);
+    box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  /* Wewnętrzny "papier" — cieplejszy kolor, gradient */
+  .paper-inner {
+    position: absolute;
+    inset: 4mm;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(176, 138, 62, 0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 95%, rgba(120, 60, 20, 0.06), transparent 60%),
+      radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(120, 90, 30, 0.08) 100%);
+    z-index: 1;
+  }
+  /* Slot na teksturę papieru */
+  .paper-inner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: var(--asset-bg-paper);
+    background-size: 400px 400px;
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* ─────── ZŁOTA RAMKA OZDOBNA (CSS) ─────── */
+  /* Pojedyncza linia + ozdobne narożniki SVG. Bardzo cienka. */
+  .gold-frame {
+    position: absolute;
+    inset: 5.5mm;
+    border: 0.25mm solid var(--gold);
+    pointer-events: none;
+    z-index: 6;
+  }
+  .gold-frame::before, .gold-frame::after {
+    content: '';
+    position: absolute;
+    left: 1.2mm; right: 1.2mm;
+    height: 0.1mm;
+    background: var(--gold);
+    opacity: 0.5;
+  }
+  .gold-frame::before { top: -1.4mm; }
+  .gold-frame::after  { bottom: -1.4mm; }
+
+  /* Sloty na PNG-i krawędzi — aktywne tylko gdy ustawione */
+  .edge {
+    position: absolute;
+    pointer-events: none;
+    z-index: 7;
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+  }
+  .edge.top    { top: 6mm; left: 18mm; right: 18mm; height: 3mm; background-image: var(--asset-edge-top); }
+  .edge.bottom { bottom: 6mm; left: 18mm; right: 18mm; height: 3mm; background-image: var(--asset-edge-bottom); }
+  .edge.left   { left: 6mm; top: 18mm; bottom: 18mm; width: 3mm; background-image: var(--asset-edge-left); background-repeat: repeat-y; background-size: 100% auto; }
+  .edge.right  { right: 6mm; top: 18mm; bottom: 18mm; width: 3mm; background-image: var(--asset-edge-right); background-repeat: repeat-y; background-size: 100% auto; }
+
+  /* Narożniki SVG (lub PNG slot) */
+  .corner {
+    position: absolute;
+    width: 16mm; height: 16mm;
+    z-index: 8;
+    pointer-events: none;
+    color: var(--gold);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+  .corner svg { width: 100%; height: 100%; display: block; }
+  .corner.tl { top: 6mm; left: 6mm; }
+  .corner.tr { top: 6mm; right: 6mm; transform: scaleX(-1); }
+  .corner.bl { bottom: 6mm; left: 6mm; transform: scaleY(-1); }
+  .corner.br { bottom: 6mm; right: 6mm; transform: scale(-1, -1); }
+  .corner.has-asset svg { display: none; }
+  .corner.has-asset.tl { background-image: var(--asset-corner-tl); transform: none; }
+  .corner.has-asset.tr { background-image: var(--asset-corner-tr); transform: none; }
+  .corner.has-asset.bl { background-image: var(--asset-corner-bl); transform: none; }
+  .corner.has-asset.br { background-image: var(--asset-corner-br); transform: none; }
+
+  /* ─────── BODY GRID ─────── */
+  .body {
+    position: absolute;
+    top: 9mm; left: 7mm; right: 7mm; bottom: 9mm;
+    display: grid;
+    grid-template-rows:
+      68mm     /* row 1: portret + dane + cechy */
+      auto     /* row 2: pasek 4 wskaźników */
+      auto     /* row 3: umiejętności */
+      1fr      /* row 4: stopka */
+      ;
+    gap: 2mm;
+    z-index: 5;
+  }
+
+  /* ─────── PASEK SEKCJI ─────── */
+  .bar {
+    background: linear-gradient(to bottom, var(--dark-bg) 0%, var(--dark-bg2) 100%);
+    color: var(--gold-light);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 11pt;
+    letter-spacing: 0.32em;
+    padding: 1.4mm 0;
+    border: 0.2mm solid var(--paper-edge);
+    box-shadow: inset 0 0 0 0.25mm var(--gold);
+  }
+  .bar-sm { font-size: 9.5pt; padding: 1.2mm 0; letter-spacing: 0.26em; }
+  .bar-sm.tight { font-size: 9pt; letter-spacing: 0.18em; white-space: nowrap; padding: 1.2mm 0; }
+
+  /* ─────── BLOK Z ZŁOTĄ OBWÓDKĄ ─────── */
+  .card-block {
+    border: 0.25mm solid var(--gold);
+    background: rgba(255, 245, 215, 0.45);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-block::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: var(--asset-bg-field);
+    background-size: 200px 200px;
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .card-block > * { position: relative; }
+
+  /* ─────── ROW 1: Portret | Dane | Cechy ─────── */
+  .row-1 {
+    display: grid;
+    grid-template-columns: 51mm minmax(0, 1fr) 54mm;
+    gap: 2mm;
+    min-width: 0;
+  }
+  .row-1 > * { min-width: 0; }
+
+  /* Portret */
+  .portrait {
+    border: 0.25mm solid var(--gold);
+    background:
+      linear-gradient(135deg, var(--paper-warm) 0%, #d4be88 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .portrait::after {
+    content: '';
+    position: absolute; inset: 1mm;
+    border: 0.15mm solid var(--gold);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .portrait img {
+    width: 100%; height: 100%;
+    object-fit: cover; position: relative; z-index: 2;
+  }
+
+  /* Dane Badacza */
+  .data {
+    display: flex; flex-direction: column;
+  }
+  .data .bar { margin: 0; }
+  .data .rows {
+    flex: 1;
+    padding: 2mm 4mm 2mm;
+    display: flex; flex-direction: column;
+    justify-content: space-around;
+  }
+  .data-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: end;
+    gap: 0.6mm;
+    padding: 0 0 0.8mm;
+    font-size: 10pt;
+    position: relative;
+  }
+  .data-row.split3 {
+    grid-template-columns: 1fr 12mm 10mm;
+    gap: 1.5mm 1.5mm;
+    row-gap: 0.6mm;
+  }
+  .data-row.split2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6mm 2mm;
+  }
+  .data-row.split2 .lbl { grid-row: 1; }
+  .data-row.split2 .val { grid-row: 2; }
+  .data-row .lbl {
+    font-family: 'Cinzel', serif;
+    font-size: 6pt;
+    color: var(--ink-light);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1;
+    grid-row: 1;
+    padding: 0 0 0 0.6mm;
+  }
+  .data-row .val {
+    font-family: 'EB Garamond', serif;
+    font-weight: 600;
+    font-size: 11pt;
+    color: var(--ink);
+    border-bottom: 0.2mm solid var(--line);
+    min-height: 4.4mm;
+    padding: 0 1mm 0.2mm;
+    grid-row: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.05;
+  }
+  .data-row.split3 .lbl {
+    grid-row: 1;
+    padding: 0 0 0 0.6mm;
+  }
+  .data-row.split3 .val {
+    grid-row: 2;
+  }
+
+  /* Cechy 3x3 */
+  .chars-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0;
+    border-collapse: collapse;
+  }
+  .char-cell {
+    display: grid;
+    grid-template-rows: 5mm 1fr;
+    grid-template-columns: 1fr 7mm;
+    border-right: 0.2mm solid var(--gold);
+    border-bottom: 0.2mm solid var(--gold);
+    background: rgba(255, 250, 230, 0.4);
+    position: relative;
+  }
+  .char-cell:nth-child(3n) { border-right: none; }
+  .char-cell:nth-child(n+7) { border-bottom: none; }
+  .char-cell .name {
+    grid-column: 1 / 3;
+    background: var(--dark-bg);
+    color: var(--gold-light);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 5mm;
+  }
+  /* ===== JEDNOLITY SCHEMAT KOLORÓW RAMEK 1/1 → 1/2 → 1/5 ===== */
+  /* 1/1 (pełna) = jasne kremowe tło
+     1/2 (połowa) = chłodne szare tło
+     1/5 (piątka) = ciepłe różowo-czerwonawe ("ostatnia szansa") */
+  :root {
+    --val-bg-full: rgba(255, 250, 230, 0.85);
+    --val-bg-half: rgba(0, 0, 0, 0.07);
+    --val-bg-fifth: rgba(176, 50, 50, 0.13);
+    --val-fg-full: var(--ink);
+    --val-fg-half: var(--ink-light);
+    --val-fg-fifth: #7a2424;
+  }
+
+  .char-cell .main {
+    font-family: 'EB Garamond', serif;
+    font-size: 18pt;
+    font-weight: 600;
+    text-align: center;
+    align-self: stretch; justify-self: stretch;
+    color: var(--val-fg-full);
+    background: var(--val-bg-full);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .char-cell .sub {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    border-left: 0.15mm solid var(--gold);
+    font-family: 'EB Garamond', serif;
+    font-weight: 500;
+    font-size: 10pt;
+  }
+  .char-cell .sub .half {
+    background: var(--val-bg-half);
+    color: var(--val-fg-half);
+    border-bottom: 0.15mm solid var(--gold);
+  }
+  .char-cell .sub .fifth {
+    background: var(--val-bg-fifth);
+    color: var(--val-fg-fifth);
+  }
+  .char-cell .sub > div {
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .char-cell .sub > div::before {
+    content: attr(data-lbl);
+    position: absolute;
+    top: 0.4mm; left: 0.6mm;
+    font-family: 'Cinzel', serif;
+    font-size: 4.5pt;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .char-cell .sub .half { border-bottom: 0.15mm solid var(--gold); background: var(--val-bg-half); color: var(--val-fg-half); }
+  /* (age-mod usunięty — modyfikator wieku jest już wliczony w wartość RUCH) */
+
+  /* ─────── ROW 2: Wskaźniki ─────── */
+  .row-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2mm;
+    min-width: 0;
+  }
+  .row-2 > * { min-width: 0; }
+  .stat-block {
+    display: flex; flex-direction: column;
+    border: 0.25mm solid var(--gold);
+    background: rgba(255, 245, 215, 0.4);
+    min-height: 18mm;
+  }
+  .stat-block .bar { margin: 0; }
+  .stat-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    flex: 1;
+  }
+  .stat-block.has-extras .stat-body {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  }
+  .stat-rows {
+    display: flex;
+    padding: 1.2mm 2mm 0.8mm;
+    gap: 2mm;
+    flex-shrink: 0;
+    align-items: stretch;
+  }
+  .stat-cell {
+    flex: 1;
+    text-align: center;
+    border-bottom: 0.18mm dotted var(--line);
+    padding: 0.5mm 0 0.6mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .stat-cell .lbl {
+    display: flex;
+    font-family: 'Cinzel', serif;
+    font-size: 7pt;
+    letter-spacing: 0.12em;
+    color: var(--ink-light);
+    margin-bottom: 0.6mm;
+    line-height: 1.1;
+    min-height: 3.2mm;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+  .stat-cell .val {
+    font-family: 'EB Garamond', serif;
+    font-size: 15pt;
+    font-weight: 600;
+    color: var(--val-fg-full);
+    background: var(--val-bg-full);
+    line-height: 1;
+    min-height: 5mm;
+    padding: 0.4mm 0;
+  }
+  .stat-extras {
+    border-left: 0.18mm dotted var(--line);
+    padding: 1.2mm 1.5mm 1mm;
+    font-family: 'EB Garamond', serif;
+    font-size: 6.8pt;
+    color: var(--ink-light);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.8mm;
+    letter-spacing: 0.01em;
+  }
+  .stat-extras .ex-title {
+    font-family: 'Cinzel', serif;
+    font-size: 6pt;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 0.4mm;
+  }
+  .san-extras .san-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1.2mm;
+    white-space: nowrap;
+  }
+  .san-extras .san-row > span:first-child { color: var(--ink-light); }
+  .check-box {
+    width: 2.6mm; height: 2.6mm;
+    border: 0.25mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.7);
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 0.4mm;
+    vertical-align: middle;
+    position: relative;
+    box-sizing: border-box;
+  }
+  .check-box {
+    width: 2.4mm; height: 2.4mm;
+    border: 0.2mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.5);
+    display: inline-block;
+    margin: 0 0.5mm 0 0.5mm;
+    vertical-align: middle;
+    position: relative;
+  }
+  .check-box.on::after {
+    content: '✕';
+    position: absolute; inset: 0;
+    text-align: center; line-height: 2.6mm;
+    color: #6b1a1a; font-weight: bold;
+    font-size: 7pt;
+  }
+  .pips {
+    display: inline-flex; gap: 0.4mm;
+    margin-left: 0.5mm;
+  }
+  .pips .pip {
+    width: 2mm; height: 2mm;
+    border: 0.2mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.4);
+  }
+  .pips .pip.on { background: #6b1a1a; }
+  .pips-vert {
+    display: grid;
+    grid-template-columns: repeat(3, 2.4mm);
+    gap: 0.6mm;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  .pips-vert .pip { width: 2.4mm; height: 2.4mm; }
+
+  /* ─────── ROW 3: UMIEJĘTNOŚCI ─────── */
+  .skills {
+    display: flex; flex-direction: column;
+    border: 0.25mm solid var(--gold);
+    position: relative;
+  }
+  .skills .bar { margin: 0; }
+  .watermark {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100mm; height: 100mm;
+    background-image: var(--asset-watermark-center);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: multiply;
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background: rgba(255, 250, 230, 0.35);
+    position: relative;
+    z-index: 2;
+  }
+  .skills-spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba(255, 250, 230, 0.35);
+    position: relative;
+    z-index: 2;
+    border-top: 0.2mm solid var(--gold-soft);
+  }
+  .bar.bar-sub {
+    background: linear-gradient(180deg, #2a2316, #1a1611);
+    color: var(--gold-light);
+    text-align: center;
+    padding: 1.2mm 0;
+    font-family: 'Cinzel', serif;
+    font-size: 8pt;
+    letter-spacing: 0.3em;
+    border-top: 0.25mm solid var(--gold);
+    border-bottom: 0.25mm solid var(--gold);
+    position: relative;
+    z-index: 3;
+  }
+  .skill-col {
+    border-right: 0.15mm solid var(--gold-soft);
+    padding: 0.6mm 1.2mm;
+    display: flex; flex-direction: column;
+  }
+  .skill-col:last-child { border-right: none; }
+  .skill {
+    display: grid;
+    grid-template-columns: 2.4mm 1fr 7mm 4.4mm 4.4mm 4.4mm;
+    align-items: center;
+    gap: 0.3mm;
+    padding: 0.4mm 0;
+    border-bottom: 0.12mm dotted var(--line-soft);
+    font-size: 8.5pt;
+    line-height: 1.15;
+  }
+  .skill:last-child { border-bottom: none; }
+  .skill .cb {
+    width: 2.2mm; height: 2.2mm;
+    border: 0.2mm solid var(--paper-edge);
+    display: inline-block;
+    background: rgba(255,255,255,0.4);
+    position: relative;
+  }
+  .skill .cb.on { background: var(--paper-edge); }
+  .skill .cb.on::after {
+    content: '✓';
+    position: absolute; inset: 0;
+    text-align: center; line-height: 2.2mm;
+    color: var(--gold-light); font-size: 5pt;
+  }
+  .skill .nm {
+    font-family: 'EB Garamond', serif;
+    font-size: 8.5pt;
+    color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.25;
+    padding: 0.3mm 0;
+  }
+  .skill .nm.trained { font-weight: 500; }
+  .skill .pct {
+    font-family: 'EB Garamond', serif;
+    color: #8a6c2c;
+    font-size: 6.8pt;
+    text-align: right;
+    padding-right: 0.6mm;
+    white-space: nowrap;
+  }
+  .skill .nm .ed {
+    border-bottom: 0.15mm dotted var(--line);
+    display: inline-block;
+    min-width: 14mm;
+    color: var(--ink);
+    font-style: italic;
+    padding: 0 0.3mm;
+  }
+  .skill .nm .ed.wide {
+    min-width: 100%;
+    width: 100%;
+  }
+  .skill.blank .nm .ed { font-style: normal; }
+  .skill .v, .skill .h, .skill .f {
+    border: 0.18mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.5);
+    width: 4.4mm;
+    height: 4.4mm;
+    font-family: 'EB Garamond', serif;
+    font-size: 8pt;
+    font-weight: 500;
+    padding: 0;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-feature-settings: "lnum" 1, "tnum" 1;
+  }
+  .skill .v { font-weight: 700; background: var(--val-bg-full); color: var(--val-fg-full); font-size: 9pt; }
+  .skill .h { font-size: 7pt; background: var(--val-bg-half); color: var(--val-fg-half); }
+  .skill .f { font-size: 7pt; background: var(--val-bg-fifth); color: var(--val-fg-fifth); }
+
+  /* ─────── ROW 4: STOPKA — Uzbrojenie | Walka | Zasoby ─────── */
+  .row-4 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32mm 18mm;
+    gap: 2mm;
+    min-width: 0;
+  }
+  .row-4 > * { min-width: 0; }
+  .weapons-block {
+    display: flex; flex-direction: column;
+    border: 0.25mm solid var(--gold);
+  }
+  .weapons-block .bar { margin: 0; }
+  .weapons-table {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 0.6fr) minmax(0, 0.6fr) minmax(0, 0.6fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.6fr) minmax(0, 0.6fr) minmax(0, 0.55fr);
+    font-size: 9.5pt;
+    background: rgba(255,250,230,0.35);
+    min-width: 0;
+  }
+  .weapons-table > div {
+    padding: 0.7mm 0.6mm;
+    border-bottom: 0.12mm dotted var(--line-soft);
+    border-right: 0.12mm dotted var(--line-soft);
+    min-height: 5.6mm;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .weapons-table > div:nth-child(9n) { border-right: none; }
+  .weapons-table .h {
+    font-family: 'Cinzel', serif;
+    font-size: 6.8pt; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: center;
+    background: linear-gradient(to bottom, var(--dark-bg), var(--dark-bg2));
+    color: var(--gold-light);
+    border-bottom-color: var(--paper-edge);
+    min-height: 5mm;
+    line-height: 1.1;
+    display: flex; align-items: center; justify-content: center;
+    white-space: normal;
+  }
+  .weapons-table .center { text-align: center; }
+  .weapons-table .unarmed { font-style: italic; color: var(--ink-light); }
+
+  .combat-block, .move-block {
+    display: flex; flex-direction: column;
+    border: 0.25mm solid var(--gold);
+  }
+  .combat-block .bar, .move-block .bar { margin: 0; }
+  .combat-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;
+    gap: 0.8mm;
+    padding: 1mm;
+    background: rgba(255,250,230,0.35);
+  }
+  .combat-grid .full { grid-column: 1 / 3; }
+  .move-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+  }
+  .stat-box {
+    text-align: center;
+    border: 0.2mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.5);
+    padding: 1mm 0;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .stat-box .lbl {
+    font-family: 'Cinzel', serif;
+    font-size: 7pt; letter-spacing: 0.08em;
+    color: var(--ink-light);
+    line-height: 1.1;
+  }
+  .stat-box .val {
+    font-family: 'EB Garamond', serif;
+    font-size: 14pt; font-weight: 600;
+    color: var(--val-fg-full);
+    background: var(--val-bg-full);
+    padding: 0.6mm 0;
+    line-height: 1;
+    margin-top: 0.6mm;
+  }
+
+  /* Pieczęć dolna na środku stopki */
+  .footer-seal {
+    position: absolute;
+    bottom: 4mm; left: 50%;
+    transform: translateX(-50%);
+    width: 13mm; height: 13mm;
+    background-image: var(--asset-system-logo);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 9;
+  }
+
+  /* toolbar */
+  #toolbar {
+    position: fixed; top: 8px; right: 8px; z-index: 1000;
+    background: #2a2a2a; padding: 8px; border-radius: 6px;
+    display: flex; gap: 8px;
+  }
+  #toolbar button {
+    background: #3a3a3a; color: #eee; border: 1px solid #555;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    font-family: system-ui; font-size: 12px;
+  }
+  #toolbar button:hover { background: #4a4a4a; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: white; }
+    #toolbar { display: none; }
+    .page-wrap { padding: 0; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <button onclick="window.print()">Drukuj / PDF</button>
+</div>
+
+<div class="page-wrap">
+  <div class="card" id="card">
+
+    <!-- Wewnętrzny papier -->
+    <div class="paper-inner"></div>
+
+    <!-- Złota ramka ozdobna -->
+    <div class="gold-frame"></div>
+
+    <!-- Sloty na PNG-i krawędzi -->
+    <div class="edge top"></div>
+    <div class="edge bottom"></div>
+    <div class="edge left"></div>
+    <div class="edge right"></div>
+
+    <!-- Narożniki SVG: usunięte -->
+    <!-- Pieczęć dolna -->
+    <div class="footer-seal"></div>
+
+    <div class="body">
+
+      <!-- ── ROW 1: Portret | Dane Badacza | Cechy ── -->
+      <div class="row-1">
+        <div class="portrait" id="portrait-frame"></div>
+
+        <div class="card-block data">
+          <div class="bar bar-sm">DANE BADACZA</div>
+          <div class="rows">
+            <div class="data-row"><span class="lbl">Imię Badacza</span><span class="val" data-bind="name"></span></div>
+            <div class="data-row"><span class="lbl">Gracz</span><span class="val" data-bind="player_name"></span></div>
+            <div class="data-row"><span class="lbl">Zawód</span><span class="val" data-bind="occupation"></span></div>
+            <div class="data-row split2">
+              <span class="lbl">Wiek</span><span class="val" data-bind="age"></span>
+              <span class="lbl">Płeć</span><span class="val" data-bind="gender"></span>
+            </div>
+            <div class="data-row"><span class="lbl">Miejsce urodzenia</span><span class="val" data-bind="birthplace"></span></div>
+            <div class="data-row"><span class="lbl">Miejsce zamieszkania</span><span class="val" data-bind="residence"></span></div>
+            <div class="data-row"><span class="lbl">Miejsce zgonu</span><span class="val" data-bind="death_place"></span></div>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <div class="bar bar-sm">CECHY</div>
+          <div class="chars-grid" id="chars-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── ROW 2: Poczytalność | PW | Szczęście | PM ── -->
+      <div class="row-2">
+        <div class="stat-block">
+          <div class="bar bar-sm tight">POCZYTALNOŚĆ</div>
+          <div class="stat-body">
+            <div class="stat-rows">
+              <div class="stat-cell"><span class="lbl">MAX</span><span class="val" data-bind="san.max"></span></div>
+              <div class="stat-cell"><span class="lbl">OBECNA</span><span class="val" data-bind="san.curr"></span></div>
+              <div class="stat-cell"><span class="lbl">1/5</span><span class="val" data-bind="san.fifth"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-block has-extras">
+          <div class="bar bar-sm tight">WYTRZYMAŁOŚĆ</div>
+          <div class="stat-body">
+            <div class="stat-rows">
+              <div class="stat-cell"><span class="lbl">MAX</span><span class="val" data-bind="hp.max"></span></div>
+              <div class="stat-cell"><span class="lbl">OBECNE</span><span class="val" data-bind="hp.curr"></span></div>
+            </div>
+            <div class="stat-extras">
+              <div class="ex-title">CIĘŻKIE RANY</div>
+              <div class="pips pips-vert" id="heavy-wounds">
+                <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-block">
+          <div class="bar bar-sm tight">SZCZĘŚCIE</div>
+          <div class="stat-body">
+            <div class="stat-rows">
+              <div class="stat-cell"><span class="lbl">MAX</span><span class="val" data-bind="luck.max"></span></div>
+              <div class="stat-cell"><span class="lbl">OBECNE</span><span class="val" data-bind="luck.curr"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-block">
+          <div class="bar bar-sm tight">PUNKTY MAGII</div>
+          <div class="stat-body">
+            <div class="stat-rows">
+              <div class="stat-cell"><span class="lbl">MAX</span><span class="val" data-bind="mp.max"></span></div>
+              <div class="stat-cell"><span class="lbl">OBECNE</span><span class="val" data-bind="mp.curr"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ROW 3: UMIEJĘTNOŚCI ── -->
+      <div class="skills">
+        <div class="bar">UMIEJĘTNOŚCI</div>
+        <div class="watermark"></div>
+        <div class="skills-grid" id="skills-grid"></div>
+        <div class="bar bar-sub">SPECJALIZACJE</div>
+        <div class="skills-spec-grid" id="skills-spec-grid"></div>
+      </div>
+
+      <!-- ── ROW 4: Uzbrojenie | Walka | Zasoby ── -->
+      <div class="row-4">
+        <div class="weapons-block">
+          <div class="bar bar-sm">UZBROJENIE</div>
+          <div class="weapons-table" id="weapons-table">
+            <div class="h">BROŃ</div><div class="h">NORM.</div><div class="h">WYM.</div><div class="h">EKS.</div>
+            <div class="h">OBRAŻ.</div><div class="h">ZASIĘG</div><div class="h">ATAKI</div><div class="h">AMU.</div><div class="h">ZAW.</div>
+          </div>
+        </div>
+        <div class="combat-block">
+          <div class="bar bar-sm">WALKA</div>
+          <div class="combat-grid">
+            <div class="stat-box full"><span class="lbl">MOD. OBRAŻEŃ</span><span class="val" data-bind="damage_bonus"></span></div>
+            <div class="stat-box"><span class="lbl">KRZEPA</span><span class="val" data-bind="build"></span></div>
+            <div class="stat-box"><span class="lbl">UNIK</span><span class="val" data-bind="dodge"></span></div>
+          </div>
+        </div>
+        <div class="combat-block">
+          <div class="bar bar-sm">RUCH</div>
+          <div class="combat-grid move-grid">
+            <div class="stat-box"><span class="lbl">CHÓD</span><span class="val" data-bind="walk">—</span></div>
+            <div class="stat-box"><span class="lbl">SPRINT</span><span class="val" data-bind="sprint">—</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// 9 cech w siatce 3×3 — bez wydzielania MOC, jak w referencji.
+// Kolejność z referencji: SIŁ, ZRĘ, MOC | KON, WYG, WYK | BC(BUD), INT, RUCH
+const CHAR_DEFS = [
+  { key: 'str', label: 'SIŁ' },
+  { key: 'dex', label: 'ZRE' },
+  { key: 'pow', label: 'MOC' },
+  { key: 'con', label: 'KON' },
+  { key: 'app', label: 'WYG' },
+  { key: 'edu', label: 'WYK' },
+  { key: 'siz', label: 'BC' },
+  { key: 'int', label: 'INT' },
+  { key: 'move', label: 'RUCH' },
+];
+
+// Zwykłe umiejętności (kolumny 1+2). Posortowane alfabetycznie.
+const NORMAL_SKILLS = [
+  ['anthropology', 'Antropologia', 1],
+  ['archaeology', 'Archeologia', 1],
+  ['disguise', 'Charakteryzacja', 5],
+  ['electrical', 'Elektryka', 10],
+  ['fast_talk', 'Gadanina', 5],
+  ['history', 'Historia', 5],
+  ['ride', 'Jeździectwo', 5],
+  ['lang_own', 'Język Ojczysty', 'WYK'],
+  ['library_use', 'Korz. z Bibliotek', 20],
+  ['accounting', 'Księgowość', 5],
+  ['credit_rating', 'Majętność', 0],
+  ['mechanical', 'Mechanika', 10],
+  ['medicine', 'Medycyna', 1],
+  ['cthulhu_mythos', 'Mity Cthulhu', 0],
+  ['listen', 'Nasłuchiwanie', 20],
+  ['navigate', 'Nawigacja', 10],
+  ['heavy_machinery', 'Obs. Cięż. Sprzętu', 1],
+  ['occult', 'Okultyzm', 5],
+  ['persuade', 'Perswazja', 10],
+  ['first_aid', 'Pierwsza pomoc', 30],
+  ['swim', 'Pływanie', 20],
+  ['law', 'Prawo', 5],
+  ['drive_auto', 'Prowadz. Samochodu', 20],
+  ['psychoanalysis', 'Psychoanaliza', 1],
+  ['psychology', 'Psychologia', 10],
+  ['throw', 'Rzucanie', 20],
+  ['jump', 'Skakanie', 20],
+  ['spot_hidden', 'Spostrzegawczość', 25],
+  ['survival', 'Sztuka Przetrwania', 10],
+  ['locksmith', 'Ślusarstwo', 1],
+  ['track', 'Tropienie', 10],
+  ['stealth', 'Ukrywanie', 20],
+  ['dodge', 'Unik', 'ZR/2'],
+  ['appearance_skill', 'Urok Osobisty', 15],
+  ['natural_world', 'Wiedza o Naturze', 10],
+  ['climb', 'Wspinaczka', 20],
+  ['appraise', 'Wycena', 5],
+  ['intimidate', 'Zastraszanie', 15],
+  ['sleight_of_hand', 'Zręczne Palce', 10],
+];
+
+// Specjalizowane (kolumna 3).
+// Każda rodzina: bazowe wpisy (zawsze widoczne) + ID prefix dla dynamicznych wariantów.
+// Specjalizowane (sekcja dolna).
+// Wszystkie pola w stałej kolejności (18 wierszy razem). 
+// `fixed` = lista bazowych z prefilled specjalizacją.
+// `customSlots` = N pustych miejsc na własne specjalizacje (dane z window.character.skills[customPrefix + (i+1)]).
+const SPECIALIZED_FAMILIES = [
+  {
+    label: 'Broń Palna',
+    fixed: [
+      ['firearms_handgun', 'Krótka', 20],
+      ['firearms_rifle', 'Karabin / Strzelba', 25],
+      ['firearms_smg', 'Pistolet Maszynowy', 15],
+      ['firearms_heavy', 'Ciężka', 10],
+      ['firearms_bow', 'Łuk / Kusza', 15],
+    ],
+    customSlots: 0,
+    customPrefix: 'firearms_c',
+  },
+  {
+    label: 'Walka Wręcz',
+    fixed: [
+      ['fighting_brawl', 'Bijatyka', 25],
+      ['fighting_swords', 'Długa broń ostra', 20],
+      ['fighting_blunt', 'Broń obuchowa', 25],
+      ['fighting_garrote', 'Skrytobójstwo', 15],
+    ],
+    customSlots: 0,
+    customPrefix: 'weapon_c',
+  },
+  {
+    label: 'Sztuka / Rzem.',
+    fixed: [],
+    customSlots: 3,
+    customPrefix: 'art_craft_',
+    fallbackBase: 5,
+  },
+  {
+    label: 'Nauka',
+    fixed: [],
+    customSlots: 3,
+    customPrefix: 'science_',
+    fallbackBase: 1,
+  },
+  {
+    label: 'Język Obcy',
+    fixed: [],
+    customSlots: 3,
+    customPrefix: 'lang_other_',
+    fallbackBase: 1,
+  },
+];
+
+window.character = window.character || {
+  name: 'Henry Armitage',
+  player_name: 'Janek Kowalski',
+  occupation: 'Bibliotekarz',
+  age: '67',
+  gender: 'M',
+  residence: 'Arkham, MA',
+  birthplace: 'Boston, MA',
+  death_place: '',
+
+  chars: { str: 40, dex: 50, pow: 70, con: 60, app: 50, edu: 92, siz: 60, int: 85, move: 6 },
+  age_mod: -1,
+
+  san: { max: 99, curr: 70 },
+  san_temp: false, san_indef: false,
+  hp: { max: 12, curr: 10 },
+  heavy_wounds: 1,
+  luck: { max: 75, curr: 55 },
+  mp: { max: 14, curr: 12 },
+
+  damage_bonus: '0',
+  build: 0,
+  dodge: 25,
+  spending_level: '10$',
+  cash: '125$',
+
+  skills: {
+    archaeology: { value: 60, trained: true },
+    history: { value: 70, trained: true },
+    library_use: { value: 85, trained: true },
+    occult: { value: 65, trained: true },
+    science_1: { name: 'Astronomia', value: 40, trained: true },
+    science_2: { name: 'Mat./Krypt.', value: 35, trained: true },
+    lang_other_1: { name: 'Łacina', value: 60, trained: true },
+    lang_other_2: { name: 'Greka', value: 50, trained: true },
+    art_craft_1: { name: 'Kaligrafia', value: 30, trained: true },
+    persuade: { value: 35, trained: true },
+    psychology: { value: 50, trained: true },
+    cthulhu_mythos: { value: 12, trained: true },
+  },
+
+  weapons: [
+    { name: 'Nieuzbrojony', norm: 25, hard: 12, extreme: 5, damage: '1k3 + MO', range: '—', attacks: 1, ammo: '—', reliability: '—', unarmed: true },
+    { name: 'Pistolet .38', norm: 20, hard: 10, extreme: 4, damage: '1k10', range: '15 m', attacks: 1, ammo: 6, reliability: 100 },
+  ],
+};
+
+function resolve(path) {
+  return path.split('.').reduce((o, k) => (o == null ? null : o[k]), window.character);
+}
+
+function renderChars() {
+  const grid = document.getElementById('chars-grid');
+  grid.innerHTML = '';
+  CHAR_DEFS.forEach(def => {
+    const v = window.character.chars[def.key] ?? 0;
+    const half = Math.floor(v / 2);
+    const fifth = Math.floor(v / 5);
+    const cell = document.createElement('div');
+    cell.className = 'char-cell';
+    const subInner = def.key === 'move'
+      ? `<div class="half">+1</div><div class="fifth">−1</div>`
+      : `<div class="half" data-lbl="½">${half}</div><div class="fifth" data-lbl="⅕">${fifth}</div>`;
+    cell.innerHTML = `
+      <div class="name">${def.label}</div>
+      <div class="main">${v}</div>
+      <div class="sub">${subInner}</div>`;
+    grid.appendChild(cell);
+  });
+}
+
+function renderSkills() {
+  const grid = document.getElementById('skills-grid');
+  const specGrid = document.getElementById('skills-spec-grid');
+  grid.innerHTML = '';
+  specGrid.innerHTML = '';
+  const skillsData = window.character.skills || {};
+
+  // Helper do renderowania pojedynczego wiersza
+  function makeRow(label, value, baseLabel) {
+    const half = Math.floor(value / 2);
+    const fifth = Math.floor(value / 5);
+    const row = document.createElement('div');
+    row.className = 'skill';
+    row.innerHTML = `
+      <span class="cb"></span>
+      <span class="nm">${label}</span>
+      <span class="pct">${baseLabel}</span>
+      <span class="v">${value || ''}</span>
+      <span class="h">${half || ''}</span>
+      <span class="f">${fifth || ''}</span>`;
+    return row;
+  }
+  function makeBlankRow() {
+    const row = document.createElement('div');
+    row.className = 'skill blank';
+    row.innerHTML = `
+      <span class="cb"></span>
+      <span class="nm"><span class="ed wide"></span></span>
+      <span class="pct"></span>
+      <span class="v"></span>
+      <span class="h"></span>
+      <span class="f"></span>`;
+    return row;
+  }
+  function pctSpan(base) {
+    if (typeof base === 'number') return `${String(base).padStart(2,'0')}%`;
+    if (base === 'WYK') return `WYK`;
+    if (base === 'ZR/2') return `(½ ZR)%`;
+    return '';
+  }
+
+  // ── ZWYKŁE UMIEJĘTNOŚCI w 3 kolumnach ──
+  const perCol = Math.ceil(NORMAL_SKILLS.length / 3);
+  for (let c = 0; c < 3; c++) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'skill-col';
+    const slice = NORMAL_SKILLS.slice(c * perCol, c * perCol + perCol);
+    slice.forEach(([key, name, base]) => {
+      const data = skillsData[key] || {};
+      const baseNum = (typeof base === 'number') ? base
+        : base === 'WYK' ? (window.character.chars.edu || 0)
+        : base === 'ZR/2' ? Math.floor((window.character.chars.dex || 0) / 2)
+        : 0;
+      const value = data.value ?? baseNum;
+      colDiv.appendChild(makeRow(name, value, pctSpan(base)));
+    });
+    grid.appendChild(colDiv);
+  }
+
+  // ── SPECJALIZOWANE w 2 kolumnach (sztywna struktura, 18 pól) ──
+  const specRows = [];
+  SPECIALIZED_FAMILIES.forEach(fam => {
+    // Wiersze fixed (zawsze widoczne, zawsze z nazwą specjalizacji)
+    fam.fixed.forEach(([key, specName, baseVal]) => {
+      const data = skillsData[key] || {};
+      const value = data.value ?? baseVal;
+      const label = `${fam.label} <span class="ed">${specName}</span>`;
+      specRows.push(makeRow(label, value, pctSpan(baseVal)));
+    });
+    // Custom slots — N stałych miejsc, puste jeśli brak danych
+    for (let i = 1; i <= fam.customSlots; i++) {
+      const key = fam.customPrefix + i;
+      const d = skillsData[key] || {};
+      const baseVal = fam.fallbackBase ?? 1;
+      const hasData = d.name || d.value;
+      if (hasData) {
+        const specName = d.name || '';
+        const value = d.value ?? baseVal;
+        const label = `${fam.label} <span class="ed">${specName}</span>`;
+        specRows.push(makeRow(label, value, pctSpan(baseVal)));
+      } else {
+        // Pusty slot z preprintowaną nazwą rodziny + miejsce na własną
+        // Procent bazowy widoczny mimo braku specjalizacji
+        const label = `${fam.label} <span class="ed empty"></span>`;
+        const row = document.createElement('div');
+        row.className = 'skill blank';
+        row.innerHTML = `
+          <span class="cb"></span>
+          <span class="nm">${label}</span>
+          <span class="pct">${pctSpan(baseVal)}</span>
+          <span class="v"></span>
+          <span class="h"></span>
+          <span class="f"></span>`;
+        specRows.push(row);
+      }
+    }
+  });
+
+  // Rozdziel na 2 kolumny równo (9 + 9), plus 2 puste wiersze "do dopisania" w każdej kolumnie
+  const specHalf = Math.ceil(specRows.length / 2);
+  for (let c = 0; c < 2; c++) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'skill-col';
+    specRows.slice(c * specHalf, c * specHalf + specHalf).forEach(r => colDiv.appendChild(r));
+    // 2 dodatkowe puste wiersze na własne umiejętności
+    colDiv.appendChild(makeBlankRow());
+    colDiv.appendChild(makeBlankRow());
+    specGrid.appendChild(colDiv);
+  }
+}
+
+function renderWeapons() {
+  const tbl = document.getElementById('weapons-table');
+  while (tbl.children.length > 9) tbl.removeChild(tbl.lastChild);
+  const fields = ['name', 'norm', 'hard', 'extreme', 'damage', 'range', 'attacks', 'ammo', 'reliability'];
+  for (let i = 0; i < 5; i++) {
+    const w = window.character.weapons?.[i] || {};
+    fields.forEach((k, j) => {
+      const div = document.createElement('div');
+      div.className = (j === 0 ? '' : 'center ') + (w.unarmed && j === 0 ? 'unarmed' : '');
+      div.textContent = w[k] != null ? w[k] : '';
+      tbl.appendChild(div);
+    });
+  }
+}
+
+function renderBindings() {
+  if (!window.character.san) window.character.san = {};
+  if (window.character.san.fifth == null && window.character.san.curr != null) {
+    window.character.san.fifth = Math.floor(window.character.san.curr / 5);
+  }
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    const v = resolve(el.dataset.bind);
+    if (v != null && v !== '') el.textContent = v;
+  });
+  document.querySelectorAll('[data-flag]').forEach(el => {
+    if (window.character[el.dataset.flag]) el.classList.add('on');
+  });
+  const hw = document.getElementById('heavy-wounds');
+  if (hw) {
+    [...hw.children].forEach(p => p.classList.remove('on'));
+  }
+  if (window.character.portrait) {
+    const pf = document.getElementById('portrait-frame');
+    pf.innerHTML = `<img src="${window.character.portrait}" alt="">`;
+  }
+}
+
+function applyAssetSlots() {
+  const root = getComputedStyle(document.documentElement);
+  const get = (cssVar) => root.getPropertyValue(cssVar).trim();
+  const isNone = (v) => v === 'none' || v === '';
+  const checkAndHide = (cssVar, selector) => {
+    if (isNone(get(cssVar))) {
+      document.querySelectorAll(selector).forEach(el => el.style.display = 'none');
+    }
+  };
+  checkAndHide('--asset-watermark-center', '.watermark');
+  checkAndHide('--asset-system-logo', '.footer-seal');
+  checkAndHide('--asset-edge-top', '.edge.top');
+  checkAndHide('--asset-edge-bottom', '.edge.bottom');
+  checkAndHide('--asset-edge-left', '.edge.left');
+  checkAndHide('--asset-edge-right', '.edge.right');
+  [['--asset-corner-tl','.corner.tl'],
+   ['--asset-corner-tr','.corner.tr'],
+   ['--asset-corner-bl','.corner.bl'],
+   ['--asset-corner-br','.corner.br']].forEach(([cv, sel]) => {
+    if (!isNone(get(cv))) {
+      document.querySelectorAll(sel).forEach(el => el.classList.add('has-asset'));
+    }
+  });
+}
+
+function renderAll() {
+  renderChars();
+  renderSkills();
+  renderWeapons();
+  renderBindings();
+  applyAssetSlots();
+}
+
+window.setCharacter = function(c) { window.character = c; renderAll(); };
+renderAll();
+</script>
+</body>
+</html>

@@ -3,6 +3,9 @@
  * Coordinates are in percentage (0-100) of the card image dimensions (2479x3508).
  */
 
+import type { SkillRowV2, SpecRowV2 } from './cardFrontV2.types'
+import { FRONT_V2_FIELDS, FRONT_V2_SKILL_ROWS, FRONT_V2_SPEC_ROWS } from './cardFrontV2.generated'
+
 export interface FieldBox {
   id: string
   label: string
@@ -45,10 +48,16 @@ export interface ListGrid {
 export interface CardLayout {
   id: string
   name: string
+  /** Path to background asset — `.png` (rasterised legacy) or `.pdf` (vector v2). */
   image: string
   fields: FieldBox[]
+  /** Legacy front: skills laid out in columnar grids. */
   skillGrids?: SkillColumnGrid[]
   listGrids?: ListGrid[]
+  /** v2 front: per-row skill coords (regular skills, 3-col grid). */
+  skillRowsV2?: SkillRowV2[]
+  /** v2 front: per-row spec coords (combat + open spec slots, 2-col grid). */
+  specRowsV2?: SpecRowV2[]
 }
 
 // ─── FRONT CARD (2479×3508) ───────────────────────────────────
@@ -366,7 +375,8 @@ export const SKILL_GRID_COL3: SkillColumnGrid = {
 export const FRONT_SKILL_GRIDS: SkillColumnGrid[] = [SKILL_GRID_COL1, SKILL_GRID_COL2, SKILL_GRID_COL3]
 
 export const CARD_LAYOUTS: CardLayout[] = [
-  { id: 'front', name: 'Przód', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
+  { id: 'front', name: 'Przód (legacy)', image: '/karta_front.png', fields: FRONT_FIELDS, skillGrids: FRONT_SKILL_GRIDS },
+  { id: 'front_v2', name: 'Przód v2', image: '/karta_front_v2.pdf', fields: FRONT_V2_FIELDS, skillRowsV2: FRONT_V2_SKILL_ROWS, specRowsV2: FRONT_V2_SPEC_ROWS },
   { id: 'back_classic', name: 'Tył (klasyczny)', image: '/karta_back_v4_classic.png', fields: BACK_CLASSIC_FIELDS },
   { id: 'back_toc', name: 'Tył (Drive+Pillars)', image: '/karta_back_v4_toc.png', fields: BACK_TOC_FIELDS },
 ]

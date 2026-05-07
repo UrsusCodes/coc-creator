@@ -1,6 +1,7 @@
-import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib'
+import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage, type PDFEmbeddedPage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
-import { CARD_LAYOUTS, FRONT_SKILL_GRIDS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
+import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
+import type { SkillRowV2, SpecRowV2, BoxV2 } from '@/data/cardFrontV2.types'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillBase, getSkillDisplayName, getBaseSkillId, getSpecialization } from '@/data/skills'
 import { WEAPONS } from '@/data/weapons'
@@ -267,11 +268,19 @@ function getFieldValue(id: string, char: ExportCharacter): string {
     return String(val)
   }
 
-  // Derived
-  if (id === 'san') return String(derived.san)
-  if (id === 'hp') return String(derived.hp)
-  if (id === 'mp') return String(derived.mp)
-  if (id === 'luck') return String(char.luck)
+  // Derived (legacy + v2 dot-notation. `*.curr` is intentionally blank — the
+  // player fills it in by hand at the table.)
+  if (id === 'san' || id === 'san.max') return String(derived.san)
+  if (id === 'san.fifth') return String(Math.floor(derived.san / 5))
+  if (id === 'san.curr') return ''
+  if (id === 'hp' || id === 'hp.max') return String(derived.hp)
+  if (id === 'hp.curr') return ''
+  if (id === 'mp' || id === 'mp.max') return String(derived.mp)
+  if (id === 'mp.curr') return ''
+  if (id === 'luck' || id === 'luck.max') return String(char.luck)
+  if (id === 'luck.curr') return ''
+  if (id === 'walk') return String(Math.floor(derived.move_rate / 3))
+  if (id === 'sprint') return String(Math.floor((derived.move_rate * 5) / 3))
   if (id === 'damage_bonus') return String(derived.db)
   if (id === 'build') return String(derived.build)
   if (id === 'dodge') {
@@ -495,19 +504,26 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
     }
   }
 
-  // Fill weapon fields (up to 5)
+  // Fill weapon fields (up to 5). Legacy IDs (skill/half/fifth/dmg/malf) and
+  // v2 IDs (norm/hard/extreme/damage/reliability) populate the same values
+  // — the v2 layout uses the v2 names.
   for (let i = 0; i < Math.min(weapons.length, 5); i++) {
     const w = weapons[i]
     const n = i + 1
     result[`weap${n}_name`] = w.name
     result[`weap${n}_skill`] = w.skill
+    result[`weap${n}_norm`] = w.skill
     result[`weap${n}_half`] = w.half
+    result[`weap${n}_hard`] = w.half
     result[`weap${n}_fifth`] = w.fifth
+    result[`weap${n}_extreme`] = w.fifth
     result[`weap${n}_dmg`] = w.dmg
+    result[`weap${n}_damage`] = w.dmg
     result[`weap${n}_range`] = w.range
     result[`weap${n}_attacks`] = w.attacks
     result[`weap${n}_ammo`] = w.ammo
     result[`weap${n}_malf`] = w.malf
+    result[`weap${n}_reliability`] = w.malf
   }
 
   // Group duplicate equipment items: ["Ammo", "Ammo", "Ammo"] → ["Ammo [x3]"]
@@ -606,25 +622,26 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const pdfDoc = await PDFDocument.create()
   pdfDoc.registerFontkit(fontkit)
 
-  // Load fonts
+  // Load fonts (EB Garamond — single font family for v2 dynamic text;
+  // labels and section bars are baked into the PDF background).
   const [regularBytes, boldBytes] = await Promise.all([
-    fetch(BASE + 'fonts/Inter-Regular.ttf').then((r) => r.arrayBuffer()),
-    fetch(BASE + 'fonts/Inter-Bold.ttf').then((r) => r.arrayBuffer()),
+    fetch(BASE + 'fonts/EBGaramond-Regular.ttf').then((r) => r.arrayBuffer()),
+    fetch(BASE + 'fonts/EBGaramond-Bold.ttf').then((r) => r.arrayBuffer()),
   ])
   const fontRegular = await pdfDoc.embedFont(regularBytes)
   const fontBold = await pdfDoc.embedFont(boldBytes)
 
-  // Determine which back card to use
+  // Determine which front + back to use
   const isToC = !!char.backstory.drive
-  const frontLayout = CARD_LAYOUTS.find((l) => l.id === 'front')!
+  const frontLayout = CARD_LAYOUTS.find((l) => l.id === 'front_v2')!
   const backLayout = CARD_LAYOUTS.find((l) => l.id === (isToC ? 'back_toc' : 'back_classic'))!
 
-  // Load card images
-  const [frontImgBytes, backImgBytes] = await Promise.all([
+  // Load backgrounds. Front is a vector PDF (v2); back is still a PNG raster.
+  const [frontBgBytes, backImgBytes] = await Promise.all([
     fetch(BASE + frontLayout.image.replace(/^\//, '')).then((r) => r.arrayBuffer()),
     fetch(BASE + backLayout.image.replace(/^\//, '')).then((r) => r.arrayBuffer()),
   ])
-  const frontImg = await pdfDoc.embedPng(frontImgBytes)
+  const [frontBgPage] = await pdfDoc.embedPdf(frontBgBytes)
   const backImg = await pdfDoc.embedPng(backImgBytes)
 
   // Load portrait if available — prefer the workshop-edited card variant
@@ -671,13 +688,27 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const equipData = parseEquipment(char)
 
   // ── Render a page ──
+  interface RenderOpts {
+    /** When true, treat `FieldBox.fontSize` as a literal pt value (used by
+     * the v2 vector front). Otherwise the legacy `PDF_FONT_SIZE` map applies. */
+    directPt?: boolean
+    skillGrids?: SkillColumnGrid[]
+    skillRowsV2?: SkillRowV2[]
+    specRowsV2?: SpecRowV2[]
+  }
   function renderPage(
     page: PDFPage,
-    img: PDFImage,
+    bg: PDFImage | PDFEmbeddedPage,
     fields: FieldBox[],
-    skillGrids?: SkillColumnGrid[],
+    opts: RenderOpts = {},
   ) {
-    page.drawImage(img, { x: 0, y: 0, width: PW, height: PH })
+    // PDFImage exposes numeric .width/.height; PDFEmbeddedPage does not.
+    if (typeof (bg as PDFImage).width === 'number') {
+      page.drawImage(bg as PDFImage, { x: 0, y: 0, width: PW, height: PH })
+    } else {
+      page.drawPage(bg as PDFEmbeddedPage, { x: 0, y: 0, width: PW, height: PH })
+    }
+    const { directPt, skillGrids, skillRowsV2, specRowsV2 } = opts
 
     // Embed portrait if available
     if (portraitImage) {
@@ -709,7 +740,9 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       if (!value) continue
 
       const font = f.bold ? fontBold : fontRegular
-      const fontSize = PDF_FONT_SIZE[f.fontSize ?? 9] ?? (f.fontSize ?? 9) * 0.85
+      const fontSize = directPt
+        ? (f.fontSize ?? 10)
+        : (PDF_FONT_SIZE[f.fontSize ?? 9] ?? (f.fontSize ?? 9) * 0.85)
       const fieldX = (f.x / 100) * PW
       const fieldY = PH - (f.y / 100) * PH
       const fieldW = (f.w / 100) * PW
@@ -801,6 +834,86 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         }
       }
     }
+
+    // ── v2: per-row skill coords (regular skills, 3-col grid) ──
+    if (skillRowsV2) {
+      for (const row of skillRowsV2) {
+        const points = allSkillPoints[row.skillKey] ?? 0
+        if (points === 0) continue
+        const base = resolveBase(row.skillKey, char.characteristics)
+        const total = base + points
+        if (total === 0) continue
+        drawCenteredInBoxV2(page, row.v, String(total), 8.5, fontBold)
+        const halfV = halfValue(total)
+        const fifthV = fifthValue(total)
+        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 7, fontRegular)
+        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 7, fontRegular)
+      }
+    }
+
+    // ── v2: per-row spec coords (combat + open spec slots, 2-col grid) ──
+    if (specRowsV2) {
+      const fixedSpecs = new Set([
+        'bron_palna:krotka', 'bron_palna:karabin_strzelba', 'bron_palna:pistolet_maszynowy',
+        'bron_palna:bron_ciezka', 'bron_palna:luk_kusza',
+        'walka_wrecz:bijatyka', 'walka_wrecz:dluga_ostra', 'walka_wrecz:bron_obuchowa', 'walka_wrecz:skrytobojstwo',
+      ])
+      for (const row of specRowsV2) {
+        let resolvedKey: string | null = null
+        if (row.slotKind === 'fixed') {
+          resolvedKey = (allSkillPoints[row.skillId] ?? 0) > 0 ? row.skillId : null
+        } else if (row.slotKind === 'open_spec') {
+          const parent = row.parent!
+          const charSpecs = Object.keys(allSkillPoints)
+            .filter((k) => getBaseSkillId(k) === parent && !fixedSpecs.has(k) && allSkillPoints[k] > 0)
+          const slotIdx = parseInt(row.skillId.match(/_open(\d)$/)?.[1] ?? '0') - 1
+          if (slotIdx >= 0 && slotIdx < charSpecs.length) resolvedKey = charSpecs[slotIdx]
+        }
+        if (!resolvedKey) continue
+        const total = resolveBase(resolvedKey, char.characteristics) + (allSkillPoints[resolvedKey] ?? 0)
+        if (total === 0) continue
+        drawCenteredInBoxV2(page, row.v, String(total), 8.5, fontBold)
+        const halfV = halfValue(total)
+        const fifthV = fifthValue(total)
+        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 7, fontRegular)
+        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 7, fontRegular)
+        // For open_spec, render the player's chosen spec name in the name slot.
+        if (row.slotKind === 'open_spec' && row.name) {
+          const specName = (getSpecialization(resolvedKey) ?? '').trim()
+          if (specName) drawTextInBoxV2(page, row.name, specName, 8.5, fontRegular, 'left')
+        }
+      }
+    }
+  }
+
+  // Helpers for v2 row rendering.
+  function drawCenteredInBoxV2(page: PDFPage, box: BoxV2, text: string, size: number, font: PDFFont) {
+    const x = (box.x / 100) * PW
+    const y = PH - (box.y / 100) * PH
+    const w = (box.w / 100) * PW
+    const h = (box.h / 100) * PH
+    const tw = font.widthOfTextAtSize(text, size)
+    page.drawText(text, {
+      x: x + (w - tw) / 2,
+      y: y - h / 2 - size / 3,
+      size, font, color: rgb(0.05, 0.05, 0.05),
+    })
+  }
+  function drawTextInBoxV2(page: PDFPage, box: BoxV2, text: string, size: number, font: PDFFont, align: 'left' | 'center' = 'left') {
+    const x = (box.x / 100) * PW
+    const y = PH - (box.y / 100) * PH
+    const w = (box.w / 100) * PW
+    const h = (box.h / 100) * PH
+    let tx = x
+    if (align === 'center') {
+      const tw = font.widthOfTextAtSize(text, size)
+      tx = x + (w - tw) / 2
+    }
+    page.drawText(text, {
+      x: tx,
+      y: y - h / 2 - size / 3,
+      size, font, color: rgb(0.05, 0.05, 0.05),
+    })
   }
 
   // ── Word-wrap helper ──
@@ -884,7 +997,11 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
 
   // ── Build pages ──
   const frontPage = pdfDoc.addPage([PW, PH])
-  renderPage(frontPage, frontImg, frontLayout.fields, FRONT_SKILL_GRIDS)
+  renderPage(frontPage, frontBgPage, frontLayout.fields, {
+    directPt: true,
+    skillRowsV2: frontLayout.skillRowsV2,
+    specRowsV2: frontLayout.specRowsV2,
+  })
 
   const backPage = pdfDoc.addPage([PW, PH])
   renderPage(backPage, backImg, backLayout.fields)
