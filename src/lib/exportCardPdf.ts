@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage, type PDFEmbeddedPage } from 'pdf-lib'
+import { PDFDocument, PDFImage, PDFEmbeddedPage, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
 import type { SkillRowV2, SpecRowV2, BoxV2 } from '@/data/cardFrontV2.types'
@@ -702,11 +702,12 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     fields: FieldBox[],
     opts: RenderOpts = {},
   ) {
-    // PDFImage exposes numeric .width/.height; PDFEmbeddedPage does not.
-    if (typeof (bg as PDFImage).width === 'number') {
-      page.drawImage(bg as PDFImage, { x: 0, y: 0, width: PW, height: PH })
+    // Both PDFImage and PDFEmbeddedPage expose numeric .width/.height — use
+    // instanceof to disambiguate.
+    if (bg instanceof PDFImage) {
+      page.drawImage(bg, { x: 0, y: 0, width: PW, height: PH })
     } else {
-      page.drawPage(bg as PDFEmbeddedPage, { x: 0, y: 0, width: PW, height: PH })
+      page.drawPage(bg, { x: 0, y: 0, width: PW, height: PH })
     }
     const { directPt, skillGrids, skillRowsV2, specRowsV2 } = opts
 

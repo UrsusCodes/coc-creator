@@ -77,7 +77,7 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] ~~Build verify~~ — `npm run build` green throughout S1/S2/S3.
 - [x] ~~Edge functions deploy~~ — `admin` v15 (2026-04-27 19:29:14 UTC), `player` v14 (2026-04-27 19:29:31 UTC).
 - [x] ~~Smoke test edge functions~~ — admin auth gate + 5 endpointów; player auth + all 6 NEW endpoints (skip-swap, roll-characteristics, set-age, roll-edu, roll-luck, submit) returned 401 without token = routes loaded.
-- [x] ~~Frontend push~~ — `git push origin master` (24 commits `68a9bcb..f6c447e`), Vercel auto-deploy. Note: remote shows "moved" to `UrsusCodes/coc-creator` — informational, push works fine.
+- [x] ~~Frontend push~~ — `git push origin master` (24 commits `68a9bcb..f6c447e`), GH Pages auto-deploy. Note: remote shows "moved" to `UrsusCodes/coc-creator` — informational, push works fine.
 - [ ] **Frontend browser smoke test** (USER) — admin login → InviteCodeManager + char list; Rafał login → "Kontynuuj" lands on StepBackstory.
 - [x] ~~Verify post-deploy~~ — `verify-characters-post-migration.mjs --snapshot backups/2026-04-27-pre-v2-deploy` → 23/23 OK. Snapshot post-v2-deploy identyczny payload sha256 (zero drift).
 
