@@ -255,6 +255,8 @@ function getFieldValue(id: string, char: ExportCharacter): string {
 
   // Characteristics
   if (id === 'char_move') return String(derived.move_rate)
+  if (id === 'walk_speed_hex') return String(Math.floor(derived.move_rate / 3))
+  if (id === 'sprint_speed_hex') return String(Math.floor((derived.move_rate * 5) / 3))
   const charBase = id.replace(/_half$/, '').replace(/_fifth$/, '')
   const charKey = CHAR_KEY_MAP[charBase]
   if (charKey) {
