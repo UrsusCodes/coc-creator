@@ -10,7 +10,6 @@ import { PlayerPage } from '@/pages/PlayerPage'
 import { AdminDraftPage } from '@/pages/AdminDraftPage'
 import { PlayerPortraitWorkshopPage } from '@/pages/PlayerPortraitWorkshopPage'
 
-const TestPdfPage = lazy(() => import('@/pages/TestPdfPage').then(m => ({ default: m.TestPdfPage })))
 const TestRollPage = lazy(() => import('@/pages/TestRollPage').then(m => ({ default: m.TestRollPage })))
 const CardEditorPage = lazy(() => import('@/pages/CardEditorPage').then(m => ({ default: m.CardEditorPage })))
 
@@ -31,7 +30,6 @@ function App() {
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/portrait/:charId" element={<PlayerPortraitWorkshopPage />} />
           <Route path="/c/:token" element={<SharedCharacterPage />} />
-          <Route path="/test-pdf" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestPdfPage /></Suspense>} />
           <Route path="/test-roll" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><TestRollPage /></Suspense>} />
           <Route path="/card-editor" element={<Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Ładowanie...</div>}><CardEditorPage /></Suspense>} />
           <Route path="*" element={<NotFoundPage />} />

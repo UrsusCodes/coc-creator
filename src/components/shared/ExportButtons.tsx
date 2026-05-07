@@ -3,6 +3,8 @@ import { Copy, Check, FileDown, Loader2 } from 'lucide-react'
 import { exportCharacterAsText } from '@/lib/exportText'
 import { Button } from '@/components/ui/Button'
 
+
+
 interface ExportCharacter {
   name: string
   age: number
@@ -42,7 +44,6 @@ interface ExportButtonsProps {
 
 export function ExportButtons({ character }: ExportButtonsProps) {
   const [copied, setCopied] = useState(false)
-  const [pdfLoading, setPdfLoading] = useState(false)
   const [cardLoading, setCardLoading] = useState(false)
 
   const handleCopyText = async () => {
@@ -50,25 +51,6 @@ export function ExportButtons({ character }: ExportButtonsProps) {
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 3000)
-  }
-
-  const handleDownloadPdf = async () => {
-    setPdfLoading(true)
-    try {
-      const { exportCharacterAsPdf } = await import('@/lib/exportPdf')
-      const bytes = await exportCharacterAsPdf(character)
-      const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${character.name || 'postac'}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('PDF export error:', err)
-    } finally {
-      setPdfLoading(false)
-    }
   }
 
   const handleDownloadCard = async () => {
@@ -95,10 +77,6 @@ export function ExportButtons({ character }: ExportButtonsProps) {
       <Button variant="secondary" onClick={handleCopyText}>
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
         {copied ? 'Skopiowano!' : 'Kopiuj tekst'}
-      </Button>
-      <Button variant="secondary" onClick={handleDownloadPdf} disabled={pdfLoading}>
-        {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-        {pdfLoading ? 'Generowanie...' : 'Pobierz PDF'}
       </Button>
       <Button onClick={handleDownloadCard} disabled={cardLoading}>
         {cardLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
