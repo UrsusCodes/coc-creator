@@ -29,7 +29,7 @@ const SAMPLE_DATA: Record<string, string> = {
   char_edu: '80', char_edu_half: '40', char_edu_fifth: '16',
   char_siz: '50', char_siz_half: '25', char_siz_fifth: '10',
   char_int: '75', char_int_half: '37', char_int_fifth: '15',
-  char_move: '7',
+  char_move: '7', walk_speed_hex: '2', sprint_speed_hex: '11',
 
   // ── Pochodne ──
   san: '70', hp: '10', luck: '55', mp: '14',

@@ -77,6 +77,8 @@ export const FRONT_FIELDS: FieldBox[] = [
   { id: 'char_siz', label: 'BUD', x: 64.91, y: 20.03, w: 6.46, h: 3.60, fontSize: 13, align: 'center', bold: true },
   { id: 'char_int', label: 'INT', x: 75.20, y: 20.13, w: 6.19, h: 3.69, fontSize: 13, align: 'center', bold: true },
   { id: 'char_move', label: 'RUCH', x: 85.30, y: 19.75, w: 6.46, h: 4.45, fontSize: 13, align: 'center', bold: true },
+  { id: 'walk_speed_hex', label: 'Heks/r (chód)', x: 91.90, y: 19.75, w: 2.40, h: 2.20, fontSize: 11, align: 'center', bold: true },
+  { id: 'sprint_speed_hex', label: 'Heks/r (sprint)', x: 91.90, y: 21.95, w: 2.40, h: 2.20, fontSize: 11, align: 'center', bold: true },
 
   // ── Cechy — połówki ──
   { id: 'char_str_half', label: 'SIŁ ½', x: 71.80, y: 7.54, w: 2.36, h: 1.2, fontSize: 9, align: 'center' },

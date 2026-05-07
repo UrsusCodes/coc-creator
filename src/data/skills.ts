@@ -23,10 +23,8 @@ export const SKILLS: Skill[] = [
       { id: 'krotka', name: 'Krótka', base: 20 },
       { id: 'karabin_strzelba', name: 'Karabin/Strzelba', base: 25 },
       { id: 'pistolet_maszynowy', name: 'Pistolet Maszynowy', base: 15 },
-      { id: 'karabin_maszynowy', name: 'Karabin Maszynowy', base: 10, rare: true },
-      { id: 'ciezka', name: 'Ciężka', base: 10 },
-      { id: 'artyleryjska', name: 'Artyleryjska', base: 1, rare: true },
-      { id: 'materialy_wybuchowe', name: 'Materiały Wybuchowe', base: 1, rare: true },
+      { id: 'luk_kusza', name: 'Łuk/Kusza', base: 15 },
+      { id: 'bron_ciezka', name: 'Broń Ciężka', base: 5, rare: true },
     ],
   },
   {
