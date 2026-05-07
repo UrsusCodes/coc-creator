@@ -851,6 +851,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         const base = resolveBase(row.skillKey, char.characteristics)
         const total = base + points
         if (total === 0) continue
+        if (points > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
         drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)
@@ -882,6 +883,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         if (!resolvedKey) continue
         const total = resolveBase(resolvedKey, char.characteristics) + (allSkillPoints[resolvedKey] ?? 0)
         if (total === 0) continue
+        if ((allSkillPoints[resolvedKey] ?? 0) > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
         drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)

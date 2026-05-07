@@ -148,9 +148,11 @@ async function main() {
     normalRows.forEach((row, i) => {
       const skillKey = NORMAL_SKILL_KEYS[i]
       if (!skillKey) return
+      const cb = row.querySelector('.cb')
       const v = row.querySelector('.v')
       const h = row.querySelector('.h')
       const f = row.querySelector('.f')
+      if (cb) fields.push({ id: `skill_${skillKey}_cb`, kind: 'skill_cb', skillKey, ...toPct(cb.getBoundingClientRect()) })
       if (v) fields.push({ id: `skill_${skillKey}_v`, kind: 'skill', skillKey, ...toPct(v.getBoundingClientRect()) })
       if (h) fields.push({ id: `skill_${skillKey}_h`, kind: 'skill', skillKey, ...toPct(h.getBoundingClientRect()) })
       if (f) fields.push({ id: `skill_${skillKey}_f`, kind: 'skill', skillKey, ...toPct(f.getBoundingClientRect()) })
@@ -164,10 +166,12 @@ async function main() {
     specRows.forEach((row, i) => {
       const slot = SPEC_SLOT_KEYS[i]
       if (!slot) return
+      const cb = row.querySelector('.cb')
       const nm = row.querySelector('.nm .ed')
       const v = row.querySelector('.v')
       const h = row.querySelector('.h')
       const f = row.querySelector('.f')
+      if (cb) fields.push({ id: `spec_${slot.skill_id}_cb`, kind: 'spec_cb', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(cb.getBoundingClientRect()) })
       if (nm && slot.kind === 'open_spec') fields.push({ id: `spec_${slot.skill_id}_name`, kind: 'spec_name', skill_id: slot.skill_id, parent: slot.parent, ...toPct(nm.getBoundingClientRect()) })
       if (v) fields.push({ id: `spec_${slot.skill_id}_v`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(v.getBoundingClientRect()) })
       if (h) fields.push({ id: `spec_${slot.skill_id}_h`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(h.getBoundingClientRect()) })
@@ -340,11 +344,12 @@ function emitTypedLayout(fields) {
   // ── SkillRowV2[] ────────────────────────────────────────────────────────
   lines.push('export const FRONT_V2_SKILL_ROWS: SkillRowV2[] = [')
   for (const key of NORMAL_SKILL_KEYS) {
+    const cb = fields.find((f) => f.id === `skill_${key}_cb`)
     const v = fields.find((f) => f.id === `skill_${key}_v`)
     const h = fields.find((f) => f.id === `skill_${key}_h`)
     const f = fields.find((x) => x.id === `skill_${key}_f`)
-    if (!v || !h || !f) continue
-    lines.push(`  { skillKey: '${key}', v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }, half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }, fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} } },`)
+    if (!cb || !v || !h || !f) continue
+    lines.push(`  { skillKey: '${key}', cb: { x: ${cb.x}, y: ${cb.y}, w: ${cb.w}, h: ${cb.h} }, v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }, half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }, fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} } },`)
   }
   lines.push(']')
   lines.push('')
@@ -352,16 +357,18 @@ function emitTypedLayout(fields) {
   // ── SpecRowV2[] ─────────────────────────────────────────────────────────
   lines.push('export const FRONT_V2_SPEC_ROWS: SpecRowV2[] = [')
   for (const slot of SPEC_SLOT_KEYS) {
+    const cb = fields.find((f) => f.id === `spec_${slot.skill_id}_cb`)
     const v = fields.find((f) => f.id === `spec_${slot.skill_id}_v`)
     const h = fields.find((f) => f.id === `spec_${slot.skill_id}_h`)
     const f = fields.find((x) => x.id === `spec_${slot.skill_id}_f`)
     const nm = fields.find((x) => x.id === `spec_${slot.skill_id}_name`)
-    if (!v || !h || !f) continue
+    if (!cb || !v || !h || !f) continue
     const parts = [
       `skillId: '${slot.skill_id}'`,
       `slotKind: '${slot.kind}'`,
     ]
     if (slot.parent) parts.push(`parent: '${slot.parent}'`)
+    parts.push(`cb: { x: ${cb.x}, y: ${cb.y}, w: ${cb.w}, h: ${cb.h} }`)
     // Override captured width on spec name boxes — the inline-block .ed
     // span sized itself to the placeholder text (~7% A4) but real spec
     // names ("Aktorstwo", "Astronomia", "Mat./Krypt.") are wider. Cap

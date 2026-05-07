@@ -14,6 +14,8 @@ export interface BoxV2 {
 export interface SkillRowV2 {
   /** Skill ID from `src/data/skills.ts` (e.g. `anthropology`, `library_use`). */
   skillKey: string
+  /** Trained checkbox at the row's left edge — ticked when player has points. */
+  cb: BoxV2
   /** Full value cell (`v`). */
   v: BoxV2
   /** Half value cell (`½`). */
@@ -34,6 +36,8 @@ export interface SpecRowV2 {
   slotKind: 'fixed' | 'open_spec'
   /** Parent skill (e.g. `nauka`, `jezyk_obcy`) — set on `open_spec` rows. */
   parent?: string
+  /** Trained checkbox at the row's left edge. */
+  cb: BoxV2
   /** Box for the spec name text (only present on `open_spec` rows). */
   name?: BoxV2
   v: BoxV2
