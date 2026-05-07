@@ -841,11 +841,13 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       }
     }
 
-    // ── v2: per-row skill coords (regular skills, 3-col grid) ──
+    // ── v2: per-row skill coords (regular skills, 3-col grid).
+    // Render base+points for every skill (not just trained). Empty boxes
+    // on the printed card looked unfinished — players want all values
+    // visible at print time, then update by hand during play.
     if (skillRowsV2) {
       for (const row of skillRowsV2) {
         const points = allSkillPoints[row.skillKey] ?? 0
-        if (points === 0) continue
         const base = resolveBase(row.skillKey, char.characteristics)
         const total = base + points
         if (total === 0) continue
@@ -867,7 +869,9 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       for (const row of specRowsV2) {
         let resolvedKey: string | null = null
         if (row.slotKind === 'fixed') {
-          resolvedKey = (allSkillPoints[row.skillId] ?? 0) > 0 ? row.skillId : null
+          // Always render fixed-slot specs (firearms, walka_wrecz) so the
+          // base value is visible even when the player put no points there.
+          resolvedKey = row.skillId
         } else if (row.slotKind === 'open_spec') {
           const parent = row.parent!
           const charSpecs = Object.keys(allSkillPoints)
