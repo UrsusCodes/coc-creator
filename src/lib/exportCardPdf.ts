@@ -759,7 +759,12 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         if (f.align === 'center') textX = fieldX + (fieldW - textWidth) / 2
         else if (f.align === 'right') textX = fieldX + fieldW - textWidth
 
-        const textY = fieldY - fieldH / 2 - fontSize / 3
+        // Vertical centering: baseline = box_center - capHeight/2. The legacy
+        // path keeps the historical `size/3` approximation; the v2 path uses
+        // pdf-lib's font metrics for tighter accuracy.
+        const textY = directPt
+          ? fieldY - fieldH / 2 - font.heightAtSize(fontSize, { descender: false }) / 2
+          : fieldY - fieldH / 2 - fontSize / 3
 
         page.drawText(value, {
           x: textX,
@@ -844,11 +849,11 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         const base = resolveBase(row.skillKey, char.characteristics)
         const total = base + points
         if (total === 0) continue
-        drawCenteredInBoxV2(page, row.v, String(total), 8.5, fontBold)
+        drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)
-        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 7, fontRegular)
-        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 7, fontRegular)
+        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 5.5, fontRegular)
+        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 5.5, fontRegular)
       }
     }
 
@@ -873,15 +878,15 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         if (!resolvedKey) continue
         const total = resolveBase(resolvedKey, char.characteristics) + (allSkillPoints[resolvedKey] ?? 0)
         if (total === 0) continue
-        drawCenteredInBoxV2(page, row.v, String(total), 8.5, fontBold)
+        drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)
-        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 7, fontRegular)
-        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 7, fontRegular)
+        if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 5.5, fontRegular)
+        if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 5.5, fontRegular)
         // For open_spec, render the player's chosen spec name in the name slot.
         if (row.slotKind === 'open_spec' && row.name) {
           const specName = (getSpecialization(resolvedKey) ?? '').trim()
-          if (specName) drawTextInBoxV2(page, row.name, specName, 8.5, fontRegular, 'left')
+          if (specName) drawTextInBoxV2(page, row.name, specName, 7, fontRegular, 'left')
         }
       }
     }
@@ -894,9 +899,10 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     const w = (box.w / 100) * PW
     const h = (box.h / 100) * PH
     const tw = font.widthOfTextAtSize(text, size)
+    const capHalf = font.heightAtSize(size, { descender: false }) / 2
     page.drawText(text, {
       x: x + (w - tw) / 2,
-      y: y - h / 2 - size / 3,
+      y: y - h / 2 - capHalf,
       size, font, color: rgb(0.05, 0.05, 0.05),
     })
   }
@@ -910,9 +916,10 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
       const tw = font.widthOfTextAtSize(text, size)
       tx = x + (w - tw) / 2
     }
+    const capHalf = font.heightAtSize(size, { descender: false }) / 2
     page.drawText(text, {
       x: tx,
-      y: y - h / 2 - size / 3,
+      y: y - h / 2 - capHalf,
       size, font, color: rgb(0.05, 0.05, 0.05),
     })
   }

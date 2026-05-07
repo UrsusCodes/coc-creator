@@ -237,20 +237,20 @@ const FIELD_META = {
   'birthplace':   { label: 'Miejsce urodzenia',     fontSize: 11 },
   'residence':    { label: 'Miejsce zamieszkania',  fontSize: 11 },
   'death_place':  { label: 'Miejsce śmierci',       fontSize: 11 },
-  'san.max':      { label: 'Poczytalność MAX',      fontSize: 15, align: 'center', bold: true },
-  'san.curr':     { label: 'Poczytalność OBECNA',   fontSize: 15, align: 'center', bold: true },
-  'san.fifth':    { label: 'Poczytalność 1/5',      fontSize: 15, align: 'center', bold: true },
-  'hp.max':       { label: 'Wytrzymałość MAX',      fontSize: 15, align: 'center', bold: true },
-  'hp.curr':      { label: 'Wytrzymałość OBECNE',   fontSize: 15, align: 'center', bold: true },
-  'luck.max':     { label: 'Szczęście MAX',         fontSize: 15, align: 'center', bold: true },
-  'luck.curr':    { label: 'Szczęście OBECNE',      fontSize: 15, align: 'center', bold: true },
-  'mp.max':       { label: 'PM MAX',                fontSize: 15, align: 'center', bold: true },
-  'mp.curr':      { label: 'PM OBECNE',             fontSize: 15, align: 'center', bold: true },
-  'damage_bonus': { label: 'Mod. obrażeń',          fontSize: 14, align: 'center', bold: true },
-  'build':        { label: 'Krzepa',                fontSize: 14, align: 'center', bold: true },
-  'dodge':        { label: 'Unik',                  fontSize: 14, align: 'center', bold: true },
-  'walk':         { label: 'Chód (heks/r)',         fontSize: 14, align: 'center', bold: true },
-  'sprint':       { label: 'Sprint (heks/r)',       fontSize: 14, align: 'center', bold: true },
+  'san.max':      { label: 'Poczytalność MAX',      fontSize: 12, align: 'center', bold: true },
+  'san.curr':     { label: 'Poczytalność OBECNA',   fontSize: 12, align: 'center', bold: true },
+  'san.fifth':    { label: 'Poczytalność 1/5',      fontSize: 12, align: 'center', bold: true },
+  'hp.max':       { label: 'Wytrzymałość MAX',      fontSize: 12, align: 'center', bold: true },
+  'hp.curr':      { label: 'Wytrzymałość OBECNE',   fontSize: 12, align: 'center', bold: true },
+  'luck.max':     { label: 'Szczęście MAX',         fontSize: 12, align: 'center', bold: true },
+  'luck.curr':    { label: 'Szczęście OBECNE',      fontSize: 12, align: 'center', bold: true },
+  'mp.max':       { label: 'PM MAX',                fontSize: 12, align: 'center', bold: true },
+  'mp.curr':      { label: 'PM OBECNE',             fontSize: 12, align: 'center', bold: true },
+  'damage_bonus': { label: 'Mod. obrażeń',          fontSize: 11, align: 'center', bold: true },
+  'build':        { label: 'Krzepa',                fontSize: 11, align: 'center', bold: true },
+  'dodge':        { label: 'Unik',                  fontSize: 11, align: 'center', bold: true },
+  'walk':         { label: 'Chód (heks/r)',         fontSize: 11, align: 'center', bold: true },
+  'sprint':       { label: 'Sprint (heks/r)',       fontSize: 11, align: 'center', bold: true },
 }
 
 const CHAR_LABELS = {
@@ -296,20 +296,20 @@ function emitTypedLayout(fields) {
   const charKeys = ['str', 'dex', 'pow', 'con', 'app', 'edu', 'siz', 'int', 'move']
   for (const key of charKeys) {
     const main = fields.find((f) => f.id === `char_${key}`)
-    if (main) lines.push(fieldBoxLine(main, CHAR_LABELS[key], 18, 'center', true))
+    if (main) lines.push(fieldBoxLine(main, CHAR_LABELS[key], 16, 'center', true))
     if (key !== 'move') {
       const half = fields.find((f) => f.id === `char_${key}_half`)
       const fifth = fields.find((f) => f.id === `char_${key}_fifth`)
-      if (half) lines.push(fieldBoxLine(half, `${CHAR_LABELS[key]} ½`, 10, 'center'))
-      if (fifth) lines.push(fieldBoxLine(fifth, `${CHAR_LABELS[key]} ⅕`, 10, 'center'))
+      if (half) lines.push(fieldBoxLine(half, `${CHAR_LABELS[key]} ½`, 8, 'center'))
+      if (fifth) lines.push(fieldBoxLine(fifth, `${CHAR_LABELS[key]} ⅕`, 8, 'center'))
     }
   }
 
   // walk_speed_hex + sprint_speed_hex (move cell sub-slots)
   const wsh = fields.find((f) => f.id === 'walk_speed_hex')
   const ssh = fields.find((f) => f.id === 'sprint_speed_hex')
-  if (wsh) lines.push(fieldBoxLine(wsh, 'Heks/r (chód)', 11, 'center', true))
-  if (ssh) lines.push(fieldBoxLine(ssh, 'Heks/r (sprint)', 11, 'center', true))
+  if (wsh) lines.push(fieldBoxLine(wsh, 'Heks/r (chód)', 9, 'center', true))
+  if (ssh) lines.push(fieldBoxLine(ssh, 'Heks/r (sprint)', 9, 'center', true))
 
   // bind fields (in declaration order from FIELD_META)
   for (const id of Object.keys(FIELD_META)) {
@@ -329,7 +329,7 @@ function emitTypedLayout(fields) {
         damage: 'obrażenia', range: 'zasięg', attacks: 'ataki', ammo: 'amu.', reliability: 'zaw.',
       }
       const align = col === 'name' ? 'left' : 'center'
-      const fontSize = col === 'name' ? 10 : 9
+      const fontSize = col === 'name' ? 9 : 8
       lines.push(fieldBoxLine(f, `Broń ${row} ${colLabels[col]}`, fontSize, align))
     }
   }
