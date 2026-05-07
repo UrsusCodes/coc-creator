@@ -201,6 +201,10 @@ async function main() {
     document.querySelectorAll('.char-cell .main').forEach((el) => { el.textContent = '' })
     document.querySelectorAll('.char-cell .sub > div').forEach((el) => { el.textContent = '' })
     document.querySelectorAll('.skill .v, .skill .h, .skill .f').forEach((el) => { el.textContent = '' })
+    // Clear the placeholder strings injected in PHASE 1 — these would
+    // otherwise bake "placeholder" text into the PDF background for every
+    // open_spec slot AND every trailing blank row.
+    document.querySelectorAll('.skill .nm .ed.empty, .skill .nm .ed.wide').forEach((el) => { el.textContent = '' })
     const tbl = document.getElementById('weapons-table')
     if (tbl) {
       Array.from(tbl.children).slice(9).forEach((el) => { el.textContent = '' })
@@ -358,7 +362,11 @@ function emitTypedLayout(fields) {
       `slotKind: '${slot.kind}'`,
     ]
     if (slot.parent) parts.push(`parent: '${slot.parent}'`)
-    if (nm) parts.push(`name: { x: ${nm.x}, y: ${nm.y}, w: ${nm.w}, h: ${nm.h} }`)
+    // Override captured width on spec name boxes — the inline-block .ed
+    // span sized itself to the placeholder text (~7% A4) but real spec
+    // names ("Aktorstwo", "Astronomia", "Mat./Krypt.") are wider. Cap
+    // at 22% so it never overlaps the value cells starting at ~88.7%.
+    if (nm) parts.push(`name: { x: ${nm.x}, y: ${nm.y}, w: 22, h: ${nm.h} }`)
     parts.push(`v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }`)
     parts.push(`half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }`)
     parts.push(`fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} }`)
