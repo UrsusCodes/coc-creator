@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { usePlayerStore } from '@/stores/playerStore'
-import { playerStartCharacter } from '@/lib/player'
+import { playerStartCharacter, playerUpdateDistinguisher } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { METHOD_LABELS, type CreationMethod } from '@/types/common'
@@ -15,12 +15,23 @@ export function StepIdentifier() {
   const token = usePlayerStore((s) => s.token)
   const methods = store.methods.length > 0 ? store.methods : (store.method ? [store.method] : [])
 
-  const [distinguisher, setDistinguisher] = useState(store.name ?? '')
+  const serverDistinguisher = store.serverCharacter?.distinguisher ?? ''
+  const [distinguisher, setDistinguisher] = useState(serverDistinguisher || store.name || '')
   const [method, setMethod] = useState<CreationMethod | null>(
     store.method ?? (methods.length === 1 ? methods[0] : null),
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Hydrate the field from the server snapshot once it arrives, but only if
+  // the user hasn't typed anything yet (otherwise we'd clobber their input).
+  const userTouchedRef = useRef(false)
+  useEffect(() => {
+    if (userTouchedRef.current) return
+    if (serverDistinguisher && serverDistinguisher !== distinguisher) {
+      setDistinguisher(serverDistinguisher)
+    }
+  }, [serverDistinguisher, distinguisher])
 
   useEffect(() => {
     if (!method && methods.length === 1) setMethod(methods[0])
@@ -59,18 +70,29 @@ export function StepIdentifier() {
     setError(null)
     setSubmitting(true)
     try {
-      const char = await playerStartCharacter(token, {
-        code: store.inviteCode!,
-        distinguisher: trimmed,
-        method,
-      })
-      // Persist what existing flow / store consumers expect.
-      store.setServerDraftId(char.id ?? null)
-      store.setMethod(method)
-      // Mirror identifier into the existing `name` field so the rest of the
-      // wizard / dashboard can show it. Player can rename later via narrative.
-      useCharacterStore.setState({ name: trimmed })
-      store.nextStep()
+      // Resuming an existing draft: the character row already exists, so
+      // /start-character would 409 ("Code already in use"). Update the
+      // distinguisher in place (no-op if unchanged) and advance.
+      if (store.serverDraftId) {
+        if (trimmed !== serverDistinguisher) {
+          await playerUpdateDistinguisher(token, store.serverDraftId, trimmed)
+        }
+        store.setMethod(method)
+        useCharacterStore.setState({ name: trimmed })
+        store.nextStep()
+      } else {
+        const char = await playerStartCharacter(token, {
+          code: store.inviteCode!,
+          distinguisher: trimmed,
+          method,
+        })
+        store.setServerDraftId(char.id ?? null)
+        store.setMethod(method)
+        // Mirror identifier into the existing `name` field so the rest of the
+        // wizard / dashboard can show it. Player can rename later via narrative.
+        useCharacterStore.setState({ name: trimmed })
+        store.nextStep()
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Nie udało się utworzyć postaci'
       setError(msg)
@@ -96,7 +118,10 @@ export function StepIdentifier() {
         <input
           type="text"
           value={distinguisher}
-          onChange={(e) => setDistinguisher(e.target.value)}
+          onChange={(e) => {
+            userTouchedRef.current = true
+            setDistinguisher(e.target.value)
+          }}
           maxLength={MAX_LEN}
           placeholder="np. Detektyw"
           className="w-full px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text focus:outline-none focus:border-coc-accent-light transition-colors"
