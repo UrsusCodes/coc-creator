@@ -1,6 +1,6 @@
 import { PDFDocument, PDFImage, PDFEmbeddedPage, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
-import { CARD_LAYOUTS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
+import { CARD_LAYOUTS, FRONT_SKILL_GRIDS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
 import type { SkillRowV2, SpecRowV2, BoxV2 } from '@/data/cardFrontV2.types'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillBase, getSkillDisplayName, getBaseSkillId, getSpecialization } from '@/data/skills'
@@ -622,26 +622,27 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
   const pdfDoc = await PDFDocument.create()
   pdfDoc.registerFontkit(fontkit)
 
-  // Load fonts (EB Garamond — single font family for v2 dynamic text;
-  // labels and section bars are baked into the PDF background).
+  // Load fonts. Reverted to Inter while the v2 vector front is on hold —
+  // the legacy PNG-overlay path renders text in Inter to match the
+  // baked-in label typography of `karta_front.png`.
   const [regularBytes, boldBytes] = await Promise.all([
-    fetch(BASE + 'fonts/EBGaramond-Regular.ttf').then((r) => r.arrayBuffer()),
-    fetch(BASE + 'fonts/EBGaramond-Bold.ttf').then((r) => r.arrayBuffer()),
+    fetch(BASE + 'fonts/Inter-Regular.ttf').then((r) => r.arrayBuffer()),
+    fetch(BASE + 'fonts/Inter-Bold.ttf').then((r) => r.arrayBuffer()),
   ])
   const fontRegular = await pdfDoc.embedFont(regularBytes)
   const fontBold = await pdfDoc.embedFont(boldBytes)
 
   // Determine which front + back to use
   const isToC = !!char.backstory.drive
-  const frontLayout = CARD_LAYOUTS.find((l) => l.id === 'front_v2')!
+  const frontLayout = CARD_LAYOUTS.find((l) => l.id === 'front')!
   const backLayout = CARD_LAYOUTS.find((l) => l.id === (isToC ? 'back_toc' : 'back_classic'))!
 
-  // Load backgrounds. Front is a vector PDF (v2); back is still a PNG raster.
-  const [frontBgBytes, backImgBytes] = await Promise.all([
+  // Both backgrounds are PNGs in the legacy path.
+  const [frontImgBytes, backImgBytes] = await Promise.all([
     fetch(BASE + frontLayout.image.replace(/^\//, '')).then((r) => r.arrayBuffer()),
     fetch(BASE + backLayout.image.replace(/^\//, '')).then((r) => r.arrayBuffer()),
   ])
-  const [frontBgPage] = await pdfDoc.embedPdf(frontBgBytes)
+  const frontImg = await pdfDoc.embedPng(frontImgBytes)
   const backImg = await pdfDoc.embedPng(backImgBytes)
 
   // Load portrait if available — prefer the workshop-edited card variant
@@ -1011,11 +1012,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
 
   // ── Build pages ──
   const frontPage = pdfDoc.addPage([PW, PH])
-  renderPage(frontPage, frontBgPage, frontLayout.fields, {
-    directPt: true,
-    skillRowsV2: frontLayout.skillRowsV2,
-    specRowsV2: frontLayout.specRowsV2,
-  })
+  renderPage(frontPage, frontImg, frontLayout.fields, { skillGrids: FRONT_SKILL_GRIDS })
 
   const backPage = pdfDoc.addPage([PW, PH])
   renderPage(backPage, backImg, backLayout.fields)
