@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History, Clock, UserPlus, Shield } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Pencil, X, Link, Copy, Check, Trash2, History, Clock, UserPlus, Shield, FileText } from 'lucide-react'
 import { useAdminStore } from '@/stores/adminStore'
 import {
   adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens,
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { CharacterSheet, type CharacterSheetData } from '@/components/shared/CharacterSheet'
+import { BackTocV2Preview } from '@/components/shared/BackTocV2Preview'
 import { CharacterHistory } from '@/components/shared/CharacterHistory'
 import { BasicInfoEditor } from './edit/BasicInfoEditor'
 import { CharacteristicsEditor } from './edit/CharacteristicsEditor'
@@ -51,6 +52,9 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
   const [historyLoading, setHistoryLoading] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
+  // New back-card preview (Drive+Pillars HTML template). Toggle so the
+  // ~3.6 MB font payload only loads on demand.
+  const [showBackTocV2, setShowBackTocV2] = useState(false)
 
   // Admin notes (independent of edit mode)
   const [notes, setNotes] = useState(char.admin_notes ?? '')
@@ -654,6 +658,23 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
         {showHistory && (
           <div className="mt-3">
             <CharacterHistory entries={history} onRestore={handleRestore} />
+          </div>
+        )}
+      </Card>
+
+      {/* Back-card preview (new HTML template, Drive+Pillars variant) */}
+      <Card>
+        <button
+          onClick={() => setShowBackTocV2((v) => !v)}
+          className="flex items-center gap-2 w-full text-left text-sm font-medium text-coc-text-muted hover:text-coc-text transition-colors cursor-pointer"
+        >
+          <FileText className="w-4 h-4" />
+          Podgląd nowej karty (tył · ToC v2)
+          <span className="ml-auto text-xs">{showBackTocV2 ? 'ukryj' : 'pokaż'}</span>
+        </button>
+        {showBackTocV2 && (
+          <div className="mt-3">
+            <BackTocV2Preview character={char} />
           </div>
         )}
       </Card>

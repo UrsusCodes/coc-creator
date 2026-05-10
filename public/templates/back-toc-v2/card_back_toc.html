@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Karta Badacza — Tył (ToC) v1</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  /* ════════════════════════════════════════════════════════════
+     SLOTY ASSETÓW — analogicznie do frontu, wszystkie domyślnie `none`.
+     ──────────────────────────────────────────────────────────── */
+  :root {
+    --asset-bg-paper:        none;
+    --asset-bg-field:        none;
+    --asset-corner-tl:       none;
+    --asset-corner-tr:       none;
+    --asset-corner-bl:       none;
+    --asset-corner-br:       none;
+    --asset-edge-top:        none;
+    --asset-edge-bottom:     none;
+    --asset-edge-left:       none;
+    --asset-edge-right:      none;
+    --asset-system-logo:     none;
+
+    /* Paleta — taka sama jak na froncie */
+    --paper:      #f3e8c7;
+    --paper-warm: #e8d8a8;
+    --paper-edge: #1a2620;
+    --dark-bg:    #1c2a23;
+    --dark-bg2:   #0e1612;
+    --gold:       #b08a3e;
+    --gold-light: #d6b760;
+    --gold-soft:  #c9a955;
+    --ink:        #1a2a22;
+    --ink-light:  #4a5a50;
+    --line:       #6a5a30;
+    --line-soft:  rgba(106, 90, 48, 0.45);
+
+    --val-bg-full: rgba(255, 250, 230, 0.85);
+    --val-fg-full: var(--ink);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #1d1d1d; font-family: 'EB Garamond', Georgia, serif; color: var(--ink); }
+  .page-wrap { display: flex; justify-content: center; padding: 24px; }
+
+  /* ─────── KARTA ─────── */
+  .card {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    background-color: var(--paper-edge);
+    box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .paper-inner {
+    position: absolute;
+    inset: 4mm;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(176, 138, 62, 0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 95%, rgba(120, 60, 20, 0.06), transparent 60%),
+      radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(120, 90, 30, 0.08) 100%);
+    z-index: 1;
+  }
+  .paper-inner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: var(--asset-bg-paper);
+    background-size: 400px 400px;
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* Złota ramka */
+  .gold-frame {
+    position: absolute;
+    inset: 5.5mm;
+    border: 0.25mm solid var(--gold);
+    pointer-events: none;
+    z-index: 6;
+  }
+  .gold-frame::before, .gold-frame::after {
+    content: '';
+    position: absolute;
+    left: 1.2mm; right: 1.2mm;
+    height: 0.1mm;
+    background: var(--gold);
+    opacity: 0.5;
+  }
+  .gold-frame::before { top: -1.4mm; }
+  .gold-frame::after  { bottom: -1.4mm; }
+
+  .edge {
+    position: absolute;
+    pointer-events: none;
+    z-index: 7;
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+  }
+  .edge.top    { top: 6mm; left: 18mm; right: 18mm; height: 3mm; background-image: var(--asset-edge-top); }
+  .edge.bottom { bottom: 6mm; left: 18mm; right: 18mm; height: 3mm; background-image: var(--asset-edge-bottom); }
+  .edge.left   { left: 6mm; top: 18mm; bottom: 18mm; width: 3mm; background-image: var(--asset-edge-left); background-repeat: repeat-y; background-size: 100% auto; }
+  .edge.right  { right: 6mm; top: 18mm; bottom: 18mm; width: 3mm; background-image: var(--asset-edge-right); background-repeat: repeat-y; background-size: 100% auto; }
+
+  .footer-seal {
+    position: absolute;
+    bottom: 4mm; left: 50%;
+    transform: translateX(-50%);
+    width: 13mm; height: 13mm;
+    background-image: var(--asset-system-logo);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 9;
+  }
+
+  /* ─────── BODY GRID ─────── */
+  .body {
+    position: absolute;
+    top: 8mm; left: 7mm; right: 7mm; bottom: 8mm;
+    display: grid;
+    grid-template-rows:
+      minmax(0, 2.25fr)   /* row 1: opis | dziennik – dominujący blok */
+      auto        /* row 2: ZNAJOMI BADACZE */
+      minmax(0, 1.05fr);  /* row 3: ekwipunek | dobytek | pozycja+kontakty */
+    gap: 2.4mm;
+    z-index: 5;
+  }
+
+  /* ─────── TYTUŁ ─────── */
+  .title-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 18pt;
+    letter-spacing: 0.5em;
+    padding-left: 0.5em;
+  }
+  .title-bar::before, .title-bar::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 0.2mm;
+    background: var(--gold);
+    opacity: 0.7;
+  }
+  .title-bar::before { left: 8mm; transform: translateY(-50%); }
+  .title-bar::after  { right: 8mm; transform: translateY(-50%); }
+  .title-bar .diamond {
+    color: var(--gold);
+    font-size: 10pt;
+    margin-left: 0.4em;
+    letter-spacing: 0;
+    transform: translateY(0.5mm);
+  }
+
+  /* ─────── PASKI SEKCJI (jak na froncie) ─────── */
+  .bar {
+    background: linear-gradient(to bottom, var(--dark-bg) 0%, var(--dark-bg2) 100%);
+    color: var(--gold-light);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 11pt;
+    letter-spacing: 0.32em;
+    padding: 1.4mm 0;
+    border: 0.2mm solid var(--paper-edge);
+    box-shadow: inset 0 0 0 0.25mm var(--gold);
+  }
+  .bar-sm { font-size: 9.5pt; padding: 1.2mm 0; letter-spacing: 0.26em; }
+  .bar-sm.tight { letter-spacing: 0.14em; font-size: 8.6pt; white-space: nowrap; }
+  .bar-xs { font-size: 8.5pt; padding: 1mm 0; letter-spacing: 0.22em; }
+
+  /* Nagłówek "podkreślony" — używany dla większości sekcji LEWEJ kolumny.
+     Nazwa sekcji + złota linia — bardziej "rękopiśmienny" charakter,
+     różnicuje rytm wizualny względem ciemnych pasków. */
+  .h-underline {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 10pt;
+    letter-spacing: 0.18em;
+    color: var(--ink);
+    border-bottom: 0.3mm solid var(--gold);
+    padding: 0 0 0.5mm 0.6mm;
+    margin: 0 0 0.7mm;
+    display: flex;
+    align-items: center;
+    gap: 1.5mm;
+    flex-shrink: 0;
+  }
+  .h-underline::before {
+    content: '';
+    width: 1.6mm; height: 1.6mm;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* ─────── ROW 1: dwie kolumny ─────── */
+  .row-1 {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 3mm;
+    min-width: 0;
+  }
+
+  /* Proporcje wynikają z typowej zawartości karty Zewu Cthulhu:
+     - OPIS POSTACI: ~6 linii (rys sylwetki + temperament)
+     - FILARY POCZYTALNOŚCI: 3-4 jednolinijkowe wpisy – zwiększone
+     - ŹRÓDŁA STABILNOŚCI: 3 wpisy po 2 linie – największe
+     - MOTYWACJA: 2-3 linie */
+  .col-left {
+    display: grid;
+    grid-template-rows:
+      minmax(0, 1.65fr)   /* OPIS POSTACI – ~6 linii */
+      minmax(0, 1.4fr)    /* FILARY – powiększone, ~4 linie */
+      minmax(0, 2.1fr)    /* ŹRÓDŁA – największe */
+      minmax(0, 1.05fr);  /* MOTYWACJA – lekko powiększone */
+    gap: 1.8mm;
+    min-width: 0;
+  }
+
+  .col-right {
+    display: grid;
+    grid-template-rows: minmax(0, 0.55fr) minmax(0, 1.45fr);
+    gap: 2mm;
+    min-width: 0;
+  }
+
+  /* ─────── BLOKI TEKSTOWE z liniami ─────── */
+  .text-block {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .text-block .lined {
+    flex: 1;
+    border: 0.25mm solid var(--gold-soft);
+    background: rgba(255, 250, 230, 0.5);
+    padding: 1.2mm 2.2mm;
+    min-height: 0;
+    position: relative;
+    font-size: 8.6pt;
+    line-height: 1.25;
+    white-space: pre-wrap;
+    overflow: hidden;
+  }
+  .text-block .lined::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: var(--asset-bg-field);
+    background-size: 200px 200px;
+    mix-blend-mode: multiply;
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  /* ─────── DZIENNIK ŚLEDZTW (kompaktowy: 10 pól, tylko tytuł sesji) ─────── */
+  .journal-block {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-shrink: 0;
+    border: 0.25mm solid var(--gold-soft);
+    background: rgba(255, 250, 230, 0.5);
+    overflow: hidden;
+    position: relative;
+  }
+  .journal-block .head {
+    background: linear-gradient(to bottom, rgba(28,42,35,0.92), rgba(14,22,18,0.92));
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 8.5pt;
+    letter-spacing: 0.18em;
+    text-align: center;
+    padding: 1mm 2.4mm;
+    border-bottom: 0.15mm solid var(--gold);
+    flex-shrink: 0;
+  }
+  .journal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(5, 1fr);
+    gap: 1mm 2mm;
+    padding: 1.4mm 2mm 1.6mm;
+    flex: 1;
+    min-height: 0;
+  }
+  .journal-cell {
+    display: grid;
+    grid-template-columns: 7mm 1fr;
+    gap: 1.4mm;
+    align-items: stretch;
+    padding: 0;
+  }
+  .journal-cell .num {
+    background: rgba(255, 250, 230, 0.55);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 8.5pt;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-align: center;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0.18mm solid var(--gold-soft);
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'lnum', 'tnum';
+  }
+  .journal-cell .ed {
+    border-bottom: 0.2mm solid var(--line);
+    min-height: 4.4mm;
+    align-self: end;
+    font-size: 7.6pt;
+    line-height: 1.1;
+    padding: 0 0.4mm 0.4mm;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* ─────── PRAWY DOLNY: URAZY / KSIĘGI / SPOTKANE ─────── */
+  .stack-block {
+    display: flex;
+    flex-direction: column;
+    border: 0.25mm solid var(--gold-soft);
+    background: rgba(255, 250, 230, 0.5);
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .stack-block::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: var(--asset-bg-field);
+    background-size: 220px 220px;
+    mix-blend-mode: multiply;
+    opacity: 0.22;
+    pointer-events: none;
+  }
+  .stack-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .stack-section + .stack-section { border-top: 0.2mm solid var(--gold-soft); }
+  .stack-section .head {
+    background: linear-gradient(to bottom, rgba(28,42,35,0.92), rgba(14,22,18,0.92));
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 8.5pt;
+    letter-spacing: 0.18em;
+    padding: 1mm 2.4mm;
+    border-bottom: 0.15mm solid var(--gold);
+    flex-shrink: 0;
+  }
+  .stack-section .lines {
+    flex: 1;
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 5.2mm,
+        var(--line-soft) 5.2mm,
+        var(--line-soft) 5.3mm
+      );
+    background-position: 0 5.2mm;
+    padding: 0.6mm 2.4mm 1mm;
+    min-height: 0;
+    font-size: 7.6pt;
+    line-height: 5.2mm;
+    white-space: pre-wrap;
+    overflow: hidden;
+  }
+
+  /* ─────── ZNAJOMI BADACZE ─────── */
+  .friends-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 1.5mm;
+    margin-top: 1.2mm;
+  }
+  .friend-card {
+    border: 0.2mm solid var(--gold-soft);
+    background: rgba(255, 250, 230, 0.55);
+    padding: 1mm 1.6mm 1.2mm;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    row-gap: 0.6mm;
+    font-size: 8pt;
+    line-height: 1.15;
+  }
+  .friend-card .field {
+    display: grid;
+    grid-template-columns: 9mm 1fr;
+    align-items: baseline;
+    column-gap: 1mm;
+    border-bottom: 0.15mm dotted var(--line-soft);
+    padding: 0.4mm 0 0.6mm;
+  }
+  .friend-card .field:last-child { border-bottom: none; }
+  .friend-card .field .lbl {
+    font-family: 'EB Garamond', serif;
+    font-size: 7.5pt;
+    color: var(--ink-light);
+    font-variant-caps: small-caps;
+    letter-spacing: 0.04em;
+  }
+  .friend-card .field .ed {
+    min-height: 3mm;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* ─────── ROW 3: EKWIPUNEK+DOBYTEK / POZYCJA+KONTAKTY / ZASOBY ─────── */
+  .row-3 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 0.9fr) minmax(0, 0.45fr);
+    gap: 2.5mm;
+    min-width: 0;
+  }
+
+  /* Sekcje "z linijkami i ozdobnikami" – styl księgi */
+  .ledger {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .ledger .body-cols {
+    flex: 1;
+    display: grid;
+    gap: 1.5mm;
+    margin-top: 1mm;
+    min-height: 0;
+  }
+  .ledger.cols-2 .body-cols { grid-template-columns: 1fr 1fr; }
+  .ledger.cols-1 .body-cols { grid-template-columns: 1fr; }
+
+  .ledger-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 0.4mm;
+  }
+  .ledger-col .col-head {
+    display: grid;
+    align-items: end;
+    justify-items: center;
+    column-gap: 0.4mm;
+    padding: 0 0 0.4mm;
+    border-bottom: 0.15mm solid var(--gold-soft);
+    flex-shrink: 0;
+    line-height: 1;
+    min-height: 3.4mm;
+  }
+  .ledger-col .col-head .ch-ico {
+    width: 2.6mm; height: 2.6mm;
+    color: var(--gold);
+    display: block;
+  }
+  .ledger-col .col-head .ch-ico svg { width: 100%; height: 100%; display: block; }
+  .ledger-col.with-w .col-head { grid-template-columns: 1fr 3.2mm 3.2mm; }
+  .ledger-col.with-s .col-head { grid-template-columns: 1fr 3.2mm; }
+
+  .ledger-row {
+    display: grid;
+    align-items: end;
+    column-gap: 0.4mm;
+    flex: 1;
+    min-height: 0;
+  }
+  .ledger-col.with-w .ledger-row { grid-template-columns: 1fr 3.2mm 3.2mm; }
+  .ledger-col.with-s .ledger-row { grid-template-columns: 1fr 3.2mm; }
+  .ledger-row .ed {
+    border-bottom: 0.18mm dotted var(--line);
+    min-height: 0;
+    height: 100%;
+    font-size: 7.6pt;
+    line-height: 1.1;
+    padding: 0 0.4mm 0.4mm;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: flex-end;
+  }
+  .ledger-row .ck {
+    width: 2.4mm;
+    height: 2.4mm;
+    border: 0.22mm solid var(--paper-edge);
+    background: rgba(255,255,255,0.55);
+    justify-self: center;
+    align-self: end;
+    margin: 0 0 0.4mm;
+    box-shadow: inset 0 0 0 0.15mm rgba(176, 138, 62, 0.35);
+  }
+
+  /* Ranga liczbowa (kontakty, styl życia, pozycja) */
+  .stars {
+    color: var(--ink);
+    font-size: 7.8pt;
+    line-height: 1;
+    margin-right: 0.8mm;
+    white-space: nowrap;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'lnum';
+  }
+  .stars .num { font-weight: 600; }
+  .stars .ico { color: var(--gold); margin-left: 0.1mm; }
+
+  /* Pole wydatków — puste tło */
+  .expenses-body {
+    padding: 1.6mm 1.4mm 1.4mm;
+    border: 0.25mm solid var(--gold-soft);
+    border-top: none;
+    background: rgba(255, 255, 255, 0.7);
+    flex: 1;
+    min-height: 0;
+    font-size: 7.6pt;
+    line-height: 1.2;
+    overflow: hidden;
+  }
+
+  /* Dwa stacki w jednej kolumnie (ZASOBY + KONTAKTY) */
+  .ledger.split {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 2mm;
+  }
+  .ledger.split > .sub {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* ZASOBY — dwa pola: poziom wydatków + gotówka */
+  .resources-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6mm;
+    padding: 2mm 1.4mm 1.6mm;
+    border: 0.25mm solid var(--gold-soft);
+    border-top: none;
+    background: rgba(255, 250, 230, 0.5);
+  }
+  .resource-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+  }
+  .resource-field .lbl {
+    font-family: 'Cinzel', serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.12em;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    padding-left: 0.4mm;
+  }
+  .resource-field .val-box {
+    border: 0.2mm solid var(--gold-soft);
+    background: rgba(255, 255, 255, 0.55);
+    height: 7mm;
+    box-shadow: inset 0 -0.4mm 0 rgba(176, 138, 62, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* toolbar */
+  #toolbar {
+    position: fixed; top: 8px; right: 8px; z-index: 1000;
+    background: #2a2a2a; padding: 8px; border-radius: 6px;
+    display: flex; gap: 8px;
+  }
+  #toolbar button {
+    background: #3a3a3a; color: #eee; border: 1px solid #555;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    font-family: system-ui; font-size: 12px;
+  }
+  #toolbar button:hover { background: #4a4a4a; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: white; }
+    #toolbar { display: none; }
+    .page-wrap { padding: 0; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <button onclick="window.print()">Drukuj / PDF</button>
+</div>
+
+<div class="page-wrap">
+  <div class="card" id="card">
+
+    <div class="paper-inner"></div>
+    <div class="gold-frame"></div>
+    <div class="edge top"></div>
+    <div class="edge bottom"></div>
+    <div class="edge left"></div>
+    <div class="edge right"></div>
+    <div class="footer-seal"></div>
+
+    <div class="body">
+
+      <!-- ── ROW 1: dwie kolumny ── -->
+      <div class="row-1">
+
+        <!-- LEWA: opis postaci, filary, źródła, motywacja -->
+        <div class="col-left">
+
+          <div class="text-block">
+            <div class="h-underline">OPIS POSTACI</div>
+            <div class="lined" data-bind="appearance_description"></div>
+          </div>
+
+          <div class="text-block">
+            <div class="h-underline">FILARY POCZYTALNOŚCI</div>
+            <div class="lined" data-bind="pillars"></div>
+          </div>
+
+          <div class="text-block">
+            <div class="h-underline">ŹRÓDŁA STABILNOŚCI</div>
+            <div class="lined" data-bind="sources"></div>
+          </div>
+
+          <div class="text-block">
+            <div class="h-underline">MOTYWACJA</div>
+            <div class="lined" data-bind="drive"></div>
+          </div>
+
+        </div>
+
+        <!-- PRAWA: dziennik spraw + stack -->
+        <div class="col-right">
+
+          <div class="journal-block">
+            <div class="head">DZIENNIK ŚLEDZTW</div>
+            <div class="journal-grid" id="journal-grid"></div>
+          </div>
+
+          <div class="stack-block">
+            <div class="stack-section">
+              <div class="head">URAZY, BLIZNY, CHOROBY, FOBIE, MANIE</div>
+              <div class="lines" data-bind="injuries"></div>
+            </div>
+            <div class="stack-section">
+              <div class="head">TAJEMNE KSIĘGI, ZAKLĘCIA, ARTEFAKTY</div>
+              <div class="lines" data-bind="tomes"></div>
+            </div>
+            <div class="stack-section">
+              <div class="head">SPOTKANE ISTOTY, TAJEMNICZE ZDARZENIA</div>
+              <div class="lines" data-bind="encounters"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── ROW 2: ZNAJOMI BADACZE ── -->
+      <div class="friends-block">
+        <div class="bar bar-sm">ZNAJOMI BADACZE</div>
+        <div class="friends-grid" id="friends-grid"></div>
+      </div>
+
+      <!-- ── ROW 3: EKWIPUNEK / DOBYTEK / POZYCJA + KONTAKTY ── -->
+      <div class="row-3">
+
+        <div class="ledger cols-2">
+          <div class="bar bar-sm tight">EKWIPUNEK &nbsp;·&nbsp; DOBYTEK</div>
+          <div class="body-cols">
+            <div class="ledger-col with-w" data-section="ekwipunek" data-rows="12" data-mode="w" data-col="0"></div>
+            <div class="ledger-col with-w" data-section-bottom="dobytek" data-rows="12" data-mode="w" data-col="0"></div>
+          </div>
+        </div>
+
+        <div class="ledger cols-1">
+          <div class="bar bar-sm tight">POZYCJA &nbsp;·&nbsp; KONTAKTY</div>
+          <div class="body-cols">
+            <div class="ledger-col with-s" data-section="pozycja" data-section-bottom="kontakty" data-rows="12" data-mode="s" data-col="0"></div>
+          </div>
+        </div>
+
+        <div class="ledger split">
+          <div class="sub">
+            <div class="bar bar-sm tight">ZASOBY</div>
+            <div class="resources-body">
+              <div class="resource-field">
+                <span class="lbl">Poziom wydatków</span>
+                <span class="val-box" data-bind="spending_level"></span>
+              </div>
+              <div class="resource-field">
+                <span class="lbl">Gotówka</span>
+                <span class="val-box" data-bind="cash"></span>
+              </div>
+            </div>
+          </div>
+          <div class="sub">
+            <div class="bar bar-sm tight">WYDATKI</div>
+            <div class="expenses-body" id="expenses-body"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Dziennik śledztw: 10 prostych pól (numer + tytuł sesji) ── */
+  function buildJournalFn() {
+    const grid = document.getElementById('journal-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'journal-cell';
+      cell.innerHTML = `<div class="num">${i}.</div><div class="ed"></div>`;
+      grid.appendChild(cell);
+    }
+  }
+  buildJournalFn();
+
+  /* ── Znajomi badacze: 8 kart ── */
+  function buildFriendsFn() {
+    const grid = document.getElementById('friends-grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 8; i++) {
+      const card = document.createElement('div');
+      card.className = 'friend-card';
+      card.innerHTML = `
+        <div class="field"><span class="lbl">Badacz</span><span class="ed"></span></div>
+        <div class="field"><span class="lbl">Gracz</span><span class="ed"></span></div>
+        <div class="field"><span class="lbl">Relacja</span><span class="ed"></span></div>
+      `;
+      grid.appendChild(card);
+    }
+  }
+  buildFriendsFn();
+
+  /* Domyślne dane (puste). Generator nadpisze przez setCardBackData(). */
+  let SAMPLE_DATA = {
+    ekwipunek: [],
+    dobytek: [],
+    pozycja: [],
+    kontakty: [],
+  };
+
+  /* ── Ledger rows: pole tekstowe + checkboxy. Etykiety zastąpione ikonkami:
+     • plecak  → wyposażone (przy sobie)
+     • krzyżyk → stracone */
+  function buildLedgersFn() {
+    const ICON_EQUIPPED =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M9 5h6a3 3 0 0 1 3 3v1H6V8a3 3 0 0 1 3-3z"/>' +
+        '<path d="M10 5V3.6a1.4 1.4 0 0 1 1.4-1.4h1.2A1.4 1.4 0 0 1 14 3.6V5"/>' +
+        '<path d="M5 9h14v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9z"/>' +
+        '<path d="M9 13h6"/>' +
+      '</svg>';
+    const ICON_LOST =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">' +
+        '<path d="M5 5l14 14M19 5L5 19"/>' +
+      '</svg>';
+    document.querySelectorAll('.ledger-col[data-rows]').forEach(col => {
+      col.innerHTML = '';
+      const n = parseInt(col.dataset.rows, 10) || 10;
+      const mode = col.dataset.mode || 's';
+      const sectionElTop = col.matches('[data-section]') ? col : col.closest('[data-section]');
+      const topKey = sectionElTop ? sectionElTop.dataset.section : null;
+      const botKey = col.dataset.sectionBottom || null;
+      const colIdx = parseInt(col.dataset.col || '0', 10);
+      const topData = topKey ? SAMPLE_DATA[topKey] : null;
+      const botData = botKey ? SAMPLE_DATA[botKey] : null;
+      const texts = new Array(n).fill('');
+      const pick = (entry) => Array.isArray(entry) ? (entry[colIdx] || '') : (typeof entry === 'string' ? entry : '');
+      if (topData) {
+        for (let i = 0; i < Math.min(n, topData.length); i++) texts[i] = pick(topData[i]);
+      }
+      if (botData) {
+        const start = Math.max(0, n - botData.length);
+        for (let i = 0; i < botData.length && start + i < n; i++) texts[start + i] = pick(botData[i]);
+      }
+      const head = document.createElement('div');
+      head.className = 'col-head';
+      head.innerHTML = (mode === 'w')
+        ? `<span></span><span class="ch-ico" title="Wyposażone">${ICON_EQUIPPED}</span><span class="ch-ico" title="Stracone">${ICON_LOST}</span>`
+        : `<span></span><span class="ch-ico" title="Stracone">${ICON_LOST}</span>`;
+      col.appendChild(head);
+      for (let i = 0; i < n; i++) {
+        const row = document.createElement('div');
+        row.className = 'ledger-row';
+        const text = texts[i] || '';
+        row.innerHTML = (mode === 'w')
+          ? `<span class="ed">${text}</span><span class="ck"></span><span class="ck"></span>`
+          : `<span class="ed">${text}</span><span class="ck"></span>`;
+        col.appendChild(row);
+      }
+    });
+  }
+  buildLedgersFn();
+
+  /* ── Bind helper: zapisuje text/HTML do elementów [data-bind="ścieżka"]. ── */
+  function renderBindings(data) {
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const key = el.getAttribute('data-bind');
+      const val = data[key];
+      if (val == null) {
+        el.textContent = '';
+      } else if (typeof val === 'string' && /<[a-z][\s\S]*>/i.test(val)) {
+        el.innerHTML = val;
+      } else {
+        el.textContent = String(val);
+      }
+    });
+  }
+
+  /* ── Public API ── */
+  window.cardBackData = window.cardBackData || {};
+
+  window.setCardBackData = function(data) {
+    data = data || {};
+
+    // 1) merge do SAMPLE_DATA (sekcje z kolumnami)
+    if (data.ekwipunek) SAMPLE_DATA.ekwipunek = data.ekwipunek;
+    if (data.dobytek)   SAMPLE_DATA.dobytek   = data.dobytek;
+    if (data.pozycja)   SAMPLE_DATA.pozycja   = data.pozycja;
+    if (data.kontakty)  SAMPLE_DATA.kontakty  = data.kontakty;
+
+    // 2) data-bind pola tekstowe
+    renderBindings({
+      appearance_description: data.appearance_description ?? '',
+      pillars:                data.pillars ?? '',
+      sources:                data.sources ?? '',
+      drive:                  data.drive ?? '',
+      injuries:               data.injuries ?? '',
+      tomes:                  data.tomes ?? '',
+      encounters:             data.encounters ?? '',
+      spending_level:         data.spending_level ?? '',
+      cash:                   data.cash ?? '',
+    });
+
+    // 3) journal (10 pól)
+    const journal = data.journal || [];
+    document.querySelectorAll('#journal-grid .journal-cell .ed').forEach((ed, i) => {
+      ed.textContent = journal[i] || '';
+    });
+
+    // 4) friends (8 kart × 3 pola: badacz, gracz, relacja)
+    const friends = data.friends || [];
+    document.querySelectorAll('#friends-grid .friend-card').forEach((card, i) => {
+      const f = friends[i] || {};
+      const eds = card.querySelectorAll('.ed');
+      eds[0].textContent = f.badacz  || '';
+      eds[1].textContent = f.gracz   || '';
+      eds[2].textContent = f.relacja || '';
+    });
+
+    // 5) wydatki (HTML wstawiany wprost — dane MUSZĄ być uprzednio zsanitowane)
+    if (data.wydatki != null) {
+      document.getElementById('expenses-body').innerHTML = data.wydatki;
+    }
+
+    // 6) ledger-cols — przebuduj od zera
+    buildLedgersFn();
+
+    window.cardBackData = data;
+  };
+
+  /* Sygnał gotowości dla rodzica (postMessage) — generator może czekać
+     na 'card-back-toc:ready' zamiast nasłuchiwać iframe.onload. */
+  try {
+    window.parent && window.parent.postMessage({ type: 'card-back-toc:ready' }, '*');
+  } catch (_) { /* same-origin only */ }
+
+  /* Akceptujemy dane przez postMessage — wygodne dla iframe bez bezpośredniego dostępu. */
+  window.addEventListener('message', (e) => {
+    if (!e.data || e.data.type !== 'card-back-toc:set-data') return;
+    try { window.setCardBackData(e.data.payload); } catch (err) { console.error(err); }
+  });
+</script>
+
+</body>
+</html>
