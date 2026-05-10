@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, FileDown, Loader2 } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { exportCharacterAsText } from '@/lib/exportText'
 import { Button } from '@/components/ui/Button'
 
@@ -42,9 +42,13 @@ interface ExportButtonsProps {
   character: ExportCharacter
 }
 
+/**
+ * Text-only export. Card PDF download lives in CardV2DownloadButton — the
+ * legacy pdf-lib pipeline (front PNG + back PNG with manual coords) was
+ * retired in favor of browser-print of the new HTML cards.
+ */
 export function ExportButtons({ character }: ExportButtonsProps) {
   const [copied, setCopied] = useState(false)
-  const [cardLoading, setCardLoading] = useState(false)
 
   const handleCopyText = async () => {
     const text = exportCharacterAsText(character)
@@ -53,35 +57,10 @@ export function ExportButtons({ character }: ExportButtonsProps) {
     setTimeout(() => setCopied(false), 3000)
   }
 
-  const handleDownloadCard = async () => {
-    setCardLoading(true)
-    try {
-      const { exportCharacterAsCardPdf } = await import('@/lib/exportCardPdf')
-      const bytes = await exportCharacterAsCardPdf(character as Parameters<typeof exportCharacterAsCardPdf>[0])
-      const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${character.name || 'karta'}-card.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('Card PDF export error:', err)
-    } finally {
-      setCardLoading(false)
-    }
-  }
-
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="secondary" onClick={handleCopyText}>
-        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-        {copied ? 'Skopiowano!' : 'Kopiuj tekst'}
-      </Button>
-      <Button onClick={handleDownloadCard} disabled={cardLoading}>
-        {cardLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-        {cardLoading ? 'Generowanie...' : 'Pobierz kartę'}
-      </Button>
-    </div>
+    <Button variant="secondary" onClick={handleCopyText}>
+      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      {copied ? 'Skopiowano!' : 'Kopiuj tekst'}
+    </Button>
   )
 }

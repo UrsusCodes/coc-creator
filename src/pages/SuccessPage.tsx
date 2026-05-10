@@ -11,6 +11,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
+import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
+import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
@@ -244,8 +246,9 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
       )}
 
       {/* Export */}
-      <div className="border-t border-coc-border pt-4">
+      <div className="border-t border-coc-border pt-4 flex flex-wrap gap-2">
         <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+        <CardV2DownloadButton character={char as unknown as CharacterSheetData} label="Pobierz kartę" />
       </div>
     </div>
   )

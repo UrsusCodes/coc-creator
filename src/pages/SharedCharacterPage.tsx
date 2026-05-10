@@ -15,6 +15,7 @@ import { SkillsEditor } from '@/components/admin/edit/SkillsEditor'
 import { BackstoryEditor } from '@/components/admin/edit/BackstoryEditor'
 import { EquipmentEditor } from '@/components/admin/edit/EquipmentEditor'
 import { ExportButtons } from '@/components/shared/ExportButtons'
+import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
 import type { HistoryEntry } from '@/types/character'
 
 export function SharedCharacterPage() {
@@ -255,7 +256,10 @@ export function SharedCharacterPage() {
 
       {/* Export */}
       <Card>
-        <ExportButtons character={character as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons character={character as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+          <CardV2DownloadButton character={character} label="Pobierz kartę" />
+        </div>
       </Card>
     </div>
   )

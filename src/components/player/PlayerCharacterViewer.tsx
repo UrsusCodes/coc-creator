@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { CharacterSheet, type CharacterSheetData } from '@/components/shared/CharacterSheet'
 import { ExportButtons } from '@/components/shared/ExportButtons'
+import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
 import { PortraitUpload } from '@/components/shared/PortraitUpload'
 import { PortraitCropModal } from './PortraitCropModal'
 import { PortraitFeedbackModal } from './PortraitFeedbackModal'
@@ -373,7 +374,10 @@ export function PlayerCharacterViewer({ character: char, onBack, onUpdate }: Pla
       {/* Export buttons */}
       {!editMode && (
         <Card>
-          <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+          <div className="flex flex-wrap gap-2">
+            <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+            <CardV2DownloadButton character={char} label="Pobierz kartę" />
+          </div>
         </Card>
       )}
     </div>

@@ -684,7 +684,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
       <Card>
         <div className="flex flex-wrap gap-2">
           <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
-          <CardV2DownloadButton character={char} />
+          <CardV2DownloadButton character={char} label="Pobierz kartę" />
         </div>
       </Card>
     </div>

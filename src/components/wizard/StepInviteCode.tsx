@@ -10,6 +10,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
+import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
+import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import { ERA_LABELS } from '@/types/common'
 import type { CharacterData } from '@/types/character'
 
@@ -205,7 +207,10 @@ export function StepInviteCode() {
                   <div><span className="text-coc-text-muted">Gracz:</span> {submittedCharacter.player_name}</div>
                 )}
               </div>
-              <ExportButtons character={submittedCharacter as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+              <div className="flex flex-wrap gap-2">
+                <ExportButtons character={submittedCharacter as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+                <CardV2DownloadButton character={submittedCharacter as unknown as CharacterSheetData} label="Pobierz kartę" />
+              </div>
               <p className="text-xs text-coc-text-muted">
                 Jeśli chcesz stworzyć nową postać, użyj opcji poniżej. Poprzednia postać zostanie zastąpiona.
               </p>
