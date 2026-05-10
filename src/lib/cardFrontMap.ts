@@ -22,10 +22,10 @@ export interface CardFrontData {
     con: number; app: number; edu: number
     siz: number; int: number; move: number
   }
-  san: { max: number; curr: number; fifth?: number }
-  hp: { max: number; curr: number }
-  luck: { max: number; curr: number }
-  mp: { max: number; curr: number }
+  san: { max: number; curr?: number; fifth?: number }
+  hp: { max: number; curr?: number }
+  luck: { max: number; curr?: number }
+  mp: { max: number; curr?: number }
   heavy_wounds: number
   damage_bonus: string
   build: number
@@ -306,10 +306,11 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
       int: chars['INT'] ?? 0,
       move: derived?.move_rate ?? 0,
     },
-    san: { max: derived?.san ?? 0, curr: derived?.san ?? 0 },
-    hp: { max: derived?.hp ?? 0, curr: derived?.hp ?? 0 },
-    luck: { max: char.luck ?? 0, curr: char.luck ?? 0 },
-    mp: { max: derived?.mp ?? 0, curr: derived?.mp ?? 0 },
+    /* Pola CURR celowo puste — gracz uzupełnia podczas gry. */
+    san: { max: derived?.san ?? 0 },
+    hp: { max: derived?.hp ?? 0 },
+    luck: { max: char.luck ?? 0 },
+    mp: { max: derived?.mp ?? 0 },
     heavy_wounds: heavyWounds,
     damage_bonus: derived?.db ?? '0',
     build: derived?.build ?? 0,

@@ -42,8 +42,15 @@
     --line-soft:  rgba(106, 90, 48, 0.45);
   }
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #1d1d1d; font-family: 'EB Garamond', Georgia, serif; color: var(--ink); }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #1d1d1d;
+    font-family: 'EB Garamond', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .page-wrap { display: flex; justify-content: center; padding: 24px; }
 
   /* ─────── KARTA ─────── */
@@ -1069,9 +1076,14 @@ function renderChars() {
     const fifth = Math.floor(v / 5);
     const cell = document.createElement('div');
     cell.className = 'char-cell';
-    const subInner = def.key === 'move'
-      ? `<div class="half">+1</div><div class="fifth">−1</div>`
-      : `<div class="half" data-lbl="½">${half}</div><div class="fifth" data-lbl="⅕">${fifth}</div>`;
+    let subInner;
+    if (def.key === 'move') {
+      const walk   = (window.character.walk   != null && window.character.walk   !== '') ? window.character.walk   : '—';
+      const sprint = (window.character.sprint != null && window.character.sprint !== '') ? window.character.sprint : '—';
+      subInner = `<div class="half" data-lbl="CHÓD">${walk}</div><div class="fifth" data-lbl="SPRINT">${sprint}</div>`;
+    } else {
+      subInner = `<div class="half" data-lbl="½">${half}</div><div class="fifth" data-lbl="⅕">${fifth}</div>`;
+    }
     cell.innerHTML = `
       <div class="name">${def.label}</div>
       <div class="main">${v}</div>

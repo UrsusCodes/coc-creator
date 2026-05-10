@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <title>Karta Badacza — przód + tył</title>
 <style>
-  html, body { margin: 0; padding: 0; background: #1d1d1d; }
-  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #1d1d1d;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   /* Każda strona to dokładnie jeden iframe A4. Uwaga: print-pagination
      iframe'ów działa w Chrome/Edge dla same-origin treści gdy iframe jest

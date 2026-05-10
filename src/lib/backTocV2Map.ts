@@ -162,14 +162,10 @@ function formatContact(c: ContactV2): string | null {
   }`
 }
 
-function formatExpenses(spendingLevel: string | undefined, cash: string | undefined): string {
-  const lines: string[] = []
-  if (spendingLevel) lines.push(`<strong>Poziom wydatków:</strong> ${escapeHtml(spendingLevel)}`)
-  if (cash) {
-    const cashClean = cash.replace(/^Gotówka:\s*/i, '')
-    lines.push(`<strong>Gotówka:</strong> ${escapeHtml(cashClean)}`)
-  }
-  return lines.join('<br>')
+/* WYDATKI = free-form notes (e.g. "$5/dzień: jedzenie, drobne łapówki").
+   Aktualnie nie tracimy ich w DB — zostawiamy pusto, gracz uzupełnia. */
+function formatExpenses(): string {
+  return ''
 }
 
 /**
@@ -198,11 +194,14 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
     if (line) contacts.push(line)
   }
 
-  const spendingDisplay = char.spending_level
-    ? char.spending_level.startsWith('$')
-      ? char.spending_level
-      : `$${char.spending_level}`
-    : ''
+  /* Defensive: spending_level may be "$50", "50", "50$", or empty.
+     Normalize to "$X" so the box always has a $ sign on the front. */
+  const spendingDisplay = (() => {
+    const raw = (char.spending_level ?? '').toString().trim()
+    if (!raw) return ''
+    const cleaned = raw.replace(/^\$/, '').replace(/\$$/, '').trim()
+    return cleaned ? `$${cleaned}` : ''
+  })()
 
   const cashDisplay = (() => {
     if (!char.cash) return ''
@@ -228,6 +227,6 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
     dobytek: equipment.dobytek,
     pozycja: positions,
     kontakty: contacts,
-    wydatki: formatExpenses(char.spending_level, char.cash),
+    wydatki: formatExpenses(),
   }
 }
