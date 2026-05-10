@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Printer } from 'lucide-react'
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import { characterToCardBackData } from '@/lib/backTocV2Map'
+import { Button } from '@/components/ui/Button'
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
 const TEMPLATE_URL = `${BASE}/templates/back-toc-v2/card_back_toc.html`
@@ -78,8 +80,24 @@ export function BackTocV2Preview({ character }: Props) {
     return () => ro.disconnect()
   }, [])
 
+  const handlePrint = () => {
+    const win = iframeRef.current?.contentWindow
+    if (!win) return
+    win.focus()
+    win.print()
+  }
+
   return (
-    <div ref={wrapperRef} className="w-full">
+    <div ref={wrapperRef} className="w-full space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-xs text-coc-text-muted">
+          Print → „Zapisz jako PDF" w dialogu drukowania.
+        </div>
+        <Button size="sm" variant="secondary" onClick={handlePrint}>
+          <Printer className="w-3.5 h-3.5" />
+          Pobierz tył (PDF)
+        </Button>
+      </div>
       <div
         style={{
           width: '100%',
