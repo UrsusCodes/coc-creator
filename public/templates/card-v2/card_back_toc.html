@@ -869,6 +869,7 @@
 
   window.setCardBackData = function(data) {
     data = data || {};
+    try { console.log('[card_back_toc] setCardBackData payload:', data); } catch (_) {}
 
     // 1) merge do SAMPLE_DATA (sekcje z kolumnami)
     if (data.ekwipunek) SAMPLE_DATA.ekwipunek = data.ekwipunek;
@@ -888,6 +889,12 @@
       spending_level:         data.spending_level ?? '',
       cash:                   data.cash ?? '',
     });
+    try {
+      const sp = document.querySelector('[data-bind="spending_level"]');
+      const ca = document.querySelector('[data-bind="cash"]');
+      console.log('[card_back_toc] after bind — spending_level box:', sp?.textContent, sp);
+      console.log('[card_back_toc] after bind — cash box:', ca?.textContent, ca);
+    } catch (_) {}
 
     // 3) journal (10 pól)
     const journal = data.journal || [];

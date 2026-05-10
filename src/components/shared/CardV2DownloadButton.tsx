@@ -14,11 +14,15 @@ interface Props {
   label?: string
 }
 
+interface FrontWin extends Window { setCharacter?: (d: unknown) => void }
+interface BackWin extends Window { setCardBackData?: (d: unknown) => void }
+
 /**
- * Renders an off-screen iframe pointing at card_full.html (front+back wrapper),
- * pushes mapped data to both child iframes via postMessage, then triggers
- * print on the wrapper window. Browser print dialog → "Save as PDF" produces
- * a 2-page A4 PDF with vector text. No PNG overlay, no manual coordinates.
+ * Builds an off-screen iframe loading card_full.html (which itself loads
+ * card_front.html and card_back_toc.html), pushes mapped data straight to
+ * each inner iframe's API (skipping the postMessage bridge for reliability),
+ * then triggers print on the wrapper window. Browser print dialog →
+ * "Save as PDF" produces a 2-page A4 PDF with vector text.
  */
 export function CardV2DownloadButton({ character, variant = 'primary', label }: Props) {
   const [busy, setBusy] = useState(false)
@@ -27,7 +31,6 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
   const handleClick = async () => {
     setBusy(true)
     try {
-      // Tear down any previous iframe so the load + ready handshake runs fresh.
       iframeRef.current?.remove()
 
       const iframe = document.createElement('iframe')
@@ -35,7 +38,7 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
       iframe.style.left = '-99999px'
       iframe.style.top = '0'
       iframe.style.width = '210mm'
-      iframe.style.height = '600mm' // tall enough for both pages
+      iframe.style.height = '600mm'
       iframe.style.border = 'none'
       iframe.setAttribute('aria-hidden', 'true')
       iframeRef.current = iframe
@@ -43,9 +46,14 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
 
       const front = characterToCardFrontData(character)
       const back = characterToCardBackData(character)
+      console.log('[CardV2] front data:', front)
+      console.log('[CardV2] back data:', back)
 
-      const ready = await new Promise<Window>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout: card_full.html nie odpowiedział na ready')), 8000)
+      const wrapperWin = await new Promise<Window>((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timeout: card_full.html nie odpowiedział na ready')),
+          8000,
+        )
         const onMessage = (e: MessageEvent) => {
           if (e.source !== iframe.contentWindow) return
           if (e.data?.type === 'card-full:ready') {
@@ -58,15 +66,47 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
         iframe.src = FULL_URL
       })
 
-      ready.postMessage({ type: 'card-full:set-character', payload: front }, '*')
-      ready.postMessage({ type: 'card-full:set-back-data',  payload: back  }, '*')
+      // Direct same-origin function calls, skipping the postMessage bridge.
+      // The bridge stays as fallback for cases where direct access fails
+      // (e.g. data:-URL iframes).
+      const fullDoc = wrapperWin.document
+      const frontFrame = fullDoc.getElementById('frontFrame') as HTMLIFrameElement | null
+      const backFrame = fullDoc.getElementById('backFrame') as HTMLIFrameElement | null
 
-      // Allow render + font swap before printing.
-      await new Promise((r) => setTimeout(r, 400))
-      ready.focus()
-      ready.print()
+      const frontWin = frontFrame?.contentWindow as FrontWin | null
+      const backWin = backFrame?.contentWindow as BackWin | null
 
-      // Don't tear down immediately — Chrome's print can be async. Cleanup on next tick.
+      let pushedFront = false
+      let pushedBack = false
+      try {
+        if (frontWin && typeof frontWin.setCharacter === 'function') {
+          frontWin.setCharacter(front)
+          pushedFront = true
+          console.log('[CardV2] pushed front directly')
+        }
+      } catch (e) { console.warn('[CardV2] direct front push failed, will postMessage', e) }
+      try {
+        if (backWin && typeof backWin.setCardBackData === 'function') {
+          backWin.setCardBackData(back)
+          pushedBack = true
+          console.log('[CardV2] pushed back directly')
+        }
+      } catch (e) { console.warn('[CardV2] direct back push failed, will postMessage', e) }
+
+      if (!pushedFront) {
+        wrapperWin.postMessage({ type: 'card-full:set-character', payload: front }, '*')
+        console.log('[CardV2] front via bridge postMessage')
+      }
+      if (!pushedBack) {
+        wrapperWin.postMessage({ type: 'card-full:set-back-data', payload: back }, '*')
+        console.log('[CardV2] back via bridge postMessage')
+      }
+
+      // Give the browser a tick to paint after data binding before printing.
+      await new Promise((r) => setTimeout(r, 450))
+      wrapperWin.focus()
+      wrapperWin.print()
+
       setTimeout(() => { iframeRef.current?.remove(); iframeRef.current = null }, 1500)
     } catch (err) {
       console.error('[CardV2DownloadButton] error:', err)

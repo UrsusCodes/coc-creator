@@ -194,10 +194,12 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
     if (line) contacts.push(line)
   }
 
-  /* Defensive: spending_level may be "$50", "50", "50$", or empty.
-     Normalize to "$X" so the box always has a $ sign on the front. */
+  /* Defensive: spending_level may be "$50", "50", "50$", or empty. Wealth v2
+     stores it under `spending_free` instead. Normalize to "$X" so the box
+     always has the $ sign. */
   const spendingDisplay = (() => {
-    const raw = (char.spending_level ?? '').toString().trim()
+    const extended = char as unknown as { spending_free?: string }
+    const raw = (char.spending_level || extended.spending_free || '').toString().trim()
     if (!raw) return ''
     const cleaned = raw.replace(/^\$/, '').replace(/\$$/, '').trim()
     return cleaned ? `$${cleaned}` : ''
@@ -205,6 +207,7 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
 
   const cashDisplay = (() => {
     if (!char.cash) return ''
+    // Legacy: "Gotówka: $125 | Inny: X" → "$125". Modern: just "$125".
     const m = char.cash.match(/Gotówka:\s*(.+?)(?:\s*\||$)/)
     const raw = (m ? m[1].trim() : char.cash).replace(/\s+/g, ' ').trim()
     return raw

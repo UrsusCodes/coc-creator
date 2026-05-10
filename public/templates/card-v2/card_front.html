@@ -706,23 +706,25 @@
     text-align: center;
     border: 0.2mm solid var(--paper-edge);
     background: rgba(255,255,255,0.5);
-    padding: 1mm 0;
+    padding: 0.6mm 0;
     display: flex; flex-direction: column; justify-content: center;
+    overflow: hidden;
   }
   .stat-box .lbl {
     font-family: 'Cinzel', serif;
-    font-size: 7pt; letter-spacing: 0.08em;
+    font-size: 6.5pt; letter-spacing: 0.08em;
     color: var(--ink-light);
     line-height: 1.1;
   }
   .stat-box .val {
     font-family: 'EB Garamond', serif;
-    font-size: 14pt; font-weight: 600;
+    font-size: 11pt; font-weight: 600;
     color: var(--val-fg-full);
     background: var(--val-bg-full);
-    padding: 0.6mm 0;
+    padding: 0.2mm 0;
     line-height: 1;
-    margin-top: 0.6mm;
+    margin-top: 0.4mm;
+    overflow: hidden;
   }
 
   /* Pieczęć dolna na środku stopki */
@@ -1223,9 +1225,12 @@ function renderBindings() {
   if (window.character.san.fifth == null && window.character.san.curr != null) {
     window.character.san.fifth = Math.floor(window.character.san.curr / 5);
   }
+  /* Zawsze nadpisuj textContent — także gdy nowa wartość jest pusta —
+     żeby poprzedni render (np. domyślny Henry Armitage) nie zostawiał
+     starej liczby gdy generator wysyła nową postać bez tego pola. */
   document.querySelectorAll('[data-bind]').forEach(el => {
     const v = resolve(el.dataset.bind);
-    if (v != null && v !== '') el.textContent = v;
+    el.textContent = (v != null && v !== '') ? String(v) : '';
   });
   document.querySelectorAll('[data-flag]').forEach(el => {
     if (window.character[el.dataset.flag]) el.classList.add('on');
