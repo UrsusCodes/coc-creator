@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Karta Badacza — przód + tył</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #1d1d1d; }
+  * { box-sizing: border-box; }
+
+  /* Każda strona to dokładnie jeden iframe A4. Uwaga: print-pagination
+     iframe'ów działa w Chrome/Edge dla same-origin treści gdy iframe jest
+     dokładnie wysokości strony. NIE skalujemy w widoku — A4 1:1. */
+  .page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #f3e8c7;
+  }
+  .page + .page { margin-top: 18px; }
+
+  iframe.page-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  #toolbar {
+    position: fixed; top: 8px; right: 8px; z-index: 1000;
+    background: #2a2a2a; padding: 8px; border-radius: 6px;
+    display: flex; gap: 8px;
+  }
+  #toolbar button {
+    background: #3a3a3a; color: #eee; border: 1px solid #555;
+    padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    font-family: system-ui; font-size: 12px;
+  }
+  #toolbar button:hover { background: #4a4a4a; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: white; }
+    #toolbar { display: none; }
+    .page { margin: 0; box-shadow: none; }
+    /* Wymusić nową stronę między obiema stronami karty. */
+    .page + .page { page-break-before: always; break-before: page; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <button onclick="window.print()">Drukuj / PDF</button>
+</div>
+
+<div class="page">
+  <iframe id="frontFrame" class="page-frame" src="card_front.html" title="Przód"></iframe>
+</div>
+<div class="page">
+  <iframe id="backFrame" class="page-frame" src="card_back_toc.html" title="Tył"></iframe>
+</div>
+
+<script>
+  /* Stan gotowości — emitujemy 'card-full:ready' do rodzica gdy oba dzieci się
+     załadują I oba zaraportują własną gotowość ('card-front:ready' /
+     'card-back-toc:ready'). React czeka na ten sygnał zanim wepchnie dane. */
+  let frontReady = false;
+  let backReady = false;
+  function maybeReady() {
+    if (frontReady && backReady) {
+      try { window.parent && window.parent.postMessage({ type: 'card-full:ready' }, '*'); } catch (_) {}
+    }
+  }
+
+  window.addEventListener('message', (e) => {
+    if (!e.data) return;
+    if (e.data.type === 'card-front:ready')    { frontReady = true; maybeReady(); }
+    if (e.data.type === 'card-back-toc:ready') { backReady  = true; maybeReady(); }
+
+    /* Przekierowanie set-data z rodzica do odpowiedniego iframe. */
+    if (e.data.type === 'card-full:set-character') {
+      const f = document.getElementById('frontFrame').contentWindow;
+      try {
+        if (f && typeof f.setCharacter === 'function') f.setCharacter(e.data.payload);
+        else f.postMessage({ type: 'card-front:set-character', payload: e.data.payload }, '*');
+      } catch (err) { console.error(err); }
+    }
+    if (e.data.type === 'card-full:set-back-data') {
+      const b = document.getElementById('backFrame').contentWindow;
+      try {
+        if (b && typeof b.setCardBackData === 'function') b.setCardBackData(e.data.payload);
+        else b.postMessage({ type: 'card-back-toc:set-data', payload: e.data.payload }, '*');
+      } catch (err) { console.error(err); }
+    }
+  });
+
+  /* Bezpośrednie API (in-process). */
+  window.setCharacter = function(c) {
+    const f = document.getElementById('frontFrame').contentWindow;
+    if (f && typeof f.setCharacter === 'function') f.setCharacter(c);
+  };
+  window.setCardBackData = function(d) {
+    const b = document.getElementById('backFrame').contentWindow;
+    if (b && typeof b.setCardBackData === 'function') b.setCardBackData(d);
+  };
+
+  window.printAll = function() { window.print(); };
+</script>
+
+</body>
+</html>

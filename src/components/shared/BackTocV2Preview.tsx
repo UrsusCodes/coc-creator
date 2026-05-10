@@ -5,7 +5,7 @@ import { characterToCardBackData } from '@/lib/backTocV2Map'
 import { Button } from '@/components/ui/Button'
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
-const TEMPLATE_URL = `${BASE}/templates/back-toc-v2/card_back_toc.html`
+const TEMPLATE_URL = `${BASE}/templates/card-v2/card_back_toc.html`
 
 interface Props {
   character: CharacterSheetData

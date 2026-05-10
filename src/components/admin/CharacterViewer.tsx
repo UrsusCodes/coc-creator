@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { CharacterSheet, type CharacterSheetData } from '@/components/shared/CharacterSheet'
 import { BackTocV2Preview } from '@/components/shared/BackTocV2Preview'
+import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
 import { CharacterHistory } from '@/components/shared/CharacterHistory'
 import { BasicInfoEditor } from './edit/BasicInfoEditor'
 import { CharacteristicsEditor } from './edit/CharacteristicsEditor'
@@ -681,7 +682,10 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
 
       {/* Export buttons */}
       <Card>
-        <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons character={char as unknown as Parameters<typeof ExportButtons>[0]['character']} />
+          <CardV2DownloadButton character={char} />
+        </div>
       </Card>
     </div>
   )
