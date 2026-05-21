@@ -10,8 +10,7 @@ import {
 } from '@/lib/player'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { GeneratePortraitPanel } from '@/components/player/GeneratePortraitPanel'
-import { PortraitEditor } from '@/components/player/PortraitEditor'
+import { PortraitWorkshop } from '@/components/shared/PortraitWorkshop'
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import type { PortraitCropData } from '@/types/character'
 
@@ -136,28 +135,15 @@ export function PlayerPortraitWorkshopPage() {
       )}
 
       {character && !loading && !error && (
-        <>
-          {/* Section 1: prompt generator (no save flow — just text output) */}
-          <Card>
-            <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-3">
-              Generator promptu
-            </h4>
-            <GeneratePortraitPanel
-              character={character}
-              onEnhancePrompt={async (args) => {
-                if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
-                return await playerEnhancePrompt(token, character.id, args)
-              }}
-            />
-          </Card>
-
-          {/* Section 2: live editor */}
-          <PortraitEditor
-            character={character}
-            onSetProfilePortrait={handleSetProfilePortrait}
-            onSetCardPortrait={handleSetCardPortrait}
-          />
-        </>
+        <PortraitWorkshop
+          character={character}
+          onSetProfilePortrait={handleSetProfilePortrait}
+          onSetCardPortrait={handleSetCardPortrait}
+          onEnhancePrompt={async (args) => {
+            if (!token) throw new Error('Sesja wygasła — zaloguj się ponownie.')
+            return await playerEnhancePrompt(token, character.id, args)
+          }}
+        />
       )}
     </div>
   )
