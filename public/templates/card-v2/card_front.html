@@ -239,7 +239,7 @@
     position: relative;
   }
   .data-row.split3 {
-    grid-template-columns: 1fr 12mm 10mm;
+    grid-template-columns: 1fr 10mm 24mm;
     gap: 1.5mm 1.5mm;
     row-gap: 0.6mm;
   }
@@ -247,8 +247,8 @@
     grid-template-columns: 1fr 1fr;
     gap: 0.6mm 2mm;
   }
-  .data-row.split2 .lbl { grid-row: 1; }
-  .data-row.split2 .val { grid-row: 2; }
+  .data-row.split2 .lbl { grid-row: 2; }
+  .data-row.split2 .val { grid-row: 1; }
   .data-row .lbl {
     font-family: 'Cinzel', serif;
     font-size: 6pt;
@@ -257,7 +257,7 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     line-height: 1;
-    grid-row: 1;
+    grid-row: 2;
     padding: 0 0 0 0.6mm;
   }
   .data-row .val {
@@ -268,18 +268,18 @@
     border-bottom: 0.2mm solid var(--line);
     min-height: 4.4mm;
     padding: 0 1mm 0.2mm;
-    grid-row: 2;
+    grid-row: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.05;
   }
   .data-row.split3 .lbl {
-    grid-row: 1;
+    grid-row: 2;
     padding: 0 0 0 0.6mm;
   }
   .data-row.split3 .val {
-    grid-row: 2;
+    grid-row: 1;
   }
 
   /* Cechy 3x3 */
@@ -800,10 +800,10 @@
           <div class="rows">
             <div class="data-row"><span class="lbl">Imię Badacza</span><span class="val" data-bind="name"></span></div>
             <div class="data-row"><span class="lbl">Gracz</span><span class="val" data-bind="player_name"></span></div>
-            <div class="data-row"><span class="lbl">Zawód</span><span class="val" data-bind="occupation"></span></div>
-            <div class="data-row split2">
-              <span class="lbl">Wiek</span><span class="val" data-bind="age"></span>
-              <span class="lbl">Płeć</span><span class="val" data-bind="gender"></span>
+            <div class="data-row split3">
+              <span class="val" data-bind="occupation"></span><span class="lbl">Zawód</span>
+              <span class="val" data-bind="age"></span><span class="lbl">Wiek</span>
+              <span class="val" data-bind="gender"></span><span class="lbl">Płeć</span>
             </div>
             <div class="data-row"><span class="lbl">Miejsce urodzenia</span><span class="val" data-bind="birthplace"></span></div>
             <div class="data-row"><span class="lbl">Miejsce zamieszkania</span><span class="val" data-bind="residence"></span></div>
