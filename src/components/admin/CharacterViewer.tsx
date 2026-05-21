@@ -4,7 +4,7 @@ import { useAdminStore } from '@/stores/adminStore'
 import {
   adminUpdateCharacter, adminGetCharacterHistory, adminCreateShareToken, adminGetShareTokens,
   adminDeleteShareToken, adminCreateEditPermission, adminRevokeEditPermission,
-  adminAssignCharacterToPlayer, adminGetPlayers,
+  adminAssignCharacterToPlayer, adminGetPlayers, adminEnhancePrompt,
 } from '@/lib/admin'
 import { getSkillBase } from '@/data/skills'
 import { Card } from '@/components/ui/Card'
@@ -22,7 +22,7 @@ import { SkillsEditor } from './edit/SkillsEditor'
 import { BackstoryEditor } from './edit/BackstoryEditor'
 import { EquipmentEditor } from './edit/EquipmentEditor'
 import { SessionsEditor } from './edit/SessionsEditor'
-import { ArtPromptSection } from './ArtPromptSection'
+import { PortraitWorkshop } from '@/components/shared/PortraitWorkshop'
 import type { ShareToken, HistoryEntry } from '@/types/character'
 
 interface CharacterViewerProps {
@@ -457,14 +457,23 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
         </div>
       </Card>
 
-      {/* Art Prompt & Gallery */}
-      <ArtPromptSection
-        characterId={char.id}
-        character={char as unknown as Record<string, unknown>}
-        artPrompt={(char as unknown as Record<string, unknown>).art_prompt as string ?? ''}
-        artGallery={((char as unknown as Record<string, unknown>).art_gallery as { url: string; label: string; created_at: string }[]) ?? []}
-        portraitUrl={(char as unknown as Record<string, unknown>).portrait_url as string ?? undefined}
-        onUpdate={(fields) => onUpdate?.({ id: char.id, ...fields })}
+      {/* Portrait Workshop */}
+      <PortraitWorkshop
+        character={char}
+        onSetProfilePortrait={async (url) => {
+          if (!password) throw new Error('Brak hasła administratora.')
+          await adminUpdateCharacter(password, char.id, { profile_portrait_url: url })
+          onUpdate?.({ id: char.id, profile_portrait_url: url })
+        }}
+        onSetCardPortrait={async (url, cropData) => {
+          if (!password) throw new Error('Brak hasła administratora.')
+          await adminUpdateCharacter(password, char.id, { card_portrait_url: url, card_portrait_crop_data: cropData as CharacterSheetData['card_portrait_crop_data'] })
+          onUpdate?.({ id: char.id, card_portrait_url: url, card_portrait_crop_data: cropData as CharacterSheetData['card_portrait_crop_data'] })
+        }}
+        onEnhancePrompt={async (args) => {
+          if (!password) throw new Error('Brak hasła administratora.')
+          return await adminEnhancePrompt(password, char.id, args)
+        }}
       />
 
       {/* Edit permissions (player-centric) */}
