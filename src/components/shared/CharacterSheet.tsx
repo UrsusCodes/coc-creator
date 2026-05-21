@@ -83,9 +83,9 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
   return (
     <div className="space-y-4">
       {/* Portrait + Basic info */}
-      {char.portrait_url && (
+      {(char.card_portrait_url ?? char.portrait_url) && (
         <div className="flex justify-center">
-          <img src={char.portrait_url} alt="Portret" className="w-24 h-24 object-cover rounded-lg border border-coc-border" />
+          <img src={char.card_portrait_url ?? char.portrait_url!} alt="Portret" className="w-24 h-24 object-cover rounded-lg border border-coc-border" />
         </div>
       )}
       <div className="grid grid-cols-3 gap-2 text-sm">
