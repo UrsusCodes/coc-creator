@@ -104,6 +104,13 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
 
       // Give the browser a tick to paint after data binding before printing.
       await new Promise((r) => setTimeout(r, 450))
+
+      const slug = (s: string) => s.trim().toLowerCase().replace(/\s+/g, '_')
+      const playerPart = slug(character.player_name ?? 'gracz')
+      const idPart = character.invite_code ?? character.id.slice(0, 8)
+      const namePart = slug(character.name)
+      wrapperWin.document.title = `${playerPart}_${idPart}_${namePart}`
+
       wrapperWin.focus()
       wrapperWin.print()
 
