@@ -33,11 +33,12 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
     return base
   }
 
-  const skills = Object.entries(allSkillPoints)
-    .filter(([, pts]) => pts > 0)
+  const skillKeys = new Set([...Object.keys(occupationSkillPoints), ...Object.keys(personalSkillPoints)])
+  const skills = Array.from(skillKeys)
+    .map(id => [id, allSkillPoints[id] ?? 0] as [string, number])
     .sort(([a], [b]) => getSkillDisplayName(a).localeCompare(getSkillDisplayName(b), 'pl'))
 
-  const existingKeys = new Set(Object.keys(allSkillPoints).filter(k => allSkillPoints[k] > 0))
+  const existingKeys = skillKeys
 
   // Build list of addable skills (not already on character)
   const addableSkills: { key: string; label: string; hasCustomSpec?: boolean }[] = []
@@ -248,7 +249,7 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
               <input
                 type="number"
                 value={total}
-                onChange={(e) => onChange(skillId, parseInt(e.target.value) || 0)}
+                onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) onChange(skillId, v) }}
                 min={base}
                 max={99}
                 className="w-14 text-center px-1 py-0.5 bg-coc-surface-light border border-coc-border rounded text-coc-text font-mono font-bold ml-2 focus:outline-none focus:border-coc-accent-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
