@@ -109,10 +109,18 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
       const playerPart = slug(character.player_name ?? 'gracz')
       const idPart = character.invite_code ?? character.id.slice(0, 8)
       const namePart = slug(character.name)
-      wrapperWin.document.title = `${playerPart}_${idPart}_${namePart}`
+      const filename = `${playerPart}_${idPart}_${namePart}`
+
+      // Chrome uses the top-level document.title (not the iframe's) as the
+      // suggested PDF filename — swap it temporarily around print().
+      const prevTitle = document.title
+      document.title = filename
+      wrapperWin.document.title = filename
 
       wrapperWin.focus()
       wrapperWin.print()
+
+      setTimeout(() => { document.title = prevTitle }, 2000)
 
       setTimeout(() => { iframeRef.current?.remove(); iframeRef.current = null }, 1500)
     } catch (err) {
