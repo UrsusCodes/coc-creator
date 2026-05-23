@@ -196,13 +196,22 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
 
   /* Defensive: spending_level may be "$50", "50", "50$", or empty. Wealth v2
      stores it under `spending_free` instead. Normalize to "$X" so the box
-     always has the $ sign. */
+     always has the $ sign. Fallback: extract tier label from [Lifestyle]
+     equipment tag (v2 characters don't populate the spending_level DB field). */
   const spendingDisplay = (() => {
     const extended = char as unknown as { spending_free?: string }
     const raw = (char.spending_level || extended.spending_free || '').toString().trim()
-    if (!raw) return ''
-    const cleaned = raw.replace(/^\$/, '').replace(/\$$/, '').trim()
-    return cleaned ? `$${cleaned}` : ''
+    if (raw) {
+      const cleaned = raw.replace(/^\$/, '').replace(/\$$/, '').trim()
+      return cleaned ? `$${cleaned}` : ''
+    }
+    const lifestyleEntry = (char.equipment ?? []).find((e) => e.startsWith('[Lifestyle]'))
+    if (lifestyleEntry) {
+      const stripped = lifestyleEntry.replace(/^\[Lifestyle\]\s*/, '')
+      // "★★··· Przeciętny" → "Przeciętny"
+      return stripped.replace(/^[\s★◆•·]+/, '').trim()
+    }
+    return ''
   })()
 
   const cashDisplay = (() => {
