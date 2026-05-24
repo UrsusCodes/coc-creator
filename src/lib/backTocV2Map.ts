@@ -1,7 +1,7 @@
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import type { StabilitySource, MainPosition, AdditionalPosition, ContactV2, Backstory } from '@/types/character'
 import { DRIVES } from '@/data/drivePillars'
-import { TIERS } from '@/data/wealthV2'
+import { TIERS, LIFESTYLE_LEVELS } from '@/data/wealthV2'
 
 /**
  * Shape consumed by the new offline back card (window.setCardBackData).
@@ -196,8 +196,21 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
   }
 
   /* Normalize spending_level to a dollar amount displayed in the ZASOBY box.
-     Priority: explicit dollar value → tier-label lookup → [Lifestyle]/[Styl życia]
-     equipment tag → tier-label lookup from tag. */
+     Priority: explicit dollar value → tier/lifestyle-label lookup →
+     [Lifestyle]/[Styl życia] equipment tag → label lookup from tag.
+     Handles all three historical DB formats + both star styles (★ filled, ☆ hollow). */
+  const STAR_PREFIX_RE = /^[\s★☆●·⋅·◆•]+/
+  const resolveSpending = (label: string): string | null => {
+    const tier = TIERS.find((t) => t.label === label)
+    if (tier) return `$${tier.spending}`
+    const ll = LIFESTYLE_LEVELS.find((l) => l.label === label)
+    if (ll) {
+      const parentTier = TIERS.find((t) => t.id === ll.tierId)
+      if (parentTier) return `$${parentTier.spending}`
+    }
+    if (label === 'Biedny') return '$2'
+    return null
+  }
   const spendingDisplay = (() => {
     const extended = char as unknown as { spending_free?: string }
     const stored = (char.spending_level || extended.spending_free || '').toString().trim()
@@ -208,10 +221,9 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
       const entry = (char.equipment ?? []).find(
         (e) => e.startsWith('[Lifestyle]') || e.startsWith('[Styl życia]'),
       )
-      return entry ? entry.replace(/^\[.*?\]\s*/, '').replace(/^[\s★◆•·]+/, '').trim() : ''
+      return entry ? entry.replace(/^\[.*?\]\s*/, '').replace(STAR_PREFIX_RE, '').trim() : ''
     })()
-    const tier = TIERS.find((t) => t.label === label)
-    return tier ? `$${tier.spending}` : (label ? label : '')
+    return resolveSpending(label) ?? ''
   })()
 
   const cashDisplay = (() => {

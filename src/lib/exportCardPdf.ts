@@ -9,7 +9,7 @@ import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { DRIVES } from '@/data/drivePillars'
 import { halfValue, fifthValue } from '@/lib/utils'
-import { TIERS } from '@/data/wealthV2'
+import { TIERS, LIFESTYLE_LEVELS } from '@/data/wealthV2'
 import type { CharacteristicKey } from '@/types/common'
 import type { CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 
@@ -235,15 +235,31 @@ const CHAR_KEY_MAP: Record<string, CharacteristicKey> = {
   char_siz: 'SIZ', char_int: 'INT',
 }
 
+// ★ (U+2605 filled) or ☆ (U+2606 hollow, legacy) prefix before tier label
+const STAR_PREFIX_RE = /^[\s★☆●·⋅·◆•]+/
+
+function spendingFromLabel(label: string): string | null {
+  // TIERS labels: "Przeciętny", "Zamożny", etc.
+  const tier = TIERS.find((t) => t.label === label)
+  if (tier) return `${tier.spending}$`
+  // LIFESTYLE_LEVELS labels: "Skromny", "Komfortowy", "Elegancki", "Luksusowy", "Nędzny"
+  const ll = LIFESTYLE_LEVELS.find((l) => l.label === label)
+  if (ll) {
+    const parentTier = TIERS.find((t) => t.id === ll.tierId)
+    if (parentTier) return `${parentTier.spending}$`
+  }
+  // Historical alias
+  if (label === 'Biedny') return '2$'
+  return null
+}
+
 function resolveSpendingLabel(raw: string, equipment: string[]): string {
   if (raw.startsWith('$')) return raw.slice(1) + '$'
   const label = raw || (() => {
     const entry = equipment.find((e) => e.startsWith('[Lifestyle]') || e.startsWith('[Styl życia]'))
-    return entry ? entry.replace(/^\[.*?\]\s*/, '').replace(/^[\s★◆•·]+/, '').trim() : ''
+    return entry ? entry.replace(/^\[.*?\]\s*/, '').replace(STAR_PREFIX_RE, '').trim() : ''
   })()
-  const tier = TIERS.find((t) => t.label === label)
-  if (tier) return `${tier.spending}$`
-  return raw
+  return spendingFromLabel(label) ?? raw
 }
 
 function resolveBase(skillKey: string, chars: Record<string, number>): number {
