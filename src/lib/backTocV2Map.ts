@@ -1,6 +1,7 @@
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
 import type { StabilitySource, MainPosition, AdditionalPosition, ContactV2, Backstory } from '@/types/character'
 import { DRIVES } from '@/data/drivePillars'
+import { TIERS } from '@/data/wealthV2'
 
 /**
  * Shape consumed by the new offline back card (window.setCardBackData).
@@ -194,24 +195,23 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
     if (line) contacts.push(line)
   }
 
-  /* Defensive: spending_level may be "$50", "50", "50$", or empty. Wealth v2
-     stores it under `spending_free` instead. Normalize to "$X" so the box
-     always has the $ sign. Fallback: extract tier label from [Lifestyle]
-     equipment tag (v2 characters don't populate the spending_level DB field). */
+  /* Normalize spending_level to a dollar amount displayed in the ZASOBY box.
+     Priority: explicit dollar value → tier-label lookup → [Lifestyle]/[Styl życia]
+     equipment tag → tier-label lookup from tag. */
   const spendingDisplay = (() => {
     const extended = char as unknown as { spending_free?: string }
-    const raw = (char.spending_level || extended.spending_free || '').toString().trim()
-    if (raw) {
-      const cleaned = raw.replace(/^\$/, '').replace(/\$$/, '').trim()
-      return cleaned ? `$${cleaned}` : ''
-    }
-    const lifestyleEntry = (char.equipment ?? []).find((e) => e.startsWith('[Lifestyle]'))
-    if (lifestyleEntry) {
-      const stripped = lifestyleEntry.replace(/^\[Lifestyle\]\s*/, '')
-      // "★★··· Przeciętny" → "Przeciętny"
-      return stripped.replace(/^[\s★◆•·]+/, '').trim()
-    }
-    return ''
+    const stored = (char.spending_level || extended.spending_free || '').toString().trim()
+    const raw = stored.startsWith('$') ? stored.slice(1).replace(/\$$/, '').trim()
+              : stored.replace(/\$$/, '').trim()
+    if (/^\d/.test(raw)) return `$${raw}`
+    const label = raw || (() => {
+      const entry = (char.equipment ?? []).find(
+        (e) => e.startsWith('[Lifestyle]') || e.startsWith('[Styl życia]'),
+      )
+      return entry ? entry.replace(/^\[.*?\]\s*/, '').replace(/^[\s★◆•·]+/, '').trim() : ''
+    })()
+    const tier = TIERS.find((t) => t.label === label)
+    return tier ? `$${tier.spending}` : (label ? label : '')
   })()
 
   const cashDisplay = (() => {
