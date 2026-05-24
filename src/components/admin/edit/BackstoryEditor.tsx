@@ -25,7 +25,7 @@ interface BackstoryEditorProps {
 }
 
 export function BackstoryEditor({ backstory, onChange }: BackstoryEditorProps) {
-  const isDrivePillars = !!backstory.drive
+  const isDrivePillars = 'drive' in backstory
 
   if (isDrivePillars) {
     const pillars = (backstory.pillars as string[]) ?? []
