@@ -6,7 +6,6 @@ import { characterToCardFrontData } from '@/lib/cardFrontMap'
 import { characterToCardBackData } from '@/lib/backTocV2Map'
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
-const FULL_URL = `${BASE}/templates/card-v2/card_full.html`
 
 interface Props {
   character: CharacterSheetData
@@ -32,6 +31,10 @@ export function CardV2DownloadButton({ character, variant = 'primary', label }: 
     setBusy(true)
     try {
       iframeRef.current?.remove()
+
+      // Cache-buster ensures fresh HTML templates on every generation,
+      // bypassing browser cache for static files that lack content hashes.
+      const FULL_URL = `${BASE}/templates/card-v2/card_full.html?v=${Date.now()}`
 
       const iframe = document.createElement('iframe')
       iframe.style.position = 'fixed'
