@@ -50,6 +50,12 @@ function starsBadge(weight: number | string): string {
   )
 }
 
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text
+  const cut = text.slice(0, max).replace(/\s+\S*$/, '')
+  return cut + '…'
+}
+
 function formatDrive(backstory: Backstory | Record<string, unknown>): string {
   const driveId = (backstory as Backstory).drive
   const detail = (backstory as Backstory).drive_detail
@@ -236,10 +242,10 @@ export function characterToCardBackData(char: CharacterSheetData): CardBackData 
 
   return {
     appearance_description:
-      String(backstory.appearance_description ?? char.appearance ?? ''),
-    pillars: formatPillars(backstory),
-    sources: formatSources(backstory),
-    drive: formatDrive(backstory),
+      clip(String(backstory.appearance_description ?? char.appearance ?? ''), 400),
+    pillars: clip(formatPillars(backstory), 280),
+    sources: clip(formatSources(backstory), 500),
+    drive: clip(formatDrive(backstory), 220),
     injuries: '',
     tomes: '',
     encounters: '',
