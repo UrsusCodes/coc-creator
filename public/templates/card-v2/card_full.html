@@ -60,13 +60,20 @@
 </div>
 
 <div class="page">
-  <iframe id="frontFrame" class="page-frame" src="card_front.html" title="Przód"></iframe>
+  <iframe id="frontFrame" class="page-frame" title="Przód"></iframe>
 </div>
 <div class="page">
-  <iframe id="backFrame" class="page-frame" src="card_back_toc.html" title="Tył"></iframe>
+  <iframe id="backFrame" class="page-frame" title="Tył"></iframe>
 </div>
 
 <script>
+  /* Cache-bust: append ?v=<timestamp> so browsers never serve stale templates. */
+  (function() {
+    var v = '?v=' + Date.now();
+    document.getElementById('frontFrame').src = 'card_front.html' + v;
+    document.getElementById('backFrame').src  = 'card_back_toc.html' + v;
+  })();
+
   /* Stan gotowości — emitujemy 'card-full:ready' do rodzica gdy oba dzieci się
      załadują I oba zaraportują własną gotowość ('card-front:ready' /
      'card-back-toc:ready'). React czeka na ten sygnał zanim wepchnie dane. */
