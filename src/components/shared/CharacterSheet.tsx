@@ -97,6 +97,8 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
         <div><span className="text-coc-text-muted">Era:</span> {ERA_LABELS[char.era as keyof typeof ERA_LABELS]}</div>
         <div><span className="text-coc-text-muted">Metoda:</span> {METHOD_LABELS[char.method as keyof typeof METHOD_LABELS]}</div>
         {char.distinguisher && <div><span className="text-coc-text-muted">Wyróżnik:</span> {char.distinguisher}</div>}
+        {char.residence && <div><span className="text-coc-text-muted">Miejsce zamieszkania:</span> {char.residence}</div>}
+        {char.birthplace && <div><span className="text-coc-text-muted">Miejsce urodzenia:</span> {char.birthplace}</div>}
       </div>
       {char.appearance && (
         <div className="text-sm">
