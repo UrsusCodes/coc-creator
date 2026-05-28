@@ -114,6 +114,22 @@ _(to be populated)_
 ### Polish / UX
 _(to be populated)_
 
+### Hardening (pre-akta-kasandry coexistence)
+
+> [!note] Context
+> 2026-05-19 — auditing the shared-Supabase decision uncovered two
+> pre-existing RLS gaps that are harmless today (only service-role edge
+> functions touch them) but become exploitable once `auth.users` is populated
+> by Akta Kasandry. See [[TECHNOLOGY_MASTERMIND#Shared Supabase project with akta-kasandry]].
+
+- [ ] **Enable RLS on `public.portrait_feedback`** — migration `010_portrait_feedback.sql` created the table without `ENABLE ROW LEVEL SECURITY`. Default GRANTs let `anon`/`authenticated` read+write directly via the anon key. Add a `service_role`-only policy to match the pattern in `005`/`006`/`012`. Low priority — there is no `authenticated` role in use today; bumps to medium priority the moment Akta Kasandry ships and starts creating `auth.users` rows.
+- [ ] **Enable RLS on `public.portrait_generations`** — same gap, migration `020`. Same fix and same priority tier as above. This table holds rate-limit counters; spam writes from a wiki user would skew per-player limits.
+
+These two are the **only** coc-creator changes needed for Akta Kasandry to coexist safely. Everything else is already isolation-clean (verified 2026-05-19).
+
+> [!info] Integration surface registered 2026-05-20
+> Akta-kasandry's plan landed. They depend on `public.characters` anon SELECT (their `/admin/import-characters` flow snapshots whole rows into `wiki.imported_characters.data`). Documented as a coordinated integration surface in [[INTEGRATIONS]]. Practical impact on this TASK_LIST: **before any future task that tightens `anon_read_characters`, renames/drops columns on `public.characters`, or restricts the `portraits` bucket, ping akta-kasandry side first.** That's not a task — it's a constraint on future tasks.
+
 ## Parking lot (deprioritized / needs decision)
 
 _(empty)_
@@ -123,6 +139,13 @@ _(empty)_
 > [!info]
 > Completions during the current new-version cycle. Older completions live in `docs/TASKLIST.md`.
 
+- **2026-05-28** — **Front B (BUG-064 + BUG-067 + BUG-049) — 4 commits local, awaiting push.** CONSTANTA-1 managed two workers under Path B:
+  - WORKER #B1 (`7d7ffa0`, `8685270`) — committed residence/birthplace integration (admin BasicInfoEditor + on-screen CharacterSheet display). 80% of integration was already wired in earlier sessions; only the UI surfaces remained.
+  - WORKER #B2 (`da9229e`, `ed68966`) — migration 023 (backfills 8 legacy `Przeciętny`/`Zamożny`/`Biedny` rows to canonical `$N` + adds CHECK constraint), new shared helper `src/lib/spendingLevel.ts`, 5 callsites unified, server-side `/draft` validation. Closes BUG-049 (em-dash final fallback).
+  - Note: BUG-014 (briefing claim that APPROVE_ALLOWLIST missed residence/birthplace) was already fixed in `53a2674` (Etap C). No further action.
+  - Specs: [[specs/birthplace_residence_integration]] + [[specs/spending_level_normalization]].
+  - Recon: [[work/2026-05-28-front-b-recon]].
+  - Status: build green, no `git push`, migration NOT yet applied to live DB. Open in [[operations/COMMAND_LOG#Front B]].
 - **2026-04-22** — Submitted Jakub M's 3 draft characters (Arthur Henry Corwin, Mortimer "Mort" Flannery, James "Jimmy" Harding) via batch admin script. All were on step 12 (review).
 - **2026-04-22** — Plan v2 written at `~/.claude/plans/granular-commits-v2.md` — ready-to-execute when Rafał finishes.
 - **2026-04-22** — Ops scripts added: `scripts/list-drafts.mjs`, `scripts/submit-characters.mjs`.

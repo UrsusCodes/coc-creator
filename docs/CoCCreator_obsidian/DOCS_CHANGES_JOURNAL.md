@@ -12,6 +12,284 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-05-28 — Front B closed: residence/birthplace + spending_level (CONSTANTA-1)
+
+**Focus:** bug-fix campaign Front B under MANAGER CONSTANTA-1 (command chain
+opened this session; see [[operations/COMMAND_LOG]]). Two bug clusters owned:
+BUG-064 (residence/birthplace integration) and BUG-067 (spending_level
+inconsistency), absorbing BUG-049. BONAPARTE-1's briefing also flagged BUG-014
+(admin allowlist gap) but recon proved it was already fixed in `53a2674` (Etap
+C, 2026-04-27) — no further action on that.
+
+**Method:** five-stage manager flow per BONAPARTE-1 doctrine:
+
+1. **Recon** — inventoried DB via `backups/2026-04-27-post-v2-deploy/` (live
+   snapshot tool wanted env vars that weren't in shell — fell back to last
+   committed snapshot). Mapped 5 render paths for `spending_level` and 15+
+   code touch-points for residence/birthplace. Wrote
+   [[work/2026-05-28-front-b-recon]]. Key finding: BUG-064 was ~80% wired in
+   HEAD (store, edge-fn allowlists, NarrativeEditor, wizard StepBasicInfo,
+   PDF map, HTML template placeholders all done); only the admin edit form
+   and on-screen sheet preview were missing — and both already sat in the
+   working tree as uncommitted diffs from a prior session. BUG-067 had three
+   render paths still leaking raw labels after the May 24 hotfixes
+   (`5904e61`, `366a619`): the on-screen `CharacterSheet` Badge, the HTML
+   front card via `cardFrontMap`, and the `.txt` export.
+
+2. **Specs** — drafted two short specs in `specs/`:
+   [[specs/birthplace_residence_integration]] and
+   [[specs/spending_level_normalization]]. Each <400 words with explicit
+   decision table.
+
+3. **Sign-off** — presented 8 decisions (D1–D8) to Pawel via BONAPARTE-1.
+   D1–D4 (residence/birthplace) ratified per recommendation. D5 (spending
+   normalization strategy) overridden: GENERAL chose **Path B** (DB migration
+   + CHECK constraint + helper) over CONSTANTA-1's recommended Path A
+   (render-only helper). Rationale: akta-kasandry contract reads
+   `SELECT * FROM public.characters` straight into `wiki.imported_characters.data`
+   (per [[INTEGRATIONS]]) — legacy labels would leak across the integration
+   boundary; plus BUG-067 has returned twice already after partial render-side
+   hotfixes, so DB normalization closes the door. D6=`$N` pre-symbol confirmed
+   by CONSTANTA-1. D7=`—` em-dash final fallback. D8=server-side `/draft`
+   validation per Path B doctrine. Spec
+   [[specs/spending_level_normalization]] rewritten to Path B before
+   dispatch.
+
+4. **Dispatch** — two workers dispatched **sequentially** (not parallel)
+   because both touch `src/components/shared/CharacterSheet.tsx` at different
+   sections, and worktree-merge for two commits was overkill:
+   - WORKER #B1 — committed the two uncommitted local diffs as two
+     separate commits, build green throughout, 5–10 min turnaround.
+   - WORKER #B2 — wrote migration 023, new helper, edited 5 callsites,
+     added server validation, 2 commits, build green throughout. Snapshot
+     attempt failed gracefully (missing env vars per same constraint as
+     CONSTANTA-1 hit during recon); worker used the 2026-04-27 baseline as
+     comparison.
+
+5. **QA + closing report** — spot-checked all 4 commits via `git show --stat`
+   and `git log --oneline`; read full diff of migration and helper. Drafted
+   Polish smoke-test plan for Pawel to execute pre-push. Updated vault
+   (this entry + [[TASK_LIST]] + [[operations/COMMAND_LOG]]).
+
+**Commits landed (all local on master — no push, per command-chain
+protocol):**
+
+| SHA | Subject | Files |
+|---|---|---|
+| `7d7ffa0` | feat(admin-edit): expose residence + birthplace inputs (BUG-064) | `BasicInfoEditor.tsx` +4 |
+| `8685270` | feat(sheet): display residence + birthplace on-screen preview (BUG-064) | `CharacterSheet.tsx` +2 |
+| `da9229e` | chore(db): migration 023 — normalize spending_level + CHECK constraint (BUG-067) | `023_spending_level_normalize.sql` +18 |
+| `ed68966` | fix(wealth): unify spending_level rendering + server validation (BUG-067, BUG-049) | 7 files, +89/−68 |
+
+**Decisions captured (long-term):**
+
+- **Format flip on PDF front card**: previously `25$` post-symbol; now `$25`
+  pre-symbol. Intentional per D6 — canonical form is `$N` everywhere. Drives
+  consistency with HTML back card (`backTocV2Map`) which already emitted
+  `$N` pre-symbol. Polish convention is post-symbol but the existing DB
+  majority + integration concerns won.
+- **DB CHECK constraint locks the format**: `spending_level IS NULL OR =
+  '' OR ~ '^\$[0-9]+(\.[0-9]+)?$'`. Future writes that don't match get
+  rejected at write time + server `/draft` endpoint also validates
+  defensively. Two layers of protection against recurrence.
+- **Em-dash `—` final fallback**: visible "missing" signal when raw value
+  is non-empty but unrecognized. Used by `formatSpendingLevel` only —
+  render-side conditional `{char.spending_level && ...}` short-circuits
+  empty/null first.
+
+**Migration NOT yet applied to live DB.** This is gated on push approval —
+admin runs `npx supabase db push` (or equivalent) before deploying the
+frontend, otherwise the constraint is missing on prod but render still safe
+via helper's legacy-label fallback.
+
+**Open items for GENERAL/Pawel push decision:**
+
+- Bundled push of Front A (3 commits) + Front B (4 commits) = 7 commits.
+- Sequence: (a) apply migration 023 to live DB, (b) verify via
+  `snapshot-characters.mjs` + `verify-characters-post-migration.mjs`, (c)
+  push frontend, GitHub Pages auto-deploys.
+
+**Files changed (vault — this session's writes):**
+
+- `docs/CoCCreator_obsidian/work/2026-05-28-front-b-recon.md` (NEW)
+- `docs/CoCCreator_obsidian/specs/birthplace_residence_integration.md` (NEW)
+- `docs/CoCCreator_obsidian/specs/spending_level_normalization.md` (NEW, status `signed-off`)
+- `docs/CoCCreator_obsidian/operations/COMMAND_LOG.md` — Front B status, decision log
+- `docs/CoCCreator_obsidian/TASK_LIST.md` — "Recently completed" entry
+- `docs/CoCCreator_obsidian/DOCS_CHANGES_JOURNAL.md` — this entry
+- `docs/CoCCreator_obsidian/work/Index.md` — link to new recon note
+
+---
+
+## 2026-05-20 — Akta-kasandry plan landed: integration surface registered
+
+**Context:** akta-kasandry side delivered their `SUPABASE_AND_SYNC.md` —
+schema (`wiki.profiles`, `wiki.pages`, `wiki.revisions`, `wiki.pins`,
+`wiki.imported_characters`), RLS, sync pipeline, migration order. Explicitly
+calls out one cross-project read: `SELECT * FROM public.characters` via the
+existing `anon_read_characters` policy, snapshotted into
+`wiki.imported_characters.data` (jsonb) at admin trigger time.
+
+**Verdict after cross-checking against the handoff [[work/akta-kasandry-handoff]]:**
+aligned on every point of the isolation contract — `wiki` schema only, no FKs
+to `public.*`, no edge function reuse, trigger on `auth.users INSERT` writes
+only to `wiki.profiles`, no `supabase.auth.*` consumption asked of us.
+
+**Done this session (docs only — no app code touched):**
+
+- **NEW `docs/CoCCreator_obsidian/INTEGRATIONS.md`** — formal registry of
+  cross-project surfaces. Lists what akta-kasandry reads, what they don't,
+  what triggers coordination. Currently one consumer (`public.characters`
+  via anon SELECT, `portraits` bucket via public read). "Coordination
+  triggers" section lists four operations on coc-creator side that need a
+  ping-before-push to akta-kasandry.
+- **`TECHNOLOGY_MASTERMIND.md`** — Shared-Supabase section gained a final
+  subsection "Documented integration surfaces" pointing at INTEGRATIONS.md.
+  Short version of the constraint inline.
+- **`TASK_LIST.md`** — Hardening section gained an info callout noting that
+  the integration surface is now registered; future tasks tightening
+  `anon_read_characters` / `public.characters` columns / `portraits` bucket
+  must coordinate.
+- **`work/akta-kasandry-handoff.md`** — appended "Update 2026-05-20 —
+  akta-kasandry's plan reviewed". Records: verdict aligned + 4 things we
+  flagged back (whole-row jsonb brittleness, migration table collision
+  reminder, stale-URL caveat on portraits, `anon_read_characters` is now a
+  load-bearing public API).
+
+**Flagged back to akta-kasandry side (no blocker for them):**
+
+1. `select *` snapshot of `public.characters` is forward-risky. Today's
+   columns are character data only (no secrets), but a future column with
+   PII or a secret would leak silently into `wiki.imported_characters.data`.
+   Recommend explicit allowlist in their snapshot extractor.
+2. Migration table (`supabase_migrations.schema_migrations`) is shared with
+   coc-creator. Their plan to "apply each migration in a separate file with
+   GM pause between" implies manual application — confirmed safe as long as
+   `supabase db push` is never run from akta-kasandry's repo.
+3. Portrait URLs in `wiki.imported_characters.portrait_url` are snapshots.
+   coc-creator-side deletes/moves leave wiki with broken images. Their
+   "imported (stale)" state catches data drift but not URL drift. Admin
+   re-imports as needed. We won't proactively ping on portrait reshuffles.
+4. `anon_read_characters` RLS was internal yesterday, is a public API today
+   — they should treat it as such on their side, and we treat coordination
+   on it as binding.
+
+**Decisions:**
+
+- **Stay with No-SSO (option #1 from handoff section E).** They're going
+  Supabase Auth on their side without bridging into coc-creator's bcrypt
+  accounts. coc-creator's auth stays untouched. Per-app login is the
+  accepted UX trade.
+- **`public.characters` shape is now stable contract.** Adding columns is
+  fine (their `select *` will just snapshot them too). Renaming, removing,
+  or repurposing columns requires coordination.
+- **No new tasks on coc-creator side.** The two RLS gaps already in
+  [[TASK_LIST#Hardening (pre-akta-kasandry coexistence)]] remain the only
+  outstanding hardening work.
+
+**Files changed:**
+- `docs/CoCCreator_obsidian/INTEGRATIONS.md` (NEW)
+- `docs/CoCCreator_obsidian/TECHNOLOGY_MASTERMIND.md`
+- `docs/CoCCreator_obsidian/TASK_LIST.md`
+- `docs/CoCCreator_obsidian/work/akta-kasandry-handoff.md`
+
+---
+
+## 2026-05-19 — Audit: sharing Supabase project with `akta-kasandry`
+
+**Focus:** decision came in to start a second app ("Akta Kasandry" — RPG wiki/CMS
+for the "Rozdarte Sumienie" campaign, separate repo + GitHub Pages deploy) and
+share the existing Supabase project (`okbrsoomtomexilxxsyd`) with it, because
+the free-tier limit of 2 projects per org is already taken. Akta Kasandry will
+use its own Postgres schema (`wiki`), its own storage bucket (`wiki-attachments`),
+and — unlike coc-creator — **will** use Supabase Auth.
+
+Task this session: evaluate impact on coc-creator. No code changes to the app.
+
+**Audit method:**
+- Dispatched two parallel `Explore` agents over `supabase/migrations/*.sql`,
+  `supabase/functions/`, and `src/`.
+- Wrote `scripts/check-supabase-usage.mjs` (new, read-only diagnostic) and
+  ran it against live DB to measure current usage and confirm `auth.users` is
+  empty.
+
+**Findings (matrix in [[TECHNOLOGY_MASTERMIND#Shared Supabase project with akta-kasandry]]):**
+
+1. **Supabase Auth is unused by coc-creator.** Zero `auth.uid()`,
+   `auth.users`, or `supabase.auth.*` references anywhere. Player auth =
+   bcrypt + invite codes (custom JWT in `localStorage.player_token`). Admin
+   auth = `X-Admin-Password` env-var header. Confirmed `auth.users` count is
+   `0` rows on the live DB.
+2. **All public RLS policies are `anon`-scoped or `service_role`-only.** No
+   policy grants `authenticated`. Adding wiki users (who land in the
+   `authenticated` role) does NOT widen access to coc-creator data.
+3. **No `auth.users` triggers exist.** Wiki signups will not create rows in
+   `public.*`.
+4. **All edge functions use `SUPABASE_SERVICE_ROLE_KEY`** and bypass RLS.
+   RLS is a defense-in-depth layer; actual access control lives in function
+   code (admin password / player JWT / share token).
+5. **Frontend never reads `supabase.auth.*`.** A user with a valid akta-kasandry
+   session in the same browser opens coc-creator and is treated as anonymous.
+   No crash, no leakage.
+6. **No realtime subscriptions in `src/`.** Only Zustand store subscriptions
+   (unrelated). Wiki write activity can't page coc-creator clients.
+7. **Storage `portraits` bucket is already public-read + anon-upload.** UUID
+   path obscurity is the only privacy layer. Akta Kasandry doesn't change the
+   threat model — wiki users already had this level of access as anon.
+
+**Two pre-existing RLS gaps to close** (independent of akta-kasandry, but bumps
+priority once `auth.users` starts populating):
+
+- `public.portrait_feedback` (migration `010_portrait_feedback.sql`) — no
+  `ENABLE ROW LEVEL SECURITY`. Default GRANTs let anon read+write via anon key.
+- `public.portrait_generations` (migration `020_portrait_generations.sql`) —
+  same gap. Holds rate-limit counters; cross-tenant spam writes could skew
+  per-player limits.
+
+Both tracked in [[TASK_LIST#Hardening (pre-akta-kasandry coexistence)]]. Low
+priority today (only service-role edge functions touch them), medium once Akta
+Kasandry ships.
+
+**Live usage measured 2026-05-19:**
+
+- DB: 13 MB / 500 MB (2.6%). Public schema = 1.3 MB.
+- Storage: 55 MB / 1 GB (5.5%). 28 portrait objects.
+- `auth.users`: 0 rows.
+
+Headroom for wiki: ~487 MB DB, ~945 MB storage. Markdown is cheap (~30 KB per
+5000-word page); the realistic constraint is `wiki-attachments` if the GM
+uploads many high-res maps/handouts.
+
+**Files changed:**
+- `docs/CoCCreator_obsidian/TECHNOLOGY_MASTERMIND.md` — new section
+  "Shared Supabase project with `akta-kasandry`": audit matrix, isolation
+  contract, do-not list, capacity numbers, verification recipe.
+- `docs/CoCCreator_obsidian/TASK_LIST.md` — new "Hardening
+  (pre-akta-kasandry coexistence)" section with the two RLS gap tasks.
+- `scripts/check-supabase-usage.mjs` (NEW) — read-only diagnostic; queries
+  `pg_database_size`, schema sizes, top tables, `storage.objects` totals per
+  bucket, and `auth.users` count. Use this for periodic spot-checks once
+  akta-kasandry is live.
+
+**Decisions:**
+- **Go-ahead for Akta Kasandry as second tenant** on `okbrsoomtomexilxxsyd`.
+  No defensive code changes required in coc-creator before akta-kasandry can
+  start. The two RLS gaps are queued in TASK_LIST and should be addressed
+  before akta-kasandry's first production deploy, not before its repo init.
+- **Isolation contract** (TECHNOLOGY_MASTERMIND): schemas, buckets, and edge
+  functions are walls. No cross-schema FKs, no cross-schema queries from
+  edge functions. `auth.users` is owned by akta-kasandry; coc-creator MUST
+  NOT start reading `auth.uid()` without re-evaluating this contract.
+
+**Out of scope (not touched):**
+- coc-creator application code.
+- Akta Kasandry repo / migrations / RLS design (lives in the other repo when
+  it exists).
+- Backup strategy update beyond the note that `pg-dump-all.mjs` only dumps
+  `public` and akta-kasandry needs its own dump tooling.
+
+---
+
 ## 2026-04-28 — v2.0 stabilization: 8 hotfixes + UX polish
 
 **Focus:** browser smoke testing the live v2.0 stack uncovered six bugs and
