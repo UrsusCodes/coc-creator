@@ -111,6 +111,42 @@ export function StepAgingPenalties() {
     )
   }
 
+  // Back-step into an already-committed aging step: server rejects re-commit
+  // with 409, so render a read-only summary and let the player advance.
+  // Edits require Przerzut (full hard-zone wipe).
+  if (committed) {
+    const displayedStats = allowedStats.length > 0
+      ? allowedStats
+      : (Object.keys(chars) as CharacteristicKey[])
+    return (
+      <Card title="Obniżenia wiekowe">
+        <p className="text-sm text-coc-accent-light mb-4">
+          Obniżenia wiekowe zostały już zatwierdzone. Aby je zmienić, użyj
+          „Przerzut" w pasku u góry.
+        </p>
+        {displayedStats.length > 0 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
+            {displayedStats.map((key) => (
+              <div
+                key={key}
+                className="text-center py-2 rounded-lg border border-coc-border bg-coc-surface-light"
+              >
+                <div className="text-xs text-coc-text-muted">
+                  {CHARACTERISTIC_MAP[key]?.abbreviation ?? key}
+                </div>
+                <div className="text-lg font-bold font-mono">{chars[key] ?? '—'}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex justify-between pt-2">
+          <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
+          <Button onClick={() => store.nextStep()}>Dalej</Button>
+        </div>
+      </Card>
+    )
+  }
+
   if (requiredTotal === 0) {
     return (
       <Card title="Obniżenia wiekowe">
