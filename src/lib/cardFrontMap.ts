@@ -5,6 +5,7 @@ import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { getSkillBase, getBaseSkillId, getSpecialization } from '@/data/skills'
 import { halfValue, fifthValue } from '@/lib/utils'
+import { formatSpendingLevel } from '@/lib/spendingLevel'
 
 /** Shape consumed by new HTML front (window.setCharacter). Mirrors INTEGRATION.md §2.1. */
 export interface CardFrontData {
@@ -269,12 +270,8 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
   const unikPoints = (char.occupation_skill_points['unik'] ?? 0) + (char.personal_skill_points['unik'] ?? 0)
   const dodgeTotal = (derived?.dodge ?? Math.floor((chars['DEX'] ?? 0) / 2)) + unikPoints
 
-  // Spending level: legacy stores raw "$X"; new card just shows the val. Strip leading "$" so the field looks tidy in the small box.
-  const spendingDisplay = char.spending_level
-    ? char.spending_level.startsWith('$')
-      ? char.spending_level.slice(1) + '$'
-      : char.spending_level
-    : ''
+  // Spending level: canonical $N pre-symbol form via shared helper. Returns "—" on unknown input.
+  const spendingDisplay = formatSpendingLevel(char.spending_level ?? '', char.equipment ?? [])
   const cashDisplay = (() => {
     if (!char.cash) return ''
     const m = char.cash.match(/Gotówka:\s*(.+?)(?:\s*\||$)/)

@@ -3,6 +3,7 @@ import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
+import { formatSpendingLevel } from '@/lib/spendingLevel'
 
 const CHAR_KEYS: CharacteristicKey[] = ['STR', 'CON', 'SIZ', 'DEX', 'APP', 'INT', 'POW', 'EDU']
 
@@ -133,7 +134,7 @@ export function exportCharacterAsText(char: ExportCharacter): string {
   // Equipment
   if (char.equipment.length > 0) {
     lines.push('───── EKWIPUNEK ─────')
-    if (char.spending_level) lines.push(`Poziom życia: ${char.spending_level}`)
+    if (char.spending_level) lines.push(`Poziom życia: ${formatSpendingLevel(char.spending_level, char.equipment ?? [])}`)
     if (char.cash) lines.push(`Gotówka: ${char.cash}`)
     if (char.assets) lines.push(`Dobytek: ${char.assets}`)
     lines.push('')

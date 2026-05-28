@@ -1343,6 +1343,15 @@ Deno.serve(async (req: Request) => {
         return errorResponse('wizard_data has no allowed fields', 400)
       }
 
+      // Canonical-form check for spending_level (BUG-067 / D8).
+      // Defensive complement to migration 023's CHECK constraint.
+      if ('spending_level' in filtered) {
+        const sl = filtered.spending_level
+        if (sl !== null && sl !== '' && !/^\$[0-9]+(\.[0-9]+)?$/.test(String(sl))) {
+          return errorResponse(`spending_level must match /^\\$\\d+(\\.\\d+)?$/, got ${JSON.stringify(sl)}`, 400)
+        }
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .update(filtered)

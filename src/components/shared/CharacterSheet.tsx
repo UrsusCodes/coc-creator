@@ -4,6 +4,7 @@ import { OCCUPATIONS } from '@/data/occupations'
 import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
+import { formatSpendingLevel } from '@/lib/spendingLevel'
 import { Badge } from '@/components/ui/Badge'
 import { CharacterDescriptions } from '@/components/shared/CharacterDescriptions'
 import type { StabilitySource, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
@@ -206,7 +207,7 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
           <div className="flex flex-wrap gap-2 mb-2">
             {char.cash && <Badge>Gotówka: {char.cash}</Badge>}
             {char.assets && <Badge>Dobytek: {char.assets}</Badge>}
-            {char.spending_level && <Badge>Poziom życia: {char.spending_level}</Badge>}
+            {char.spending_level && <Badge>Poziom życia: {formatSpendingLevel(char.spending_level, char.equipment)}</Badge>}
           </div>
           <ul className="text-sm space-y-0.5">
             {(() => {
