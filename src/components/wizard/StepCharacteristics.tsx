@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Dices, Loader2 } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
 import { usePlayerStore } from '@/stores/playerStore'
@@ -29,12 +29,23 @@ export function StepCharacteristics() {
   const [chars, setChars] = useState<Partial<Characteristics>>(initialChars)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Tracks whether the user has typed into any of the inputs since arriving
+  // at this step. Used to avoid clobbering in-progress manual edits when the
+  // server snapshot lands late (WizardShell GET refetches on step transitions).
+  const userTouchedRef = useRef(false)
 
-  // Re-sync local state when server character refreshes (e.g. after reroll).
+  // Re-sync local state from the server snapshot, but only when it is safe:
+  //  • The user has not yet touched the inputs (initial load, back-step), OR
+  //  • A fresh commit has landed (characteristics_committed_at is set —
+  //    after Zatwierdź or after Przerzut).
+  // Otherwise the late-arriving GET response from WizardShell wipes whatever
+  // the user has already typed on the direct/point-buy path.
   useEffect(() => {
-    if (serverCharacter?.characteristics) {
-      setChars(serverCharacter.characteristics)
-    }
+    if (!serverCharacter?.characteristics) return
+    const committed = !!serverCharacter.characteristics_committed_at
+    if (!committed && userTouchedRef.current) return
+    setChars(serverCharacter.characteristics)
+    if (committed) userTouchedRef.current = false
   }, [serverCharacter?.characteristics, serverCharacter?.characteristics_committed_at])
 
   // Standard edit mode: readonly view, just allow proceeding.
@@ -93,6 +104,7 @@ export function StepCharacteristics() {
 
   const setStat = (key: CharacteristicKey, value: number) => {
     if (isCommitted) return
+    userTouchedRef.current = true
     setChars((prev) => ({ ...prev, [key]: value }))
   }
 
