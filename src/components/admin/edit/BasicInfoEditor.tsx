@@ -12,6 +12,8 @@ interface BasicInfoEditorProps {
     status: string
     occupation_id: string
     distinguisher?: string
+    residence?: string
+    birthplace?: string
   }
   onChange: (field: string, value: string | number) => void
 }
@@ -34,6 +36,8 @@ export function BasicInfoEditor({ data, onChange }: BasicInfoEditorProps) {
         <Input label="Płeć" value={data.gender} onChange={(e) => onChange('gender', e.target.value)} />
         <Select label="Status" value={data.status} options={STATUS_OPTIONS} onChange={(e) => onChange('status', e.target.value)} />
         <Select label="Zawód" value={data.occupation_id} options={occupationOptions} onChange={(e) => onChange('occupation_id', e.target.value)} />
+        <Input label="Miejsce zamieszkania" value={data.residence ?? ''} onChange={(e) => onChange('residence', e.target.value)} />
+        <Input label="Miejsce urodzenia" value={data.birthplace ?? ''} onChange={(e) => onChange('birthplace', e.target.value)} />
         <div>
           <label className="block text-sm font-medium text-coc-text-muted mb-1">Wyróżnik</label>
           <div className="px-3 py-2 bg-coc-surface-light border border-coc-border rounded-lg text-coc-text text-sm">
