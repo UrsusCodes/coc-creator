@@ -226,8 +226,12 @@ export function WizardShell({ editMode = false }: WizardShellProps) {
     ) {
       target += goingForward ? 1 : -1
     }
-    lastStepRef.current = target
-    setStep(target)
+    // Clamp to a valid step index — the loop above can leave `target` one past
+    // either end (e.g. all remaining forward steps were skippable, or backward
+    // skip reached step 0). setStep(out-of-range) renders a blank component.
+    const clamped = Math.max(0, Math.min(target, STEP_COMPONENTS.length - 1))
+    lastStepRef.current = clamped
+    setStep(clamped)
   }, [currentStep, serverCharacter, editLevel, setStep, STEP_COMPONENTS.length])
 
   // In edit/draft mode: step is already set by load action; skip resetting.
