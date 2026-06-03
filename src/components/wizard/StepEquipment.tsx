@@ -20,6 +20,13 @@ export function StepEquipment() {
   const majetnosc = Math.min(80, creditRating)
   const hasBlackMarket = store.perks.includes('black_market')
   const hasMilitary = store.perks.includes('military_gear')
+  // Era-filtered equipment catalog (WW items only visible to wild_west characters and vice versa).
+  // Null era falls back to classic_1920s (legacy default).
+  const charEra = store.era ?? 'classic_1920s'
+  const equipmentCatalog = useMemo(
+    () => EQUIPMENT_CATALOG_V2.filter((it) => !it.era || it.era.includes(charEra)),
+    [charEra],
+  )
   const { tier, spending, assets, cash } = calcBaseWealth(majetnosc)
 
   // ── State ──
@@ -413,7 +420,7 @@ export function StepEquipment() {
 
           {/* Categories */}
           {Object.entries(EQUIPMENT_CATEGORY_LABELS).map(([catId, catLabel]) => {
-            const items = EQUIPMENT_CATALOG_V2.filter((i) => i.category === catId)
+            const items = equipmentCatalog.filter((i) => i.category === catId)
             const filtered = searchQuery
               ? items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
               : items
