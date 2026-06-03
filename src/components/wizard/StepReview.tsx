@@ -10,7 +10,7 @@ import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { LOKUM_OPTIONS, TRANSPORT_STYLES, LIFESTYLE_LEVELS, ASSET_FORMS } from '@/data/wealthV2'
-import { ERA_LABELS, type CharacteristicKey } from '@/types/common'
+import { ERA_LABELS, type CharacteristicKey, type Era } from '@/types/common'
 import type { Characteristics } from '@/types/character'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -88,6 +88,7 @@ export function StepReview() {
   const error = granularError ?? legacyError
 
   const chars = store.characteristics as Characteristics
+  const era = (store.era ?? 'classic_1920s') as Era
   const occupation = OCCUPATIONS.find((o) => o.id === store.occupationId)
 
   const allSkillPoints = { ...store.occupationSkillPoints }
@@ -96,7 +97,7 @@ export function StepReview() {
   }
 
   const getBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, era)
     if (base === 'half_dex') return Math.floor((chars.DEX ?? 0) / 2)
     if (base === 'edu') return chars.EDU ?? 0
     return base

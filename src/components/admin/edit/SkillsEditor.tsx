@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { Plus, X, ArrowRightLeft } from 'lucide-react'
 import { SKILLS, getSkillDisplayName, getSkillBase, getBaseSkillId } from '@/data/skills'
+import type { Era } from '@/types/common'
 
 interface SkillsEditorProps {
   occupationSkillPoints: Record<string, number>
   personalSkillPoints: Record<string, number>
   characteristics: Record<string, number>
+  /** Character's era — drives `getSkillBase` so era-specific base values (e.g. WW Jeździectwo 15) display correctly. */
+  era?: Era
   onChange: (skillId: string, totalValue: number) => void
   onDelete?: (skillId: string) => void
   onTransfer?: (fromSkillId: string, toSkillId: string, points: number) => void
 }
 
-export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, characteristics, onChange, onDelete, onTransfer }: SkillsEditorProps) {
+export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, characteristics, era, onChange, onDelete, onTransfer }: SkillsEditorProps) {
   const [showAdd, setShowAdd] = useState(false)
   const [showTransfer, setShowTransfer] = useState(false)
   const [addSkillId, setAddSkillId] = useState('')
@@ -27,7 +30,7 @@ export function SkillsEditor({ occupationSkillPoints, personalSkillPoints, chara
   }
 
   const getBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, era)
     if (base === 'half_dex') return Math.floor((characteristics['DEX'] ?? 0) / 2)
     if (base === 'edu') return characteristics['EDU'] ?? 0
     return base

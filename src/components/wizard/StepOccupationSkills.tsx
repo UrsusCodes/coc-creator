@@ -17,8 +17,8 @@ interface SkillOption {
   base: number | 'half_dex' | 'edu'
 }
 
-function getBaseValue(skillId: string, chars: Partial<Characteristics>): number {
-  const base = getSkillBase(skillId)
+function getBaseValue(skillId: string, chars: Partial<Characteristics>, era: Era): number {
+  const base = getSkillBase(skillId, era)
   if (base === 'half_dex') return Math.floor((chars.DEX ?? 0) / 2)
   if (base === 'edu') return chars.EDU ?? 0
   return base
@@ -149,7 +149,7 @@ export function StepOccupationSkills() {
     }
 
     const current = skillPoints[skillId] ?? 0
-    const base = getBaseValue(skillId, chars)
+    const base = getBaseValue(skillId, chars, era)
     const maxForSkill = skillId === 'majetnosc'
       ? Math.max(0, (wealthCeiling ?? occupation?.credit_rating.max ?? maxSkillValue) - base)
       : Math.max(0, maxSkillValue - base)
@@ -176,7 +176,7 @@ export function StepOccupationSkills() {
   // we relax the hard occupation-range gate into a soft warning — admin
   // explicitly opted into the ceiling, so the character may legitimately
   // sit outside the typical range for the chosen occupation.
-  const creditRatingBase = getBaseValue('majetnosc', chars)
+  const creditRatingBase = getBaseValue('majetnosc', chars, era)
   const creditRatingTotal = creditRatingBase + creditRatingPoints
   const wealthCeilingActive = wealthCeiling !== null
   const inOccupationRange =
@@ -208,10 +208,10 @@ export function StepOccupationSkills() {
         <SkillRow
           key={parsed.id}
           name={skill.name}
-          baseValue={getBaseValue(parsed.id, chars)}
+          baseValue={getBaseValue(parsed.id, chars, era)}
           addedPoints={skillPoints[parsed.id] ?? 0}
           onPointsChange={(d) => handlePointChange(parsed.id, d)}
-          maxAdd={maxSkillValue - getBaseValue(parsed.id, chars)}
+          maxAdd={maxSkillValue - getBaseValue(parsed.id, chars, era)}
         />
       )
     }
@@ -228,10 +228,10 @@ export function StepOccupationSkills() {
           <SkillRow
             key={compositeKey}
             name={getSkillDisplayName(compositeKey)}
-            baseValue={getBaseValue(compositeKey, chars)}
+            baseValue={getBaseValue(compositeKey, chars, era)}
             addedPoints={skillPoints[compositeKey] ?? 0}
             onPointsChange={(d) => handlePointChange(compositeKey, d)}
-            maxAdd={maxSkillValue - getBaseValue(compositeKey, chars)}
+            maxAdd={maxSkillValue - getBaseValue(compositeKey, chars, era)}
           />
         )
       }
@@ -348,10 +348,10 @@ export function StepOccupationSkills() {
           {actualKey && (
             <SkillRow
               name={getSkillDisplayName(actualKey)}
-              baseValue={getBaseValue(actualKey, chars)}
+              baseValue={getBaseValue(actualKey, chars, era)}
               addedPoints={skillPoints[actualKey] ?? 0}
               onPointsChange={(d) => handlePointChange(actualKey, d)}
-              maxAdd={maxSkillValue - getBaseValue(actualKey, chars)}
+              maxAdd={maxSkillValue - getBaseValue(actualKey, chars, era)}
             />
           )}
         </div>
@@ -380,7 +380,7 @@ export function StepOccupationSkills() {
                 .filter((k) => !usedIds.has(k) || k === chosenId)
                 .map((k) => (
                   <option key={k} value={k}>
-                    {getSkillDisplayName(k)} ({formatBase(getSkillBase(k))}%)
+                    {getSkillDisplayName(k)} ({formatBase(getSkillBase(k, era))}%)
                   </option>
                 ))
               }
@@ -390,10 +390,10 @@ export function StepOccupationSkills() {
           {chosenId && (
             <SkillRow
               name={getSkillDisplayName(chosenId)}
-              baseValue={getBaseValue(chosenId, chars)}
+              baseValue={getBaseValue(chosenId, chars, era)}
               addedPoints={skillPoints[chosenId] ?? 0}
               onPointsChange={(d) => handlePointChange(chosenId, d)}
-              maxAdd={maxSkillValue - getBaseValue(chosenId, chars)}
+              maxAdd={maxSkillValue - getBaseValue(chosenId, chars, era)}
             />
           )}
         </div>
@@ -435,10 +435,10 @@ export function StepOccupationSkills() {
         {chosenId && (
           <SkillRow
             name={getSkillDisplayName(chosenId)}
-            baseValue={getBaseValue(chosenId, chars)}
+            baseValue={getBaseValue(chosenId, chars, era)}
             addedPoints={skillPoints[chosenId] ?? 0}
             onPointsChange={(d) => handlePointChange(chosenId, d)}
-            maxAdd={maxSkillValue - getBaseValue(chosenId, chars)}
+            maxAdd={maxSkillValue - getBaseValue(chosenId, chars, era)}
           />
         )}
       </div>

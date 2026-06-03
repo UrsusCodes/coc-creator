@@ -10,7 +10,7 @@ import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { DRIVES } from '@/data/drivePillars'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { formatSpendingLevel } from '@/lib/spendingLevel'
-import type { CharacteristicKey } from '@/types/common'
+import type { CharacteristicKey, Era } from '@/types/common'
 import type { CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
 
 const BASE = import.meta.env.BASE_URL ?? '/'
@@ -235,8 +235,8 @@ const CHAR_KEY_MAP: Record<string, CharacteristicKey> = {
   char_siz: 'SIZ', char_int: 'INT',
 }
 
-function resolveBase(skillKey: string, chars: Record<string, number>): number {
-  const base = getSkillBase(skillKey)
+function resolveBase(skillKey: string, chars: Record<string, number>, era?: Era): number {
+  const base = getSkillBase(skillKey, era)
   if (base === 'half_dex') return Math.floor((chars['DEX'] ?? 0) / 2)
   if (base === 'edu') return chars['EDU'] ?? 0
   return base
@@ -395,8 +395,9 @@ function buildWeaponEntry(
   name: string, skillId: string, damage: string, range: string,
   attacksPerRound: string, ammo: number | null | undefined, malfunction: number | undefined,
   chars: Record<string, number>, allSkillPoints: Record<string, number>,
+  era?: Era,
 ): ParsedEquipment['weapons'][0] {
-  const skillBase = resolveBase(skillId, chars)
+  const skillBase = resolveBase(skillId, chars, era)
   const skillPoints = allSkillPoints[skillId] ?? 0
   const total = skillBase + skillPoints
   return {
@@ -419,6 +420,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
   const lifestyleV2: string[] = []
   const lifestyleV1: string[] = []
   const weapons: ParsedEquipment['weapons'] = []
+  const era = char.era as Era | undefined
 
   // Merge skill points for weapon skill lookup
   const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }
@@ -447,7 +449,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
         weapons.push(buildWeaponEntry(
           weapon.name, weapon.skill_id, weapon.damage, weapon.range,
           weapon.attacks_per_round, weapon.ammo, weapon.malfunction,
-          char.characteristics, allSkillPoints,
+          char.characteristics, allSkillPoints, era,
         ))
         continue
       }
@@ -458,7 +460,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
         weapons.push(buildWeaponEntry(
           weaponV2.name, weaponV2.skillId, weaponV2.damage, weaponV2.range,
           '1', weaponV2.ammo, weaponV2.malfunction,
-          char.characteristics, allSkillPoints,
+          char.characteristics, allSkillPoints, era,
         ))
         continue
       }
@@ -469,7 +471,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
         weapons.push(buildWeaponEntry(
           bmItem.name, bmItem.skillId, bmItem.damage ?? '', bmItem.range ?? '',
           '1', bmItem.ammo, bmItem.malfunction,
-          char.characteristics, allSkillPoints,
+          char.characteristics, allSkillPoints, era,
         ))
         continue
       }
@@ -497,7 +499,7 @@ function parseEquipment(char: ExportCharacter): Record<string, string> {
       weapons.push(buildWeaponEntry(
         weapon.name, weapon.skill_id, weapon.damage, weapon.range,
         weapon.attacks_per_round, weapon.ammo, weapon.malfunction,
-        char.characteristics, allSkillPoints,
+        char.characteristics, allSkillPoints, era,
       ))
     } else {
       equip.push(item)
@@ -619,6 +621,7 @@ function matchSpecializations(char: ExportCharacter): Record<string, string> {
 // ── PDF Generation ──
 
 export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<Uint8Array> {
+  const era = char.era as Era | undefined
   const pdfDoc = await PDFDocument.create()
   pdfDoc.registerFontkit(fontkit)
 
@@ -797,7 +800,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
           if (row.type === 'fixed') {
             const points = allSkillPoints[row.skillId] ?? 0
             if (points > 0) {
-              const base = resolveBase(row.skillId, char.characteristics)
+              const base = resolveBase(row.skillId, char.characteristics, era)
               totalValue = base + points
               hasPoints = true
             }
@@ -810,7 +813,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
             const slotIdx = parseInt(row.skillId.match(/_open(\d)$/)?.[1] ?? '0') - 1
             if (slotIdx >= 0 && slotIdx < charSpecs.length) {
               const specKey = charSpecs[slotIdx]
-              const base = resolveBase(specKey, char.characteristics)
+              const base = resolveBase(specKey, char.characteristics, era)
               totalValue = base + allSkillPoints[specKey]
               hasPoints = true
             }
@@ -849,7 +852,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
     if (skillRowsV2) {
       for (const row of skillRowsV2) {
         const points = allSkillPoints[row.skillKey] ?? 0
-        const base = resolveBase(row.skillKey, char.characteristics)
+        const base = resolveBase(row.skillKey, char.characteristics, era)
         const total = base + points
         if (total === 0) continue
         if (points > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
@@ -882,7 +885,7 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
           if (slotIdx >= 0 && slotIdx < charSpecs.length) resolvedKey = charSpecs[slotIdx]
         }
         if (!resolvedKey) continue
-        const total = resolveBase(resolvedKey, char.characteristics) + (allSkillPoints[resolvedKey] ?? 0)
+        const total = resolveBase(resolvedKey, char.characteristics, era) + (allSkillPoints[resolvedKey] ?? 0)
         if (total === 0) continue
         if ((allSkillPoints[resolvedKey] ?? 0) > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
         drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)

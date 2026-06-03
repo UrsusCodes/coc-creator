@@ -2,7 +2,7 @@ import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { OCCUPATIONS } from '@/data/occupations'
 import { DRIVES } from '@/data/drivePillars'
-import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
+import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey, type Era } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { formatSpendingLevel } from '@/lib/spendingLevel'
 import { Badge } from '@/components/ui/Badge'
@@ -75,7 +75,7 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
   }
 
   const getBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, char.era as Era)
     if (base === 'half_dex') return Math.floor((char.characteristics['DEX'] ?? 0) / 2)
     if (base === 'edu') return char.characteristics['EDU'] ?? 0
     return base

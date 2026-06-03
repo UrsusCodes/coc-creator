@@ -17,6 +17,7 @@ import { EquipmentEditor } from '@/components/admin/edit/EquipmentEditor'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { CardV2DownloadButton } from '@/components/shared/CardV2DownloadButton'
 import type { HistoryEntry } from '@/types/character'
+import type { Era } from '@/types/common'
 
 export function SharedCharacterPage() {
   const { token } = useParams<{ token: string }>()
@@ -101,7 +102,7 @@ export function SharedCharacterPage() {
 
   const handleSkillChange = (skillId: string, totalValue: number) => {
     if (!editData) return
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, editData.era as Era)
     let baseVal: number
     if (base === 'half_dex') baseVal = Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
     else if (base === 'edu') baseVal = editData.characteristics['EDU'] ?? 0
@@ -201,6 +202,7 @@ export function SharedCharacterPage() {
               occupationSkillPoints={editData.occupation_skill_points}
               personalSkillPoints={editData.personal_skill_points}
               characteristics={editData.characteristics}
+              era={editData.era as Era}
               onChange={handleSkillChange}
             />
             <BackstoryEditor

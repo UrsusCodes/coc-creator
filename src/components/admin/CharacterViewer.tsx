@@ -7,6 +7,7 @@ import {
   adminAssignCharacterToPlayer, adminGetPlayers, adminEnhancePrompt,
 } from '@/lib/admin'
 import { getSkillBase } from '@/data/skills'
+import type { Era } from '@/types/common'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -102,7 +103,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
   }
 
   const resolveBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, editData.era as Era)
     if (base === 'half_dex') return Math.floor((editData.characteristics['DEX'] ?? 0) / 2)
     if (base === 'edu') return editData.characteristics['EDU'] ?? 0
     return base
@@ -397,6 +398,7 @@ export function CharacterViewer({ character: char, onBack, onUpdate, initialEdit
               occupationSkillPoints={editData.occupation_skill_points}
               personalSkillPoints={editData.personal_skill_points}
               characteristics={editData.characteristics}
+              era={editData.era as Era}
               onChange={handleSkillChange}
               onDelete={handleSkillDelete}
               onTransfer={handleSkillTransfer}
