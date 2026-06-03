@@ -1263,6 +1263,11 @@ Deno.serve(async (req: Request) => {
     // their commit timestamps) goes through dedicated endpoints. status,
     // method, era, perks, distinguisher, max_skill_value, invite_code_id
     // also blocked — none of those are draft-time mutable.
+    //
+    // Era note (Wild West — Packet 7): the allowlist is era-agnostic. WW
+    // drafts simply leave the wealth (`cash`/`assets`/`spending_level`/
+    // `lifestyle_*`) and positions/contacts fields empty/null because the
+    // wizard auto-skips those steps. No field-level era validation here.
     const DRAFT_ALLOWLIST = new Set([
       // Soft-zone wizard state
       'occupation_id',
@@ -1371,6 +1376,11 @@ Deno.serve(async (req: Request) => {
     // Per plan v2: this endpoint creates a draft with NO mechanical state.
     // Rolling characteristics happens via /roll-characteristics (dice) or
     // /edit-characteristics (point_buy/direct) as a separate commit.
+    //
+    // Era note (Wild West — Packet 7): `inviteCode.era` is copied verbatim
+    // onto the new character row; valid values are constrained by the
+    // `invite_codes_era_check` CHECK constraint (migration 024 extends it
+    // to include `'wild_west'`). No string-literal era check here.
     if (path === '/start-character' && req.method === 'POST') {
       const body = await req.json()
       const { code, distinguisher, method } = body
@@ -2152,13 +2162,24 @@ Deno.serve(async (req: Request) => {
     // ── POST /characters/:id/submit — flip draft → submitted ──────
     // Validates all hard-zone commits are present (for dice flow).
     // For point_buy/direct: only characteristics_committed_at required.
+    //
+    // Era note (Wild West — Packet 7): the current implementation does NOT
+    // validate presence of wealth (`cash`/`assets`/`spending_level`/
+    // `lifestyle_*`) nor positions/contacts (`positions`/`contacts`/
+    // `main_position`/`additional_positions`/`contacts_v2`) at submit time —
+    // those steps live entirely in the wizard UI. If any such presence check
+    // is added later, it MUST be gated by `char.era !== 'wild_west'` since
+    // the wizard auto-skips StepWealth and StepPositionsContacts for WW and
+    // those fields are intentionally left empty/null on WW submissions
+    // (spec: docs/CoCCreator_obsidian/specs/wild_west_variant_spec.md
+    //  → "Edge function" section, "Submission validation").
     const submitMatch = path.match(/^\/characters\/([^/]+)\/submit$/)
     if (submitMatch && req.method === 'POST') {
       const charId = submitMatch[1]
 
       const { data: char, error: charErr } = await supabase
         .from('characters')
-        .select('id, status, method, characteristics_committed_at, age_committed_at, edu_committed_at, aging_committed_at, luck_committed_at, swap_available, swap_used')
+        .select('id, status, method, era, characteristics_committed_at, age_committed_at, edu_committed_at, aging_committed_at, luck_committed_at, swap_available, swap_used')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
@@ -2170,6 +2191,10 @@ Deno.serve(async (req: Request) => {
         return errorResponse('Cechy nie zostały jeszcze zatwierdzone', 409)
       }
       // For dice flow, all per-step commits must be present.
+      // (These commits are mechanical — characteristics/age/EDU/aging/luck/
+      // swap — and apply to every era including wild_west. Wealth/contacts
+      // skip applies to the soft-zone presence checks only; see header
+      // comment above for the rationale.)
       if (char.method === 'dice') {
         const missing: string[] = []
         if (!char.age_committed_at) missing.push('wiek')
