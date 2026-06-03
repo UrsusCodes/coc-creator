@@ -5,6 +5,7 @@ import {
   generatePresets, formatDollars, LOKUM_OPTIONS, TRANSPORT_STYLES, LIFESTYLE_LEVELS,
   ASSET_FORMS, TIERS, type Preset,
 } from '@/data/wealthV2'
+import { calculateWealth, ERAS } from '@/data/eras'
 import { EQUIPMENT_CATALOG_V2, EQUIPMENT_CATEGORY_LABELS } from '@/data/equipmentV2'
 import { WEAPONS_CATALOG_V2, AMMO_CATALOG } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
@@ -20,10 +21,31 @@ export function StepEquipment() {
   const majetnosc = Math.min(80, creditRating)
   const hasBlackMarket = store.perks.includes('black_market')
   const hasMilitary = store.perks.includes('military_gear')
+  // Era-filtered equipment catalog (WW items only visible to wild_west characters and vice versa).
+  // Null era falls back to classic_1920s (legacy default).
+  const charEra = store.era ?? 'classic_1920s'
+  const isWildWest = ERAS[charEra]?.skipWealthStep === true
+  const equipmentCatalog = useMemo(
+    () => EQUIPMENT_CATALOG_V2.filter((it) => !it.era || it.era.includes(charEra)),
+    [charEra],
+  )
+  const weaponsCatalog = useMemo(
+    () => WEAPONS_CATALOG_V2.filter((w) => !w.era || w.era.includes(charEra)),
+    [charEra],
+  )
+  // 1920s/modern/gaslight wealth machinery: lokum + transport + lifestyle presets.
+  // WW path skips this entirely (no housing/lifestyle picker) and uses the
+  // era-aware calculateWealth() helper which returns flat assets/cash/spending
+  // straight from ERAS.wild_west.wealthTable.
   const { tier, spending, assets, cash } = calcBaseWealth(majetnosc)
+  const wwWealth = useMemo(
+    () => (isWildWest ? calculateWealth('wild_west', creditRating) : null),
+    [isWildWest, creditRating],
+  )
 
   // ── State ──
-  const [mode, setMode] = useState<'presets' | 'custom'>('presets')
+  // Wild West has no preset/custom split — only a free-shopping mode.
+  const [mode, setMode] = useState<'presets' | 'custom'>(isWildWest ? 'custom' : 'presets')
   const [lokumId, setLokumId] = useState(store.housingId || '')
   const [lokumOwnership, setLokumOwnership] = useState<'rent' | 'own'>(store.lokumOwnership || 'rent')
   const [hasLokum2, setHasLokum2] = useState(!!store.lokum2Id)
@@ -40,8 +62,11 @@ export function StepEquipment() {
   const [expandedCat, setExpandedCat] = useState<string | null>(null)
   const [presetUsed, setPresetUsed] = useState(store.presetUsed || '')
 
-  // ── Presets ──
-  const presets = useMemo(() => generatePresets(majetnosc), [majetnosc])
+  // ── Presets (1920s-only — WW has no preset chooser) ──
+  const presets = useMemo(
+    () => (isWildWest ? [] : generatePresets(majetnosc)),
+    [isWildWest, majetnosc],
+  )
 
   // ── Computed costs ──
   const lokum = LOKUM_OPTIONS.find((l) => l.id === lokumId) ?? LOKUM_OPTIONS[0]
@@ -58,7 +83,11 @@ export function StepEquipment() {
   const stars = starString(rating)
 
   // ── Equipment budget ──
-  const equipBudget = costs.assetsRemaining + cash
+  // WW: budget = assets from era-aware calculateWealth(); no lokum/lifestyle
+  //     reductions, all of the dobytek is spent on free-shop equipment.
+  // 1920s: pre-existing path — base assets minus housing/transport/lifestyle
+  //     drains, plus the cash float on hand.
+  const equipBudget = isWildWest ? (wwWealth?.assets ?? 0) : costs.assetsRemaining + cash
   const totalSpent = useMemo(() => {
     let total = 0
     for (const item of selectedItems) {
@@ -111,6 +140,44 @@ export function StepEquipment() {
 
   // ── Save & Next ──
   const handleNext = () => {
+    if (isWildWest && wwWealth) {
+      // Wild West path — no lokum/transport/lifestyle, no asset breakdown.
+      // Equipment list is just the picked items + free-form customs. Budget
+      // is the era-table assets value; any unspent dobytek stays as cash on
+      // top of the bracket's cash float (player can carry leftover).
+      const allEquipment = [
+        ...groupedItems.map(({ label }) => label),
+        ...customItems.filter(Boolean).map((item) => `[Ekwipunek] ${item}`),
+      ]
+      const unspent = Math.max(0, wwWealth.assets - totalSpent)
+      const cashRemaining = wwWealth.cash + unspent
+      store.setEquipment(allEquipment)
+      store.setCustomItems(customItems)
+      store.setLifestyle({
+        housingId: '',
+        transportId: '',
+        lifestyleId: '',
+        wealthFormIds: [],
+        cashOnHand: cashRemaining,
+        cash: formatDollars(cashRemaining),
+        assets: formatDollars(wwWealth.assets),
+        spendingLevel: `$${wwWealth.spending}`,
+        lokumOwnership: 'rent',
+        lokum2Id: '',
+        lokum2Ownership: '',
+        transportStyleId: '',
+        assetBreakdown: [],
+        lifestyleRating: 0,
+        lifestyleStars: '',
+        lifestyleLabel: '',
+        spendingFree: `${formatDollars(wwWealth.spending)} / dzień`,
+        catalogsAvailable: ['standard', ...(hasBlackMarket ? ['black_market'] : []), ...(hasMilitary ? ['military'] : [])],
+        presetUsed: '',
+      })
+      store.nextStep()
+      return
+    }
+
     const assetBreakdown = selectedFormIds.map((id) => {
       const form = ASSET_FORMS.find((f) => f.id === id)
       return { type: form?.label ?? id, percent: Math.round(100 / selectedFormIds.length), value: Math.round(perFormValue) }
@@ -157,28 +224,65 @@ export function StepEquipment() {
 
   return (
     <Card title="Majątek i ekwipunek">
-      {/* Summary bar */}
-      <div className="grid grid-cols-4 gap-2 mb-4 text-center">
-        <div className="bg-coc-surface-light rounded-lg p-2">
-          <div className="text-[10px] text-coc-text-muted uppercase">Tier</div>
-          <div className="font-bold">{tier.label}</div>
+      {/* Summary bar — 1920s shows tier/spending/dobytek/gotówka derived from
+          lokum drains; WW shows the flat era-table bracket label + budget +
+          spending + cash with no drains. */}
+      {isWildWest && wwWealth ? (
+        <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Tier</div>
+            <div className="font-bold">
+              {ERAS.wild_west.wealthTable.find(
+                (b) => creditRating >= b.creditRatingMin && creditRating <= b.creditRatingMax,
+              )?.label ?? '—'}
+            </div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Wydatki / dzień</div>
+            <div className="font-mono font-bold">{formatDollars(wwWealth.spending)}</div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Budżet (Dobytek)</div>
+            <div className="font-mono font-bold">${wwWealth.assets}</div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Gotówka</div>
+            <div className="font-mono font-bold">{formatDollars(wwWealth.cash)}</div>
+          </div>
         </div>
-        <div className="bg-coc-surface-light rounded-lg p-2">
-          <div className="text-[10px] text-coc-text-muted uppercase">Wydatki / dzień</div>
-          <div className="font-mono font-bold">{formatDollars(spending)}</div>
+      ) : (
+        <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Tier</div>
+            <div className="font-bold">{tier.label}</div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Wydatki / dzień</div>
+            <div className="font-mono font-bold">{formatDollars(spending)}</div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Dobytek</div>
+            <div className="font-mono font-bold">{formatDollars(costs.assetsRemaining)}</div>
+          </div>
+          <div className="bg-coc-surface-light rounded-lg p-2">
+            <div className="text-[10px] text-coc-text-muted uppercase">Gotówka</div>
+            <div className="font-mono font-bold">{formatDollars(cash)}</div>
+          </div>
         </div>
-        <div className="bg-coc-surface-light rounded-lg p-2">
-          <div className="text-[10px] text-coc-text-muted uppercase">Dobytek</div>
-          <div className="font-mono font-bold">{formatDollars(costs.assetsRemaining)}</div>
-        </div>
-        <div className="bg-coc-surface-light rounded-lg p-2">
-          <div className="text-[10px] text-coc-text-muted uppercase">Gotówka</div>
-          <div className="font-mono font-bold">{formatDollars(cash)}</div>
-        </div>
-      </div>
+      )}
 
-      {/* Presets */}
-      {mode === 'presets' && (
+      {/* WW budget headline — Polish display per spec ("Budżet (Dobytek): $X") */}
+      {isWildWest && wwWealth && (
+        <div className="bg-coc-accent/5 border border-coc-accent/20 rounded-lg p-3 mb-4 text-sm">
+          <span className="font-medium">Budżet (Dobytek): ${wwWealth.assets}</span>
+          <span className="text-coc-text-muted ml-2">
+            — wybierz wyposażenie z katalogu poniżej
+          </span>
+        </div>
+      )}
+
+      {/* Presets (1920s only — WW has no preset chooser, gated by !isWildWest) */}
+      {!isWildWest && mode === 'presets' && (
         <div className="space-y-3 mb-6">
           <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider">Wybierz styl życia</h4>
           <div className="grid grid-cols-3 gap-3">
@@ -207,8 +311,9 @@ export function StepEquipment() {
         </div>
       )}
 
-      {/* Custom editor */}
-      {mode === 'custom' && (
+      {/* Custom editor — 1920s lokum/transport/lifestyle picker. Hidden in WW
+          (no housing/lifestyle in this era). */}
+      {!isWildWest && mode === 'custom' && (
         <div className="space-y-4 mb-6">
           {/* Star rating display */}
           <div className="flex items-center justify-between">
@@ -362,8 +467,8 @@ export function StepEquipment() {
         </div>
       )}
 
-      {/* Asset forms */}
-      {mode === 'custom' && costs.assetsRemaining > 0 && (
+      {/* Asset forms — 1920s only; WW has no "form of dobytek" picker. */}
+      {!isWildWest && mode === 'custom' && costs.assetsRemaining > 0 && (
         <section className="mb-6">
           <h4 className="text-sm font-medium text-coc-text-muted uppercase tracking-wider mb-2">Podział dobytku</h4>
           <p className="text-xs text-coc-text-muted mb-2">
@@ -413,7 +518,7 @@ export function StepEquipment() {
 
           {/* Categories */}
           {Object.entries(EQUIPMENT_CATEGORY_LABELS).map(([catId, catLabel]) => {
-            const items = EQUIPMENT_CATALOG_V2.filter((i) => i.category === catId)
+            const items = equipmentCatalog.filter((i) => i.category === catId)
             const filtered = searchQuery
               ? items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
               : items
@@ -452,12 +557,12 @@ export function StepEquipment() {
               onClick={() => setExpandedCat(expandedCat === 'weapons' ? null : 'weapons')}
               className="w-full flex items-center justify-between px-3 py-1.5 text-sm font-medium text-coc-text-muted hover:text-coc-text rounded-lg hover:bg-coc-surface-light cursor-pointer"
             >
-              <span>Broń ({WEAPONS_CATALOG_V2.length})</span>
+              <span>Broń ({weaponsCatalog.length})</span>
               {expandedCat === 'weapons' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {(expandedCat === 'weapons' || (searchQuery && WEAPONS_CATALOG_V2.some((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
+            {(expandedCat === 'weapons' || (searchQuery && weaponsCatalog.some((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
               <div className="space-y-0.5 mt-1">
-                {WEAPONS_CATALOG_V2.filter((w) => !searchQuery || w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((w) => (
+                {weaponsCatalog.filter((w) => !searchQuery || w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((w) => (
                   <div key={w.id} className="flex items-center justify-between px-3 py-1 text-sm hover:bg-coc-surface-light rounded">
                     <span>{w.name} <span className="text-xs text-coc-text-muted">({w.damage}, {w.range})</span></span>
                     <div className="flex items-center gap-2">
@@ -591,10 +696,18 @@ export function StepEquipment() {
         </section>
       )}
 
-      {/* Navigation */}
+      {/* Navigation. WW: only the overBudget guard applies (no lifestyle/lokum
+          drains, no preset gate). 1920s: full pre-existing guard chain. */}
       <div className="flex justify-between pt-4">
         <Button variant="secondary" onClick={() => store.prevStep()}>Wstecz</Button>
-        <Button onClick={handleNext} disabled={costs.spendingFree < 0 || overBudget || costs.assetsPurchase > assets || (mode === 'presets')}>
+        <Button
+          onClick={handleNext}
+          disabled={
+            isWildWest
+              ? overBudget
+              : costs.spendingFree < 0 || overBudget || costs.assetsPurchase > assets || (mode === 'presets')
+          }
+        >
           Dalej
         </Button>
       </div>

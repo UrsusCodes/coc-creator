@@ -25,13 +25,14 @@ import {
 } from '@/utils/additionalPositionCalculator'
 import type { Characteristics } from '@/types/character'
 import type { MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
+import type { Era } from '@/types/common'
 import type { AdditionalPositionOption } from '@/data/additionalPositions'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 
-function resolveSkill(skillId: string, chars: Record<string, number>, occPts: Record<string, number>, persPts: Record<string, number>): number {
-  const base = getSkillBase(skillId)
+function resolveSkill(skillId: string, chars: Record<string, number>, occPts: Record<string, number>, persPts: Record<string, number>, era: Era): number {
+  const base = getSkillBase(skillId, era)
   let baseVal = 0
   if (base === 'half_dex') baseVal = Math.floor((chars['DEX'] ?? 0) / 2)
   else if (base === 'edu') baseVal = chars['EDU'] ?? 0
@@ -58,6 +59,7 @@ const ADDITIONAL_POS_CATEGORIES = [
 export function StepPositionsContacts() {
   const store = useCharacterStore()
   const chars = store.characteristics as Characteristics
+  const era = (store.era ?? 'classic_1920s') as Era
   const occPts = store.occupationSkillPoints
   const persPts = store.personalSkillPoints
   const jobId = store.occupationId ?? ''
@@ -68,13 +70,13 @@ export function StepPositionsContacts() {
     const totals: Record<string, number> = {}
     const allKeys = new Set([...Object.keys(occPts), ...Object.keys(persPts)])
     for (const key of allKeys) {
-      totals[key] = resolveSkill(key, chars, occPts, persPts)
+      totals[key] = resolveSkill(key, chars, occPts, persPts, era)
     }
     for (const sid of ['urok_osobisty', 'perswazja', 'gadanina', 'zastraszanie', 'majetnosc', 'okultyzm', 'prawo', 'medycyna', 'pierwsza_pomoc', 'historia', 'archeologia', 'nawigacja', 'mechanika', 'elektryka', 'charakteryzacja', 'jezyk_ojczysty', 'prowadzenie_samochodu', 'wspinaczka', 'plywanie', 'tropienie', 'hipnoza', 'zreczne_palce', 'sztuka_przetrwania', 'wiedza_o_naturze', 'wycena', 'pilotowanie', 'sztuka_rzemioslo']) {
-      if (!(sid in totals)) totals[sid] = resolveSkill(sid, chars, occPts, persPts)
+      if (!(sid in totals)) totals[sid] = resolveSkill(sid, chars, occPts, persPts, era)
     }
     return totals
-  }, [chars, occPts, persPts])
+  }, [chars, occPts, persPts, era])
 
   const occPointsTotal = useMemo(() => Object.values(occPts).reduce((a, b) => a + b, 0), [occPts])
 

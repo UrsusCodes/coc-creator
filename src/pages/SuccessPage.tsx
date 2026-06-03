@@ -4,8 +4,8 @@ import { CheckCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
-import { OCCUPATIONS } from '@/data/occupations'
-import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey } from '@/types/common'
+import { getOccupationById } from '@/data/occupations'
+import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey, type Era } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -105,7 +105,7 @@ export function SuccessPage() {
 }
 
 function CharacterSummary({ character: char }: { character: CharacterRecord }) {
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const derived = char.derived as { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
 
   const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }
@@ -114,7 +114,7 @@ function CharacterSummary({ character: char }: { character: CharacterRecord }) {
   }
 
   const getBase = (skillId: string) => {
-    const base = getSkillBase(skillId)
+    const base = getSkillBase(skillId, char.era as Era)
     if (base === 'half_dex') return Math.floor((char.characteristics['DEX'] ?? 0) / 2)
     if (base === 'edu') return char.characteristics['EDU'] ?? 0
     return base

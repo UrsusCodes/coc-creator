@@ -19,7 +19,7 @@ import {
   buildPlayerPortraitPrompt,
   buildStatHints,
   buildVisualCues,
-  defaultClothingChip,
+  defaultClothingChipForEra,
   sanitizePortraitFreeText,
   BACKGROUND_CHIPS,
   CLOTHING_CHIP_LABELS,
@@ -116,13 +116,25 @@ export function GeneratePortraitPanel({
   const hints = useMemo(() => buildStatHints({
     characteristics: character.characteristics,
     spending_level: spendingLevel,
-  }), [character.characteristics, spendingLevel])
+    era: character.era,
+  }), [character.characteristics, spendingLevel, character.era])
+
+  // Era-aware visible background chips. Filter out chips tagged to other
+  // eras; chips with no `era` field stay visible everywhere.
+  const visibleBackgroundChips = useMemo(
+    () => BACKGROUND_CHIPS.filter((c) => !c.era || c.era.includes(character.era as never)),
+    [character.era],
+  )
 
   const [open, setOpen] = useState(false)
 
   // Form state — same as before
-  const [clothingChip, setClothingChip] = useState<ClothingChip>(() => defaultClothingChip(spendingLevel))
-  const [backgroundChipId, setBackgroundChipId] = useState<string>(BACKGROUND_CHIPS[0].id)
+  const [clothingChip, setClothingChip] = useState<ClothingChip>(() =>
+    defaultClothingChipForEra(character.era, character.equipment, spendingLevel),
+  )
+  const [backgroundChipId, setBackgroundChipId] = useState<string>(
+    visibleBackgroundChips[0]?.id ?? BACKGROUND_CHIPS[0].id,
+  )
   const [customBackground, setCustomBackground] = useState('')
   const [lightingChip, setLightingChip] = useState<LightingChip>('natural')
   const [fieldsActive, setFieldsActive] = useState<Record<string, boolean>>({})
@@ -231,6 +243,7 @@ export function GeneratePortraitPanel({
           occupation_id: character.occupation_id,
           appearance: character.appearance,
           spending_level: spendingLevel,
+          era: character.era,
           backstory: character.backstory as { appearance_description?: string; [k: string]: unknown },
         },
         clothingChip,
@@ -393,6 +406,7 @@ export function GeneratePortraitPanel({
             setClothingChip={setClothingChip}
             backgroundChipId={backgroundChipId}
             setBackgroundChipId={setBackgroundChipId}
+            backgroundChips={visibleBackgroundChips}
             customBackground={customBackground}
             setCustomBackground={setCustomBackground}
             lightingChip={lightingChip}
@@ -644,6 +658,7 @@ interface FormSectionProps {
   setClothingChip: (c: ClothingChip) => void
   backgroundChipId: string
   setBackgroundChipId: (id: string) => void
+  backgroundChips: typeof BACKGROUND_CHIPS
   customBackground: string
   setCustomBackground: (s: string) => void
   lightingChip: LightingChip
@@ -667,6 +682,7 @@ function FormSection(props: FormSectionProps) {
     setClothingChip,
     backgroundChipId,
     setBackgroundChipId,
+    backgroundChips,
     customBackground,
     setCustomBackground,
     lightingChip,
@@ -724,7 +740,7 @@ function FormSection(props: FormSectionProps) {
           Tło
         </p>
         <div className="flex flex-wrap gap-2">
-          {BACKGROUND_CHIPS.map((bg) => (
+          {backgroundChips.map((bg) => (
             <button
               key={bg.id}
               type="button"

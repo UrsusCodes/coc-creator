@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { getSkillById, getSkillsForEra, getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { useSkillPoints } from '@/hooks/useSkillPoints'
 import type { Characteristics } from '@/types/character'
@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { SkillRow } from '@/components/shared/SkillRow'
 
-function getBaseValue(skillId: string, chars: Partial<Characteristics>): number {
-  const base = getSkillBase(skillId)
+function getBaseValue(skillId: string, chars: Partial<Characteristics>, era: Era): number {
+  const base = getSkillBase(skillId, era)
   if (base === 'half_dex') return Math.floor((chars.DEX ?? 0) / 2)
   if (base === 'edu') return chars.EDU ?? 0
   return base
@@ -30,7 +30,7 @@ export function StepPersonalSkills() {
   const era = store.era as Era
   const maxSkillValue = store.maxSkillValue
   const occupation = useMemo(
-    () => OCCUPATIONS.find((o) => o.id === store.occupationId) ?? null,
+    () => getOccupationById(store.occupationId) ?? null,
     [store.occupationId]
   )
 
@@ -114,7 +114,7 @@ export function StepPersonalSkills() {
 
     const current = personalPoints[skillId] ?? 0
     const occPts = store.occupationSkillPoints[skillId] ?? 0
-    const base = getBaseValue(skillId, chars) + occPts
+    const base = getBaseValue(skillId, chars, era) + occPts
     const maxForSkill = Math.max(0, maxSkillValue - base)
     const newVal = Math.min(maxForSkill, Math.max(0, current + effectiveDelta))
 
@@ -179,7 +179,7 @@ export function StepPersonalSkills() {
             .filter(([, pts]) => pts > 0)
             .map(([skillId, pts]) => {
               const occPts = store.occupationSkillPoints[skillId] ?? 0
-              const base = getBaseValue(skillId, chars) + occPts
+              const base = getBaseValue(skillId, chars, era) + occPts
               return (
                 <SkillRow
                   key={skillId}
@@ -205,7 +205,7 @@ export function StepPersonalSkills() {
             const customKey = getCustomKey(entry.baseSkillId)
             const occPts = customKey ? (store.occupationSkillPoints[customKey] ?? 0) : 0
             const persPts = customKey ? (personalPoints[customKey] ?? 0) : 0
-            const base = getBaseValue(customKey ?? entry.baseSkillId, chars) + occPts
+            const base = getBaseValue(customKey ?? entry.baseSkillId, chars, era) + occPts
 
             return (
               <div key={entry.key} className="py-1 px-2 rounded bg-coc-surface-light/30">
@@ -241,7 +241,7 @@ export function StepPersonalSkills() {
 
           const occPts = store.occupationSkillPoints[entry.key] ?? 0
           const persPts = personalPoints[entry.key] ?? 0
-          const base = getBaseValue(entry.key, chars) + occPts
+          const base = getBaseValue(entry.key, chars, era) + occPts
           return (
             <SkillRow
               key={entry.key}

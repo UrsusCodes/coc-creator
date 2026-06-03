@@ -153,6 +153,7 @@ function CodeForm({
             { value: 'classic_1920s', label: ERA_LABELS.classic_1920s },
             { value: 'modern', label: ERA_LABELS.modern },
             { value: 'gaslight', label: ERA_LABELS.gaslight },
+            { value: 'wild_west', label: ERA_LABELS.wild_west },
           ]}
         />
         <div className="space-y-1">

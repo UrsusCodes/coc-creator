@@ -6,6 +6,10 @@ export interface EraDefinition {
   description: string
   currency: string
   wealthTable: WealthBracket[]
+  /** When true, the wizard skips StepWealth for this era (no housing/lifestyle/transport step). */
+  skipWealthStep?: boolean
+  /** When true, the wizard skips StepPositionsContacts for this era. */
+  skipContactsStep?: boolean
 }
 
 export interface HousingOption {
@@ -109,6 +113,8 @@ export const WEALTH_FORMS: Record<Era, WealthForm[]> = {
     { id: 'real_estate', label: 'Nieruchomości (dodatkowe)', description: 'Kamienica w mieście, ziemia na wsi' },
     { id: 'colonial_goods', label: 'Towary kolonialne', description: 'Udziały w handlu z koloniami — herbata, przyprawy, jedwab' },
   ],
+  // Wild West intentionally has no wealth-forms picker — the wizard skips StepWealth for this era.
+  wild_west: [],
 }
 
 // ── Era definitions with wealth tables ──
@@ -484,6 +490,78 @@ export const ERAS: Record<Era, EraDefinition> = {
         transportOptions: [
           { id: 'stable', label: 'Stajnia koni + powozy + stangret', description: 'Pełne wyposażenie transportowe', cost: 0, free: true },
         ],
+      },
+    ],
+  },
+  wild_west: {
+    id: 'wild_west',
+    name: 'Stary Zachód',
+    description: 'Amerykański pogranicze lat 1880. — kowboje, rewolwerowcy, pył prerii',
+    currency: '$',
+    skipWealthStep: true,
+    skipContactsStep: true,
+    wealthTable: [
+      // CR 0 — Ubogi
+      {
+        creditRatingMin: 0, creditRatingMax: 0,
+        label: 'Ubogi',
+        assetMultiplier: 0, cashMultiplier: 0,
+        assetsFixed: 0, cashFixed: 0.25,
+        spending: 0.25,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
+      },
+      // CR 1-9 — Biedny
+      {
+        creditRatingMin: 1, creditRatingMax: 9,
+        label: 'Biedny',
+        assetMultiplier: 5, cashMultiplier: 0.5,
+        spending: 1,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
+      },
+      // CR 10-49 — Przeciętnie majętny
+      {
+        creditRatingMin: 10, creditRatingMax: 49,
+        label: 'Przeciętnie majętny',
+        assetMultiplier: 25, cashMultiplier: 1,
+        spending: 5,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
+      },
+      // CR 50-89 — Zamożny
+      {
+        creditRatingMin: 50, creditRatingMax: 89,
+        label: 'Zamożny',
+        assetMultiplier: 250, cashMultiplier: 3,
+        spending: 25,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
+      },
+      // CR 90-98 — Bogaty
+      {
+        creditRatingMin: 90, creditRatingMax: 98,
+        label: 'Bogaty',
+        assetMultiplier: 1000, cashMultiplier: 10,
+        spending: 125,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
+      },
+      // CR 99 — Krezus
+      {
+        creditRatingMin: 99, creditRatingMax: 99,
+        label: 'Krezus',
+        assetMultiplier: 0, cashMultiplier: 0,
+        assetsFixed: 2500000, cashFixed: 25000,
+        spending: 2500,
+        housingOptions: [],
+        lifestyleOptions: [],
+        transportOptions: [],
       },
     ],
   },

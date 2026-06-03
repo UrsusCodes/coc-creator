@@ -1,6 +1,9 @@
 import type { Occupation } from '@/types/occupation'
 import type { Era } from '@/types/common'
 import { getSkillById } from '@/data/skills'
+import { OCCUPATIONS_WILD_WEST } from '@/data/occupationsWildWest'
+
+export { OCCUPATIONS_WILD_WEST }
 
 export interface OccupationCategory {
   id: string
@@ -2036,11 +2039,16 @@ export const OCCUPATIONS: Occupation[] = [
   },
 ]
 
-export function getOccupationById(id: string): Occupation | undefined {
-  return OCCUPATIONS.find((occupation) => occupation.id === id)
+export function getOccupationById(id: string | null | undefined): Occupation | undefined {
+  if (!id) return undefined
+  return (
+    OCCUPATIONS.find((occupation) => occupation.id === id) ??
+    OCCUPATIONS_WILD_WEST.find((occupation) => occupation.id === id)
+  )
 }
 
 export function getOccupationsForEra(era: Era): Occupation[] {
+  if (era === 'wild_west') return OCCUPATIONS_WILD_WEST
   return OCCUPATIONS.filter(
     (occupation) => !occupation.era || occupation.era.includes(era),
   )

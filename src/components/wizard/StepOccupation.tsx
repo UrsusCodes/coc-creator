@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
 import { Search, ChevronDown, ChevronRight } from 'lucide-react'
 import { useCharacterStore } from '@/stores/characterStore'
-import { OCCUPATIONS, OCCUPATION_CATEGORIES, getOccupationsForEra } from '@/data/occupations'
+import { OCCUPATION_CATEGORIES, getOccupationById, getOccupationsForEra } from '@/data/occupations'
 import { getSkillDisplayName } from '@/data/skills'
 import { parseSkillSlot } from '@/data/occupations'
 import { calculateOccupationPoints, getFormulaDisplay } from '@/hooks/useSkillPoints'
@@ -27,6 +27,13 @@ export function StepOccupation() {
   const eraOccs = useMemo(() => getOccupationsForEra(era), [era])
 
   const isSearching = search.trim().length > 0
+  const isWildWest = era === 'wild_west'
+
+  // WW: single alphabetical list, no category UI.
+  const alphabetical = useMemo(
+    () => [...eraOccs].sort((a, b) => a.name.localeCompare(b.name, 'pl')),
+    [eraOccs]
+  )
 
   // Search with skill priority: name match (score 3) > desc match (score 2) > skill match (score 1)
   const searchResults = useMemo(() => {
@@ -74,7 +81,7 @@ export function StepOccupation() {
   }
 
   const selected = useMemo(
-    () => (selectedId ? OCCUPATIONS.find((o) => o.id === selectedId) : null),
+    () => (selectedId ? getOccupationById(selectedId) : null),
     [selectedId]
   )
 
@@ -170,6 +177,10 @@ export function StepOccupation() {
               <p className="text-sm text-coc-text-muted text-center py-4">Brak wyników.</p>
             )}
           </>
+        ) : isWildWest ? (
+          <div className="space-y-0.5">
+            {alphabetical.map(renderOccItem)}
+          </div>
         ) : (
           grouped.map((group) => {
             const isCollapsed = collapsedCategories.has(group.id)

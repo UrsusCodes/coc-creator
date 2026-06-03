@@ -1,11 +1,12 @@
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { WEAPONS } from '@/data/weapons'
 import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { getSkillBase, getBaseSkillId, getSpecialization } from '@/data/skills'
 import { halfValue, fifthValue } from '@/lib/utils'
 import { formatSpendingLevel } from '@/lib/spendingLevel'
+import type { Era } from '@/types/common'
 
 /** Shape consumed by new HTML front (window.setCharacter). Mirrors INTEGRATION.md §2.1. */
 export interface CardFrontData {
@@ -109,8 +110,8 @@ const OPEN_SPEC_PARENT_TO_PREFIX: Record<string, string> = {
   sztuka_rzemioslo: 'art_craft_',
 }
 
-function resolveBase(skillKey: string, chars: Record<string, number>): number {
-  const base = getSkillBase(skillKey)
+function resolveBase(skillKey: string, chars: Record<string, number>, era?: Era): number {
+  const base = getSkillBase(skillKey, era)
   if (base === 'half_dex') return Math.floor((chars['DEX'] ?? 0) / 2)
   if (base === 'edu') return chars['EDU'] ?? 0
   return base
@@ -121,9 +122,10 @@ function buildWeaponEntry(
   attacks: string | number, ammo: number | null | undefined,
   malfunction: number | undefined,
   chars: Record<string, number>, allPoints: Record<string, number>,
+  era: Era | undefined,
   unarmed = false,
 ): CardFrontData['weapons'][number] {
-  const skillBase = resolveBase(skillId, chars)
+  const skillBase = resolveBase(skillId, chars, era)
   const skillPoints = allPoints[skillId] ?? 0
   const total = skillBase + skillPoints
   return {
@@ -145,11 +147,12 @@ function parseWeaponsFromEquipment(
   chars: Record<string, number>,
   allPoints: Record<string, number>,
   damageBonus: string,
+  era: Era | undefined,
 ): CardFrontData['weapons'] {
   const out: CardFrontData['weapons'] = []
   // Always include unarmed first
   const fightingBrawlPoints = allPoints['walka_wrecz:bijatyka'] ?? 0
-  const brawlBase = resolveBase('walka_wrecz:bijatyka', chars)
+  const brawlBase = resolveBase('walka_wrecz:bijatyka', chars, era)
   const brawlTotal = brawlBase + fightingBrawlPoints
   const dbStr = damageBonus || '0'
   out.push({
@@ -177,7 +180,7 @@ function parseWeaponsFromEquipment(
       out.push(buildWeaponEntry(
         w.name, w.skill_id, w.damage, w.range,
         w.attacks_per_round, w.ammo, w.malfunction,
-        chars, allPoints,
+        chars, allPoints, era,
       ))
       continue
     }
@@ -186,7 +189,7 @@ function parseWeaponsFromEquipment(
       out.push(buildWeaponEntry(
         w2.name, w2.skillId, w2.damage, w2.range,
         '1', w2.ammo, w2.malfunction,
-        chars, allPoints,
+        chars, allPoints, era,
       ))
       continue
     }
@@ -195,7 +198,7 @@ function parseWeaponsFromEquipment(
       out.push(buildWeaponEntry(
         bm.name, bm.skillId, bm.damage ?? '', bm.range ?? '',
         '1', bm.ammo, bm.malfunction,
-        chars, allPoints,
+        chars, allPoints, era,
       ))
       continue
     }
@@ -217,13 +220,14 @@ function parseWeaponsFromEquipment(
 }
 
 export function characterToCardFrontData(char: CharacterSheetData): CardFrontData {
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const derived = char.derived as {
     hp: number; mp: number; san: number; db: string
     build: number; move_rate: number; dodge: number
   }
 
   const chars = char.characteristics
+  const era = char.era as Era | undefined
   const allPoints: Record<string, number> = { ...char.occupation_skill_points }
   for (const [k, v] of Object.entries(char.personal_skill_points)) {
     allPoints[k] = (allPoints[k] ?? 0) + v
@@ -235,7 +239,7 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
   // 1) Plain (Polish→English) skills.
   for (const [polId, newKey] of Object.entries(SKILL_KEY_MAP)) {
     const points = allPoints[polId] ?? 0
-    const base = resolveBase(polId, chars)
+    const base = resolveBase(polId, chars, era)
     const total = base + points
     if (total === 0 && points === 0) continue
     skillsOut[newKey] = { value: total, trained: points > 0 }
@@ -244,7 +248,7 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
   // 2) Combat fixed specs.
   for (const [appKey, newKey] of Object.entries(COMBAT_KEY_MAP)) {
     const points = allPoints[appKey] ?? 0
-    const base = resolveBase(appKey, chars)
+    const base = resolveBase(appKey, chars, era)
     const total = base + points
     if (total === 0 && points === 0) continue
     skillsOut[newKey] = { value: total, trained: points > 0 }
@@ -257,7 +261,7 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
       .map((k) => ({ key: k, name: getSpecialization(k) ?? '', points: allPoints[k] }))
     for (let i = 0; i < Math.min(3, specsForParent.length); i++) {
       const s = specsForParent[i]
-      const base = resolveBase(s.key, chars)
+      const base = resolveBase(s.key, chars, era)
       const total = base + s.points
       skillsOut[`${prefix}${i + 1}`] = { value: total, name: s.name, trained: true }
     }
@@ -317,6 +321,6 @@ export function characterToCardFrontData(char: CharacterSheetData): CardFrontDat
     spending_level: spendingDisplay,
     cash: cashDisplay,
     skills: skillsOut,
-    weapons: parseWeaponsFromEquipment(char.equipment ?? [], chars, allPoints, derived?.db ?? '0'),
+    weapons: parseWeaponsFromEquipment(char.equipment ?? [], chars, allPoints, derived?.db ?? '0', era),
   }
 }

@@ -873,7 +873,7 @@ Deno.serve(async (req: Request) => {
           code,
           method: method ?? 'standard',
           methods: [method ?? 'standard'],
-          era: era ?? '1920s',
+          era: era ?? 'classic_1920s',
           max_tries: 1,
           perks: perks ?? [],
           max_skill_value: max_skill_value ?? 80,

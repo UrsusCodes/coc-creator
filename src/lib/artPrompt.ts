@@ -1,4 +1,5 @@
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
+import type { Era } from '@/types/common'
 
 interface ArtPromptCharacter {
   name: string
@@ -17,6 +18,7 @@ const ERA_STYLE: Record<string, string> = {
   classic_1920s: '1920s clothing, art deco era, prohibition era America',
   modern: 'modern clothing, contemporary setting',
   gaslight: 'Victorian era clothing, gas lamps, 1890s',
+  wild_west: 'late 1870s-1880s American Old West, frontier era, dusty western town setting',
 }
 
 function describeBody(chars: Record<string, number>): string {
@@ -70,7 +72,7 @@ export function generateArtPrompt(char: ArtPromptCharacter): string {
   const parts: string[] = []
 
   // Core subject
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const genderWord = char.gender === 'Kobieta' ? 'woman' : char.gender === 'Mężczyzna' ? 'man' : 'person'
   const ageDesc = describeAge(char.age)
 
@@ -183,49 +185,67 @@ export interface BackgroundChipDef {
   id: string
   label: string // PL — for UI
   fragment: string // EN — for prompt
+  /** Eras this chip is visible for. Omit (or undefined) = visible to all eras. */
+  era?: Era[]
 }
+
+const NON_WW_ERAS: Era[] = ['classic_1920s', 'modern', 'gaslight']
 
 export const BACKGROUND_CHIPS: BackgroundChipDef[] = [
   {
     id: 'studio',
     label: 'Studio (jasne)',
     fragment: 'uniform bright blurred background, plain studio backdrop',
+    era: NON_WW_ERAS,
   },
   {
     id: 'biblioteka',
     label: 'Biblioteka',
     fragment: 'dimly lit library with rows of leather-bound books, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'gabinet',
     label: 'Gabinet detektywa',
     fragment: '1920s detective office, wooden desk with case files, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'uliczka',
     label: 'Mglista uliczka',
     fragment: 'misty city alleyway at night, gas lamps, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'salon',
     label: 'Salon hotelowy',
     fragment:
       'art deco hotel lounge with armchairs and decorative wallpaper, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'cmentarz',
     label: 'Cmentarz',
     fragment: 'old cemetery with weathered headstones and bare trees, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'statek',
     label: 'Pokład statku',
     fragment: 'wooden deck of a steamship at sea, ropes and railings, blurred background',
+    era: NON_WW_ERAS,
   },
   {
     id: 'plener',
     label: 'Plener leśny',
     fragment: 'woodland clearing with tall trees and dappled light, blurred background',
+    era: NON_WW_ERAS,
+  },
+  {
+    id: 'pustynia',
+    label: 'Pustynia (rozmyta)',
+    fragment: 'blurred desert landscape, dust haze, distant mesas, soft warm tones',
+    era: ['wild_west'],
   },
 ]
 
@@ -252,12 +272,65 @@ const CLOTHING_BY_CHIP: Record<'M' | 'F', Record<ClothingChipNonProf, string>> =
   },
 }
 
+// Wild West — frontier-era clothing matrix, parallel to the 1920s one above.
+// Strings copied verbatim from the WW spec; tuned for SDXL recall.
+const CLOTHING_BY_CHIP_WW: Record<'M' | 'F', Record<ClothingChipNonProf, string>> = {
+  M: {
+    niedbale: 'worn linen shirt with rolled sleeves, suspenders, dusty trousers, frontier laborer look',
+    codzienne: 'cotton shirt with vest, neckerchief, sturdy trousers, wide-brimmed hat, Old West cowhand attire',
+    eleganckie: 'dark frock coat with waistcoat, white collar shirt, bow tie, gold pocket watch chain, 1880s gentleman attire',
+  },
+  F: {
+    niedbale: 'plain cotton blouse, ankle-length skirt, apron, hair tied back, frontier homestead look',
+    codzienne: 'calico day dress with high collar, hair in modest bun, prairie style',
+    eleganckie: 'Victorian bustle dress with fitted bodice, lace collar, 1880s evening wear',
+  },
+}
+
 /** Default chip selected at panel-open time, derived from wealth tier. */
 export function defaultClothingChip(spending_level: string | undefined): ClothingChip {
   const upper = (spending_level ?? '').trim().toUpperCase()
   if (upper === 'A' || upper === 'B') return 'eleganckie'
   if (upper === 'E' || upper === 'F') return 'niedbale'
   return 'codzienne' // C, D, or unknown
+}
+
+/**
+ * Era-aware default-chip helper. WW uses purchased-equipment substring
+ * detection (with $-based spending-level fallback); other eras use the
+ * legacy A-F spending-letter table via `defaultClothingChip`.
+ *
+ * `equipment` is the player's wizard-built equipment array of formatted
+ * Polish display strings (e.g. `'[Broń] Rewolwer ($30)'`, `'Garnitur (przeciętny) ($12)'`).
+ * Substring matching against the lowercased strings catches both bare
+ * names ("garnitur") and tagged entries — robust to the legacy tag prefix.
+ */
+export function defaultClothingChipForEra(
+  era: Era | string,
+  equipment: string[],
+  spending_level: string | undefined,
+): ClothingChip {
+  if (era === 'wild_west') {
+    const norm = equipment.map((e) => e.toLowerCase())
+    const has = (substr: string) => norm.some((e) => e.includes(substr.toLowerCase()))
+
+    if (has('garnitur') || has('stetson') || has('płaszcz futrzany') || has('zegarek kieszonkowy')) {
+      return 'eleganckie'
+    }
+    if (has('buty kowbojskie') || has('kapelusz') || has('pas na naboje') || has('ostrogi')) {
+      return 'codzienne'
+    }
+    if (norm.length > 0) return 'niedbale'
+
+    // Fallback: WW spending levels are dollar amounts like "$25"
+    const sl = parseFloat((spending_level ?? '').replace('$', '').trim())
+    if (!isNaN(sl)) {
+      if (sl >= 25) return 'eleganckie'
+      if (sl <= 1) return 'niedbale'
+    }
+    return 'codzienne'
+  }
+  return defaultClothingChip(spending_level)
 }
 
 /** Normalise gender across wizard ('M'|'F') and legacy DB rows. */
@@ -299,6 +372,8 @@ export interface BuildPortraitPromptInput {
     occupation_id: string
     appearance?: string
     spending_level?: string
+    /** Era — branches Layer 0 constants and clothing matrix. Defaults to `classic_1920s`. */
+    era?: Era | string
     backstory?: { appearance_description?: string; [key: string]: unknown }
   }
   clothingChip: ClothingChip
@@ -309,6 +384,22 @@ export interface BuildPortraitPromptInput {
   /** Optional small adjustments box ("no hat, slight smile") */
   korekty?: string
 }
+
+/** Fixed Layer 0 constants per era — frame, palette, no-text guards. */
+const LAYER0_1920S = [
+  '1920s era photograph.',
+  'Half-body portrait, framed tightly from upper chest up to top of head.',
+  'Hands and any held props visible at the bottom edge of frame if applicable.',
+  '3:4 aspect ratio (portrait orientation).',
+  'Face fills approximately one third of the frame.',
+  'Photorealistic.',
+  'High detail on facial features.',
+  'Heavily muted, faded vintage color palette — low saturation, washed-out tones, gentle tonal grading; color preserved (not sepia, not grayscale).',
+  'No text, no watermarks, no captions, no borders.',
+].join(' ')
+
+const LAYER0_WILD_WEST =
+  '1880s American frontier photograph, tintype-influenced aesthetics. Half-body portrait, framed tightly from upper chest up to top of head. Hands and any held props visible at the bottom edge of frame if applicable. 3:4 aspect ratio (portrait orientation). Face fills approximately one third of the frame. Photorealistic. High detail on facial features. Dusty, sun-bleached color palette with warm earth tones — desaturated, weathered look, gentle golden cast; color preserved (not sepia, not grayscale). No text, no watermarks, no captions, no borders.'
 
 /**
  * Builds the layered Gemini prompt per spec:
@@ -321,18 +412,13 @@ export function buildPlayerPortraitPrompt(input: BuildPortraitPromptInput): stri
   const { character, clothingChip, backgroundChipId, lightingChip, fields, korekty } =
     input
 
+  const isWildWest = character.era === 'wild_west'
+
   // ── Layer 0 — fixed era constants ──
-  const layer0 = [
-    '1920s era photograph.',
-    'Half-body portrait, framed tightly from upper chest up to top of head.',
-    'Hands and any held props visible at the bottom edge of frame if applicable.',
-    '3:4 aspect ratio (portrait orientation).',
-    'Face fills approximately one third of the frame.',
-    'Photorealistic.',
-    'High detail on facial features.',
-    'Heavily muted, faded vintage color palette — low saturation, washed-out tones, gentle tonal grading; color preserved (not sepia, not grayscale).',
-    'No text, no watermarks, no captions, no borders.',
-  ].join(' ')
+  // WW gets the tintype/frontier block; everything else keeps the
+  // legacy 1920s constants (pre-existing modern/gaslight behaviour
+  // is intentionally unchanged — out of scope for the WW packet).
+  const layer0 = isWildWest ? LAYER0_WILD_WEST : LAYER0_1920S
 
   // ── Layer 1 — person from character ──
   const ageDesc = describeAge(character.age)
@@ -363,14 +449,17 @@ export function buildPlayerPortraitPrompt(input: BuildPortraitPromptInput): stri
   if (overrideClothing) {
     clothingFragment = overrideClothing
   } else if (clothingChip === 'zawodowe') {
-    clothingFragment = `clothing typical for a ${occupationEn} in 1920s`
+    clothingFragment = isWildWest
+      ? `clothing typical for a ${occupationEn} in 1880s American Old West`
+      : `clothing typical for a ${occupationEn} in 1920s`
   } else {
     // Chip is a deliberate player choice — wealth bucket no longer
     // gates the lookup. The skeleton is intentionally short so AI
     // rewrite (or Gemini Chat) has room to vary accessories per
     // character.
     const g = normaliseGender(character.gender)
-    clothingFragment = CLOTHING_BY_CHIP[g][clothingChip]
+    const matrix = isWildWest ? CLOTHING_BY_CHIP_WW : CLOTHING_BY_CHIP
+    clothingFragment = matrix[g][clothingChip]
   }
 
   // Background
@@ -437,9 +526,27 @@ export interface PortraitStatHints {
   props: string
 }
 
+/**
+ * Convert a WW `$N` spending-level string to the 1920s A-F tier label
+ * so the existing hint table can be reused. Brackets per the WW spec:
+ *   A ≥ $125 · B ≥ $25 · C ≥ $5 · D ≥ $1 · E ≥ $0.25 · F < $0.25.
+ * Returns '' for non-numeric input (so the caller treats it as "no tier").
+ */
+export function spendingToTier(sl: string): string {
+  const v = parseFloat((sl ?? '').replace('$', '').trim())
+  if (isNaN(v)) return ''
+  if (v >= 125) return 'A'
+  if (v >= 25) return 'B'
+  if (v >= 5) return 'C'
+  if (v >= 1) return 'D'
+  if (v >= 0.25) return 'E'
+  return 'F'
+}
+
 export function buildStatHints(character: {
   characteristics?: Record<string, number>
   spending_level?: string
+  era?: Era | string
 }): PortraitStatHints {
   const c = character.characteristics ?? {}
   const APP = c.APP ?? 50
@@ -483,8 +590,14 @@ export function buildStatHints(character: {
 
   if (bodyHints.length > 0) hints.body = bodyHints
 
-  // Clothing — wealth tier
-  const sl = (character.spending_level ?? '').trim().toUpperCase()
+  // Clothing — wealth tier. WW spending levels are dollar amounts
+  // (e.g. "$25"); convert through `spendingToTier` so the same A-F
+  // hint table applies. 1920s spending is already in letter form.
+  const rawSl = (character.spending_level ?? '').trim()
+  const sl =
+    character.era === 'wild_west'
+      ? spendingToTier(rawSl)
+      : rawSl.toUpperCase()
   const slHints: Record<string, string> = {
     A: 'Bardzo zamożna postać. Może nosić luksusowe stroje z najlepszych materiałów.',
     B: 'Zamożna postać. Eleganckie, wysokiej jakości ubrania.',

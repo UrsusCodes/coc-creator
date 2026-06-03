@@ -1,4 +1,4 @@
-export type Era = 'classic_1920s' | 'modern' | 'gaslight'
+export type Era = 'classic_1920s' | 'modern' | 'gaslight' | 'wild_west'
 
 export type CreationMethod = 'dice' | 'point_buy' | 'direct'
 
@@ -8,6 +8,7 @@ export const ERA_LABELS: Record<Era, string> = {
   classic_1920s: 'Klasyczna (lata 20.)',
   modern: 'Współczesna',
   gaslight: 'Gaslight (epoka wiktoriańska)',
+  wild_west: 'Stary Zachód',
 }
 
 export const METHOD_LABELS: Record<CreationMethod, string> = {

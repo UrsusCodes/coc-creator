@@ -139,6 +139,16 @@ _(empty)_
 > [!info]
 > Completions during the current new-version cycle. Older completions live in `docs/TASKLIST.md`.
 
+- **2026-06-04** — **Wild West variant implemented (NINA) — 9 commits on `feature/wild-west-variant`, awaiting Pawel's merge + deploy.** Full 10-packet implementation of [[specs/wild_west_variant_spec]]. New era `wild_west` ("Stary Zachód") — 26 occupations (`ww_*`), 114 equipment items, 45 weapons, 5 new skills, 2 new `walka_wrecz` combat specs, era-aware wealth (`calculateWealth('wild_west', cr)`), wizard auto-skip for positions/contacts + in-step gate for wealth UI, portrait pipeline with WW Layer 0 + clothing-by-chip + Pustynia background chip + `defaultClothingChipForEra` + `spendingToTier` ($N→A-F), 26 WW occupation EN names, admin invite dropdown `Stary Zachód`. Migration 024 SQL committed (`invite_codes.era` CHECK extended) — NOT applied to live DB yet. Edge function (Packet 7) only got defensive comments + a forward `SELECT era`; it was already era-agnostic at validation level. Smoke test (Packet 10): 56/56 assertions pass, 1920s regression-checked. Build green throughout. Full detail: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant implemented by NINA]].
+  - **Pawel's prod checklist** (not done by NINA):
+    1. `git push -u origin feature/wild-west-variant` (branch is local-only).
+    2. PR review or direct merge to `master`.
+    3. `supabase db push` for migration 024 (extends `invite_codes_era_check`).
+    4. `supabase functions deploy player` (only adds a forward-looking SELECT; non-critical).
+    5. `git push origin master` → GH Pages auto-deploy frontend.
+    6. Manual end-to-end smoke: create WW invite code, redeem, run wizard, generate portrait, submit, admin verify.
+  - **Backlog spinoff:** `supabase/functions/admin/index.ts:876` has stale default `era: era ?? '1920s'` in POST /drafts — would fail migration 024 CHECK if hit (admin UI always sends explicit era, so dormant). Fix pre-deploy or schedule.
+
 - **2026-05-28** — **Front B (BUG-064 + BUG-067 + BUG-049) — 4 commits local, awaiting push.** CONSTANTA-1 managed two workers under Path B:
   - WORKER #B1 (`7d7ffa0`, `8685270`) — committed residence/birthplace integration (admin BasicInfoEditor + on-screen CharacterSheet display). 80% of integration was already wired in earlier sessions; only the UI surfaces remained.
   - WORKER #B2 (`da9229e`, `ed68966`) — migration 023 (backfills 8 legacy `Przeciętny`/`Zamożny`/`Biedny` rows to canonical `$N` + adds CHECK constraint), new shared helper `src/lib/spendingLevel.ts`, 5 callsites unified, server-side `/draft` validation. Closes BUG-049 (em-dash final fallback).

@@ -10,6 +10,7 @@ import { PL } from '@/data/i18n'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { CharacterData } from '@/types/character'
+import { ERAS } from '@/data/eras'
 import { StepInviteCode } from './StepInviteCode'
 import { StepIdentifier } from './StepIdentifier'
 import { StepCharacteristics } from './StepCharacteristics'
@@ -48,6 +49,7 @@ const STEP_AGE = 4
 const STEP_EDU = 5
 const STEP_AGING = 6
 const STEP_LUCK = 7
+const STEP_POSITIONS_CONTACTS = 13
 
 const HARD_ZONE_STEPS = [
   STEP_CHARACTERISTICS,
@@ -125,6 +127,20 @@ function shouldSkip(
     if (character.swap_used) return true
     return false
   }
+  // Era-driven step skips. `wild_west` has no lokum/transport/lifestyle
+  // choices and no contacts step, so the wealth-presets path of StepEquipment
+  // (StepWealth-equivalent) would render dead UI; same for StepPositionsContacts.
+  // Driven by ERAS[era].skipWealthStep / skipContactsStep so future eras can
+  // opt in by flipping a flag rather than touching this function.
+  //
+  // NOTE: StepEquipment is the consolidated wealth+items step. For WW we want
+  // the items half of it to still render (free-shop), so we do NOT skip
+  // STEP_EQUIPMENT here. The WW branch inside StepEquipment hides the wealth
+  // presets / lokum / transport / lifestyle UI. `skipWealthStep` is therefore
+  // observed by StepEquipment internally, not by the wizard auto-skip.
+  const era = character.era as keyof typeof ERAS | undefined
+  const eraDef = era ? ERAS[era] : undefined
+  if (step === STEP_POSITIONS_CONTACTS && eraDef?.skipContactsStep) return true
   // Note: STEP_EDU and STEP_AGING are intentionally NOT skipped here, even
   // when their respective requirements are zero (eduImprovementChecks === 0
   // or physicalDeductionTotal === 0). The components must mount so they can
