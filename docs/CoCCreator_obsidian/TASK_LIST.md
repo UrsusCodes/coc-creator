@@ -99,9 +99,39 @@ Active work, backlog, and known bugs for CoC Creator.
 - [x] ~~Re-use of submitted code for new character~~ → **no** (1:1 forever per spec; new character = new code).
 - [ ] Swap step UX when player wants to skip — explicit "skip" button in StepSwap that auto-sets swap_used=true via dedicated endpoint, vs leaving it to /set-age 409. Decide during sub-session 1.
 
+## ✅ Wild West variant LIVE — deployed 2026-06-04
+
+> [!success] WW production status (as of 2026-06-04)
+> Edge functions live: **admin v22, player v26** (Packet 7 + safety
+> patch). Frontend master head: `33d9520`. DB migration head: **024**.
+> Branch `feature/wild-west-variant` merged via `--no-ff` (`33d9520`).
+>
+> Implementation by MANAGER NINA in a separate session (9 packets +
+> vault docs commit). Evaluation by Claude Opus 4.7 — passed. One
+> safety patch (`72e9b53`) applied before merge: `admin/index.ts:876`
+> default era `'1920s'` → `'classic_1920s'` (closed pre-existing
+> CHECK-violation landmine).
+>
+> Deploy day journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant evaluated + deployed to production]].
+> Implementation journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant implemented by NINA]].
+> Spec: [[specs/wild_west_variant_spec]].
+
+### Outstanding (post-deploy, none blocking)
+
+- [ ] **Manual smoke E2E** — Pawel: admin issues WW invite code →
+  test player redeems → wizard runs with auto-skips → StepEquipment
+  WW free-shop (budget = `assets`, only WW catalog visible) →
+  portrait generation → submit → admin verify.
+- [ ] **Repo remote URL** — `git remote set-url origin
+  https://github.com/UrsusCodes/coc-creator.git` to silence
+  "repository moved" warning on every push (informational only).
+- [ ] **Pre-existing lint debt** — 80 issues (64 errors, 16 warnings)
+  in `PortraitCropModal.tsx`, `CardEditorPage.tsx`, etc. Untouched by
+  WW; tracked here for a separate cleanup pass.
+
 ## Next up (prioritized)
 
-_(after v2.0 ships, user will describe the next iteration)_
+_(after WW smoke validates, user will describe the next iteration)_
 
 ## Backlog
 
@@ -139,15 +169,8 @@ _(empty)_
 > [!info]
 > Completions during the current new-version cycle. Older completions live in `docs/TASKLIST.md`.
 
-- **2026-06-04** — **Wild West variant implemented (NINA) — 9 commits on `feature/wild-west-variant`, awaiting Pawel's merge + deploy.** Full 10-packet implementation of [[specs/wild_west_variant_spec]]. New era `wild_west` ("Stary Zachód") — 26 occupations (`ww_*`), 114 equipment items, 45 weapons, 5 new skills, 2 new `walka_wrecz` combat specs, era-aware wealth (`calculateWealth('wild_west', cr)`), wizard auto-skip for positions/contacts + in-step gate for wealth UI, portrait pipeline with WW Layer 0 + clothing-by-chip + Pustynia background chip + `defaultClothingChipForEra` + `spendingToTier` ($N→A-F), 26 WW occupation EN names, admin invite dropdown `Stary Zachód`. Migration 024 SQL committed (`invite_codes.era` CHECK extended) — NOT applied to live DB yet. Edge function (Packet 7) only got defensive comments + a forward `SELECT era`; it was already era-agnostic at validation level. Smoke test (Packet 10): 56/56 assertions pass, 1920s regression-checked. Build green throughout. Full detail: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant implemented by NINA]].
-  - **Pawel's prod checklist** (not done by NINA):
-    1. `git push -u origin feature/wild-west-variant` (branch is local-only).
-    2. PR review or direct merge to `master`.
-    3. `supabase db push` for migration 024 (extends `invite_codes_era_check`).
-    4. `supabase functions deploy player` (only adds a forward-looking SELECT; non-critical).
-    5. `git push origin master` → GH Pages auto-deploy frontend.
-    6. Manual end-to-end smoke: create WW invite code, redeem, run wizard, generate portrait, submit, admin verify.
-  - **Backlog spinoff:** `supabase/functions/admin/index.ts:876` has stale default `era: era ?? '1920s'` in POST /drafts — would fail migration 024 CHECK if hit (admin UI always sends explicit era, so dormant). Fix pre-deploy or schedule.
+- **2026-06-04** — **Wild West variant — implemented (NINA) + evaluated + deployed to production same day.** Full 10-packet implementation of [[specs/wild_west_variant_spec]]. New era `wild_west` ("Stary Zachód") — 26 occupations (`ww_*`), 114 equipment items, 45 weapons, 5 new skills, 2 new `walka_wrecz` combat specs, era-aware wealth (`calculateWealth('wild_west', cr)`), wizard auto-skip for positions/contacts + in-step gate for wealth UI, portrait pipeline with WW Layer 0 + clothing-by-chip + Pustynia background chip + `defaultClothingChipForEra` + `spendingToTier` ($N→A-F), 26 WW occupation EN names, admin invite dropdown `Stary Zachód`. Migration 024 applied to live DB; edge functions admin v22 + player v26 deployed; merge `33d9520` pushed to master (GH Pages auto-deploy). Smoke test (Packet 10): 56/56 assertions pass, 1920s regression-checked. Build green throughout. Implementation journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant implemented by NINA]]. Deploy day journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant evaluated + deployed to production]].
+  - **Safety patch `72e9b53`:** evaluation flagged `supabase/functions/admin/index.ts:876` with stale `era: era ?? '1920s'` default — would fail migration 024 CHECK if hit. NINA reported it as backlog spinoff; Claude fixed it pre-merge (`'1920s'` → `'classic_1920s'`) so the WW branch landed without leaving a dormant landmine.
 
 - **2026-05-28** — **Front B (BUG-064 + BUG-067 + BUG-049) — 4 commits local, awaiting push.** CONSTANTA-1 managed two workers under Path B:
   - WORKER #B1 (`7d7ffa0`, `8685270`) — committed residence/birthplace integration (admin BasicInfoEditor + on-screen CharacterSheet display). 80% of integration was already wired in earlier sessions; only the UI surfaces remained.

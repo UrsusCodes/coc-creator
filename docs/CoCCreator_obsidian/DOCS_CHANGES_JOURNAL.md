@@ -139,6 +139,120 @@ edge function era references. All pass. 1920s regression checks pass.
 
 ---
 
+## 2026-06-04 — Wild West variant evaluated + deployed to production
+
+**Focus:** evaluation of NINA's deliverables, one safety patch, and the full
+production deploy of the Wild West variant the same day. Pawel asked Claude
+(Opus 4.7) to skip his own manual review and self-evaluate the branch
+instead.
+
+**Evaluation (against [[specs/wild_west_variant_spec]]):**
+
+- Build `npm run build` green on `feature/wild-west-variant` (4.08s).
+- Spot-checks confirmed every spec data line: `Era` union widened with
+  `wild_west` + Polish label "Stary Zachód"; `ERAS.wild_west` has the 6
+  brackets with `skipWealthStep`/`skipContactsStep` flags; `skills.ts` has
+  the 5 new skills, 2 new `walka_wrecz` combat specs with `era:
+  ['wild_west']`, `baseByEra` on 4 skills, era whitelist on the 3 excluded
+  skills, `pistolet_maszynowy` hidden in WW; `occupationsWildWest.ts` has
+  all 26 `ww_*`-prefixed entries; `equipmentV2.ts` carries 114 WW entries
+  + `PRE_WW_ERAS` constant on existing items; `weaponsV2.ts` carries 45
+  WW entries; wizard auto-skip in `WizardShell.tsx` driven by `eraDef?.
+  skipWealthStep`/`.skipContactsStep`; `StepEquipment.tsx` WW branch uses
+  `calculateWealth('wild_west', cr)`; portrait pipeline has
+  `ERA_STYLE.wild_west`, `CLOTHING_BY_CHIP_WW`, `defaultClothingChipForEra`
+  dispatch, Pustynia background chip; admin `InviteCodeManager.tsx:156`
+  carries the `wild_west` dropdown option.
+- All 5 declared deviations from the spec confirmed semantically safe
+  (StepWealth + StepEquipment merged; OccupationSkillFormula shape;
+  era-agnostic edge function; partial pre-existence of `baseByEra`;
+  equipment substring matching dual-mode).
+- Lint debt confirmed pre-existing (commit `522248e` from 2026-04-29,
+  unchanged on master before NINA's work).
+
+**Safety patch — `72e9b53`:** NINA flagged
+`supabase/functions/admin/index.ts:876` as a backlog spinoff —
+`era: era ?? '1920s'` defaults a stale literal that would fail the
+post-migration-024 CHECK constraint if ever hit. The admin UI always
+sends explicit era so it never fires today, but Claude treated it as a
+defense-in-depth gap that should land in the same branch rather than as
+later cleanup. One-line fix: `'1920s'` → `'classic_1920s'`. Committed
+on `feature/wild-west-variant` before merge.
+
+**Production deploy sequence (all green):**
+
+1. **Merge** `feature/wild-west-variant` → `master` via `--no-ff` merge
+   commit `33d9520`. 12 packets + safety patch + 1 vault docs commit
+   landed cleanly (no conflicts; vault state was disjoint from code
+   changes).
+2. **Build sanity** on master: 3.90s, no errors.
+3. **Migration 024** applied to live DB via `npx supabase db push
+   --linked --yes`. `invite_codes_era_check` rolled forward to
+   `('classic_1920s', 'modern', 'gaslight', 'wild_west')`.
+4. **Edge functions** deployed via `npx supabase functions deploy admin
+   player --project-ref okbrsoomtomexilxxsyd`. Versions:
+   - `admin` v16 → **v22** (cumulative since 2026-04-28; jumps reflect
+     other campaigns' deploys in May).
+   - `player` v15 → **v26** (same).
+5. **Frontend push** `git push origin master` → `bd47506..33d9520`.
+   GH Pages workflow auto-triggered.
+
+**Result — WW LIVE in production:**
+
+- Admin can issue WW invite codes (dropdown lists "Stary Zachód").
+- Player picks the code → wizard runs with auto-skips on Step Wealth
+  (presets/lokum/transport/lifestyle UI gated inside StepEquipment) and
+  StepPositionsContacts (skipped at shell level).
+- StepEquipment WW branch shows a free-shop with budget = `assets`
+  from `calculateWealth('wild_west', cr)`. Only WW catalog (114 items
+  + 45 weapons) is visible; 1920s/modern/gaslight items hidden via era
+  filter.
+- Portrait pipeline emits `'1880s American frontier photograph,
+  tintype-influenced aesthetics'` instead of the 1920s line, with WW
+  clothing matrix and the single `Pustynia (rozmyta)` background chip
+  (plus the custom-background override field).
+
+**Manual smoke E2E outstanding (Pawel):**
+
+- Admin creates a WW invite code with a chosen `max_skill_value` cap
+  (recommended 30 to bound assets within ~$750).
+- Test player redeems → completes the wizard end-to-end → submits.
+- Verify card render + portrait generation + admin list.
+
+**Live versions after deploy:**
+
+- `admin` v22 (2026-06-04 23:11 UTC).
+- `player` v26 (2026-06-04 23:11 UTC).
+- Frontend `master` head: `33d9520`.
+- DB migration head: `024`.
+
+**Outstanding (post-deploy housekeeping, not blocking):**
+
+- 80 pre-existing lint issues (untouched by WW work) — separate cleanup
+  task.
+- Repo origin still warns "repository moved → UrsusCodes/coc-creator";
+  optional `git remote set-url`.
+- Working tree has unrelated uncommitted state
+  (`docs/CoCCreator_obsidian/operations/COMMAND_LOG.md`,
+  `supabase/.temp/cli-latest`, untracked scripts under `scripts/` from
+  earlier campaigns, `vendor-export/`, `new_char_sheet/`,
+  `docs/superpowers/`, `docs/CoCCreator_obsidian/specs/portrait_unification_spec.md`).
+  Intentionally NOT touched during the deploy.
+
+**Files changed this session (in addition to NINA's branch):**
+
+- `supabase/functions/admin/index.ts` — safety patch one-liner.
+- Merge commit `33d9520` onto `master`.
+- This journal entry + TASK_LIST + memories/project.md updates (Session
+  End).
+
+**Commits landed on production (`bd47506..33d9520`):** spec `0bcf9a4`,
+WW packets `efc683b`/`fbf280f`/`19404d3`/`1b3502b`/`e2666e3`/`3024c9e`/
+`b92a834`/`7d7850d`/`3ea6f67`, vault docs `604e517`, safety patch
+`72e9b53`, merge commit `33d9520`.
+
+---
+
 ## 2026-05-28 — Front B closed: residence/birthplace + spending_level (CONSTANTA-1)
 
 **Focus:** bug-fix campaign Front B under MANAGER CONSTANTA-1 (command chain

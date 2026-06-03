@@ -1,5 +1,5 @@
 ---
-date: 2026-04-28
+date: 2026-06-04
 status: active
 tags:
   - memories
@@ -20,19 +20,48 @@ A Polish-language web application for creating Call of Cthulhu (7e) player chara
 - **Language of UI:** Polish. Language of code/docs: English.
 - **Scope:** this is a closed tool for one game group — not a public product.
 
-## Current status (2026-04-28)
+## Current status (2026-06-04)
 
-**v2.0 LIVE + smoke-validated.** Granular commits rework deployed
-2026-04-27, stabilized 2026-04-28 with 8 hotfixes after browser smoke.
-Plan v2 from `~/.claude/plans/granular-commits-v2.md` is fully realized
-end-to-end through admin + player surfaces.
+**Wild West variant LIVE.** New `wild_west` era ("Stary Zachód") shipped
+end-to-end same day: implemented by MANAGER NINA in a separate session
+(10 packets, branch `feature/wild-west-variant`), evaluated by Claude
+Opus 4.7 + one safety patch, then deployed (merge `33d9520`, migration
+024, edge fn redeploy, frontend push). Manual smoke E2E pending on
+Pawel's side.
+
+WW = CoC 7e mechanics with Down Darker Trails skin: 26 occupations
+(`ww_*`-prefixed), 114 equipment items, 45 weapons, 5 new skills
+(`powozenie`, `hazard`, `jezyk_indianski`, `wladanie_lina`,
+`pulapki`), 2 new `walka_wrecz` combat specs (`bicz`, `lasso`),
+era-aware wealth `calculateWealth('wild_west', cr)` returning
+`assets` as the StepEquipment budget, wizard auto-skip on
+StepPositionsContacts + in-step gate on wealth UI inside
+StepEquipment, portrait pipeline with `1880s American frontier
+photograph` Layer 0 + WW clothing matrix + Pustynia background chip.
+Spec: [[specs/wild_west_variant_spec]].
 
 **Production**:
-- Edge functions: `admin` **v16** (2026-04-28, after junction sync hotfix),
-  `player` **v15** (2026-04-28, after `getAgeModifications` hotfix).
-- Frontend last commit `4c49b76` ("Edytuj mechanikę" gated button).
-- DB: 23 chars (1 active draft = Rafał on `7d54eec4` step 14, 22 submitted).
-- 59 codes, 38 of them `unused` (cleanup-eligible via InviteCodeManager).
+- Edge functions: `admin` **v22** (2026-06-04, includes Packet 9
+  invite-dropdown work + safety patch on `/drafts` default era),
+  `player` **v26** (2026-06-04, includes Packet 7 era-aware comments
+  + forward `SELECT era`).
+- Frontend last commit: merge `33d9520` (`feat/wild-west-variant`
+  squashed across 12 commits + safety patch + vault docs).
+- DB migration head: **024** (`invite_codes_era_check` extended to
+  include `wild_west`).
+- v2.0 (granular commits rework) remains the underlying foundation;
+  v2.0 status notes preserved below for continuity.
+
+**Earlier baseline (v2.0 — 2026-04-28)**:
+- Edge functions: `admin` **v16** (2026-04-28, after junction sync
+  hotfix), `player` **v15** (2026-04-28, after `getAgeModifications`
+  hotfix). Both since superseded by WW deploy.
+- Frontend at `4c49b76` ("Edytuj mechanikę" gated button) — pre-WW
+  state for reference only; current head is `33d9520`.
+- DB: 23 chars (1 active draft = Rafał on `7d54eec4` step 14, 22
+  submitted). Pre-WW snapshot.
+- 59 codes, 38 of them `unused` (cleanup-eligible via
+  InviteCodeManager). Pre-WW snapshot.
 - Tester account retained for future smoke: `tester` / `tester` (id
   `be71d778-af66-468a-b686-1db86d48e993`), 2 codes assigned.
 
@@ -131,6 +160,7 @@ Summary of what's **standard** vs **modified** vs **custom**:
 
 Low-frequency, durable decisions. Implementation-level decisions go in [[DOCS_CHANGES_JOURNAL]] per session.
 
+- **2026-06-04** — **Wild West variant LIVE** (`33d9520`). Same-day implementation by MANAGER NINA (10 packets on `feature/wild-west-variant`) + evaluation by Claude Opus 4.7 + safety patch + deploy. Migration 024 applied (`invite_codes_era_check` extended), edge fn admin v16→v22 and player v15→v26, frontend pushed. Architecture choice: WW = `wild_west` as fourth value of `Era` union (not orthogonal variant axis). New skill type fields `baseByEra`/`specializationsByEra` + `era?` on `CombatSpecialization` (some already in code from prior commits). Separate `OCCUPATIONS_WILD_WEST` array with `ww_*`-prefixed IDs to avoid catalog collisions (10 colliding IDs verified). Wealth math for WW uses `calculateWealth` from `eras.ts` (era-aware) not `calcBaseWealth` from `wealthV2.ts` (1920s-tightly-coupled). Workflow validated: NINA's manager pattern (separate session, dispatch + evaluate, no code by manager) shipped a 12-commit feature with zero re-dispatches and one Claude-side safety fix. Spec: [[specs/wild_west_variant_spec]].
 - **2026-04-28** — **v2.0 stabilized in production**: 8 hotfixes after browser smoke (`fb3552b` → `4c49b76`). Backend (admin v16, player v15) + frontend updated. Two new product features landed in passing: (a) PlayerCharacterViewer "Edytuj fabułę" — always-on direct narrative+distinguisher edit via dedicated endpoints (no admin approve queue), (b) PlayerCharacterViewer "Edytuj mechanikę" — gated button surfacing the existing edit_permission system as an obvious player-side affordance. Decisions: persisted wizard store MUST clear on every login/logout (privacy / cross-user UX); admin POST/PATCH /codes must mirror `assigned_player_id` to `player_codes` junction (player /codes reads junction, not column); narrative edits are direct, mechanical edits require explicit admin grant.
 - **2026-04-27** — **v2.0 deployed to production** (`87340ce`). Edge functions admin v14→v15, player v13→v14 (19:29 UTC). 24-commit push to origin/master = GH Pages auto-deploy. Pre-deploy: 8 balast drafts deleted, Rafał's `7d54eec4` draft_step remapped 10→14 via new `scripts/migrate-draft-step-v1-to-v2.mjs` (one-shot tool). Post-deploy verify: 23/23 OK, zero drift. New DB row count 137 (was 145 before balast). Migration script kept in git for audit. Cold-start 503 on first `/admin/ping` then 200 — known transient pattern after Deno deploys.
 - **2026-04-27** — Wizard sub-session 3 done (`e3e3a57`): InviteCodeManager full rewrite (label/reroll_budget/lifecycle status filter/cleanup preview/in-place edit/+1 reroll); CharacterList gets code label + rerolls badges via parallel join; BasicInfoEditor distinguisher → read-only with helper note; PlayerDashboard codes section gains status/distinguisher/rerolls badges, "Użyj kodu" routes to "Kontynuuj" for in-flight drafts, characters split into drafts + collapsible finished. Lifecycle status (`unused`/`started`/`finished`) derived client-side from joined character — no schema churn.
