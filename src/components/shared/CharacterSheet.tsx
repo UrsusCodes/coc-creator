@@ -1,6 +1,6 @@
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey, type Era } from '@/types/common'
 import { halfValue, fifthValue } from '@/lib/utils'
@@ -66,7 +66,7 @@ interface CharacterSheetProps {
 }
 
 export function CharacterSheet({ character: char }: CharacterSheetProps) {
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const derived = char.derived as { hp: number; mp: number; san: number; db: string; build: number; move_rate: number; dodge: number }
 
   const allSkillPoints: Record<string, number> = { ...char.occupation_skill_points }

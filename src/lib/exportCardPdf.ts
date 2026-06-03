@@ -2,7 +2,7 @@ import { PDFDocument, PDFImage, PDFEmbeddedPage, rgb, type PDFFont, type PDFPage
 import fontkit from '@pdf-lib/fontkit'
 import { CARD_LAYOUTS, FRONT_SKILL_GRIDS, type FieldBox, type SkillColumnGrid } from '@/data/cardFieldLayouts'
 import type { SkillRowV2, SpecRowV2, BoxV2 } from '@/data/cardFrontV2.types'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { getSkillBase, getSkillDisplayName, getBaseSkillId, getSpecialization } from '@/data/skills'
 import { WEAPONS } from '@/data/weapons'
 import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
@@ -248,7 +248,7 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   // Basic info
   if (id === 'name') return char.name
   if (id === 'player_name') return char.player_name ?? ''
-  if (id === 'occupation') return OCCUPATIONS.find((o) => o.id === char.occupation_id)?.name ?? ''
+  if (id === 'occupation') return getOccupationById(char.occupation_id)?.name ?? ''
   if (id === 'age') return `${char.age} lat`
   if (id === 'gender') return char.gender === 'M' ? 'Mężczyzna' : char.gender === 'F' ? 'Kobieta' : char.gender
   if (id === 'residence') return char.residence ?? ''

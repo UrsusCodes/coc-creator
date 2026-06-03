@@ -1,4 +1,4 @@
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 
 interface ArtPromptCharacter {
   name: string
@@ -70,7 +70,7 @@ export function generateArtPrompt(char: ArtPromptCharacter): string {
   const parts: string[] = []
 
   // Core subject
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const genderWord = char.gender === 'Kobieta' ? 'woman' : char.gender === 'Mężczyzna' ? 'man' : 'person'
   const ageDesc = describeAge(char.age)
 

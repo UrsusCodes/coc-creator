@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { OCCUPATIONS } from '@/data/occupations'
+import { OCCUPATIONS, OCCUPATIONS_WILD_WEST } from '@/data/occupations'
 
 interface BasicInfoEditorProps {
   data: {
@@ -24,7 +24,10 @@ const STATUS_OPTIONS = [
 ]
 
 export function BasicInfoEditor({ data, onChange }: BasicInfoEditorProps) {
-  const occupationOptions = OCCUPATIONS.map((o) => ({ value: o.id, label: o.name }))
+  const occupationOptions = [...OCCUPATIONS, ...OCCUPATIONS_WILD_WEST].map((o) => ({
+    value: o.id,
+    label: o.name,
+  }))
 
   return (
     <div className="space-y-3">

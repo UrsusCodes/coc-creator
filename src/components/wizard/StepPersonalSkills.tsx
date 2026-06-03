@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { getSkillById, getSkillsForEra, getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { useSkillPoints } from '@/hooks/useSkillPoints'
 import type { Characteristics } from '@/types/character'
@@ -30,7 +30,7 @@ export function StepPersonalSkills() {
   const era = store.era as Era
   const maxSkillValue = store.maxSkillValue
   const occupation = useMemo(
-    () => OCCUPATIONS.find((o) => o.id === store.occupationId) ?? null,
+    () => getOccupationById(store.occupationId) ?? null,
     [store.occupationId]
   )
 

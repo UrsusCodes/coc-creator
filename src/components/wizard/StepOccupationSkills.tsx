@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useCharacterStore } from '@/stores/characterStore'
-import { OCCUPATIONS, parseSkillSlot, isSpecialSlot } from '@/data/occupations'
+import { getOccupationById, parseSkillSlot, isSpecialSlot } from '@/data/occupations'
 import { getSkillById, getSkillsForEra, getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { getWealthBracket, calculateWealth, formatCurrency } from '@/data/eras'
 import { useSkillPoints } from '@/hooks/useSkillPoints'
@@ -34,7 +34,7 @@ export function StepOccupationSkills() {
   // occupation-range validation becomes a soft warning.
   const wealthCeiling: number | null = store.serverCharacter?.max_wealth ?? null
   const occupation = useMemo(
-    () => OCCUPATIONS.find((o) => o.id === store.occupationId) ?? null,
+    () => getOccupationById(store.occupationId) ?? null,
     [store.occupationId]
   )
 

@@ -7,7 +7,7 @@ import { useCharacterSubmit } from '@/hooks/useCharacterSubmit'
 import { useEditSubmit } from '@/hooks/useEditSubmit'
 import { playerSubmitCharacter } from '@/lib/player'
 import { CHARACTERISTIC_MAP } from '@/data/characteristics'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { getSkillDisplayName, getSkillBase } from '@/data/skills'
 import { LOKUM_OPTIONS, TRANSPORT_STYLES, LIFESTYLE_LEVELS, ASSET_FORMS } from '@/data/wealthV2'
 import { ERA_LABELS, type CharacteristicKey, type Era } from '@/types/common'
@@ -89,7 +89,7 @@ export function StepReview() {
 
   const chars = store.characteristics as Characteristics
   const era = (store.era ?? 'classic_1920s') as Era
-  const occupation = OCCUPATIONS.find((o) => o.id === store.occupationId)
+  const occupation = getOccupationById(store.occupationId)
 
   const allSkillPoints = { ...store.occupationSkillPoints }
   for (const [id, pts] of Object.entries(store.personalSkillPoints)) {

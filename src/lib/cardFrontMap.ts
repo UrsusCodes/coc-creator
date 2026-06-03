@@ -1,5 +1,5 @@
 import type { CharacterSheetData } from '@/components/shared/CharacterSheet'
-import { OCCUPATIONS } from '@/data/occupations'
+import { getOccupationById } from '@/data/occupations'
 import { WEAPONS } from '@/data/weapons'
 import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
@@ -220,7 +220,7 @@ function parseWeaponsFromEquipment(
 }
 
 export function characterToCardFrontData(char: CharacterSheetData): CardFrontData {
-  const occupation = OCCUPATIONS.find((o) => o.id === char.occupation_id)
+  const occupation = getOccupationById(char.occupation_id)
   const derived = char.derived as {
     hp: number; mp: number; san: number; db: string
     build: number; move_rate: number; dodge: number
