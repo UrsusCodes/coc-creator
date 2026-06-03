@@ -27,6 +27,10 @@ export function StepEquipment() {
     () => EQUIPMENT_CATALOG_V2.filter((it) => !it.era || it.era.includes(charEra)),
     [charEra],
   )
+  const weaponsCatalog = useMemo(
+    () => WEAPONS_CATALOG_V2.filter((w) => !w.era || w.era.includes(charEra)),
+    [charEra],
+  )
   const { tier, spending, assets, cash } = calcBaseWealth(majetnosc)
 
   // ── State ──
@@ -459,12 +463,12 @@ export function StepEquipment() {
               onClick={() => setExpandedCat(expandedCat === 'weapons' ? null : 'weapons')}
               className="w-full flex items-center justify-between px-3 py-1.5 text-sm font-medium text-coc-text-muted hover:text-coc-text rounded-lg hover:bg-coc-surface-light cursor-pointer"
             >
-              <span>Broń ({WEAPONS_CATALOG_V2.length})</span>
+              <span>Broń ({weaponsCatalog.length})</span>
               {expandedCat === 'weapons' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {(expandedCat === 'weapons' || (searchQuery && WEAPONS_CATALOG_V2.some((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
+            {(expandedCat === 'weapons' || (searchQuery && weaponsCatalog.some((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())))) && (
               <div className="space-y-0.5 mt-1">
-                {WEAPONS_CATALOG_V2.filter((w) => !searchQuery || w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((w) => (
+                {weaponsCatalog.filter((w) => !searchQuery || w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((w) => (
                   <div key={w.id} className="flex items-center justify-between px-3 py-1 text-sm hover:bg-coc-surface-light rounded">
                     <span>{w.name} <span className="text-xs text-coc-text-muted">({w.damage}, {w.range})</span></span>
                     <div className="flex items-center gap-2">
