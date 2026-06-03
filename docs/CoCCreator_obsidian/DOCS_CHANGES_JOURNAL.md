@@ -12,6 +12,133 @@ Append a new dated entry per working session. Newest first.
 
 ---
 
+## 2026-06-04 — Wild West variant implemented by NINA
+
+**Focus:** end-to-end implementation of the Wild West (`wild_west`) era variant
+per [[specs/wild_west_variant_spec]] (commit `0bcf9a4`). MANAGER NINA dispatched
+10 sequential/parallel worker packets on branch `feature/wild-west-variant`;
+all merged into a clean 9-commit history (Packet 9 reordered ahead of 4–8 due
+to the parallel dispatch wave).
+
+**Workflow:** sub-agent driven development. Each packet was scoped from the
+spec, dispatched to a fresh general-purpose worker with a self-contained brief
+(file list + deliverable + accept criteria + build check + commit-and-don't-push
+discipline), evaluated against `npm run build` + sanity assertions, and marked
+complete once green. No worker required a re-dispatch — all delivered on first
+attempt.
+
+**Dispatch waves:**
+1. **Packet 1** (`efc683b`) — types + `ERAS.wild_west` + migration 024 SQL.
+2. **Packet 2** (`fbf280f`) — skill catalog: 5 new WW skills, 2 new `walka_wrecz`
+   combat specs (`bicz`, `lasso`), `era` whitelists, `baseByEra`,
+   `specializationsByEra`, `tresura_zwierzat.rare` removed globally; helpers
+   `getSkillBase`/`getSkillsForEra` extended era-aware (non-mutating projection);
+   new `getSpecializationsForSkill`. 13 call-sites threaded with era.
+3. **Wave A** (parallel) — Packet 3 (`19404d3`, 26 WW occupations
+   `ww_*`-prefixed) + Packet 9 (`1b3502b`, admin invite dropdown +
+   `Stary Zachód`). Worker confirmed `StepCharacteristics`/`StepOccupationSkills`
+   were already N-alternative / dual-choice-unique capable — no extension
+   needed.
+4. **Packet 4** (`e2666e3`) — 114 WW equipment items (4 new categories: clothing,
+   food, entertainment, livestock), `era?: Era[]` on `EquipmentItemV2`, bulk-tag
+   on existing entries, era-filter on `EQUIPMENT_CATALOG_V2` reads in
+   `StepEquipment.tsx`.
+5. **Packet 5** (`3024c9e`) — 45 WW weapons (Down Darker Trails catalog), `era`
+   + `rare` on `WeaponV2`, bulk-tag on existing entries, era-filter on
+   `WEAPONS_CATALOG_V2` reads.
+6. **Wave C** (parallel) — Packet 6 (`b92a834`, wizard skips + StepEquipment WW
+   free-shop) + Packet 7 (`7d7850d`, edge function) + Packet 8 (`3ea6f67`,
+   portrait pipeline era branches).
+7. **Packet 10** — static end-to-end smoke verification (56/56 assertions pass;
+   1920s regression-checked).
+
+**Key interpretation calls (vs spec, no re-dispatch needed):**
+
+- **Spec assumed separate `StepWealth` + `StepEquipment`; codebase has them
+  merged** into the single `STEP_EQUIPMENT`. Packet 6 worker correctly gated
+  the wealth-presets/lokum/transport/lifestyle UI **inside** `StepEquipment.tsx`
+  on `ERAS[era]?.skipWealthStep === true`, leaving the equipment-shopping half
+  visible. Only `STEP_POSITIONS_CONTACTS` is auto-skipped at the shell level.
+  Identical UX outcome to the spec's pseudocode, adapted to actual architecture.
+- **`OccupationSkillFormula` actually uses `characteristics: CharacteristicKey[]`
+  + `multiplier: number` + optional `alternatives`**, not the
+  primary/primaryMultiplier/secondary/secondaryMultiplier shape the spec
+  pseudocode implied. Packet 3 worker matched the existing pattern — engine
+  picks max across all OR-clause characteristics in `alternatives`. CoC
+  mechanics preserved.
+- **Edge function `supabase/functions/player/index.ts` is already era-agnostic**
+  (no era allowlist, no wealth/contacts presence checks at submit). Packet 7
+  worker added only defensive comments + a forward-looking SELECT of `era` so
+  any future gate has zero-cost DB access. Migration 024 alone closes the
+  era-acceptance loop at the DB CHECK constraint.
+- **`Skill.baseByEra`/`specializationsByEra` and `CombatSpecialization.era`**
+  were already partially in the codebase from a prior commit; Packet 1 only
+  needed to widen the `Era` union and add ERAS.wild_west. No type duplication.
+- **Equipment substring matching for `defaultClothingChipForEra`** works against
+  both Polish display names (`'Garnitur (przeciętny) ($12)'`) and `ww_*` IDs
+  — Packet 8 confirmed the spec's tolerant keyword list catches both forms.
+  No catalog-lookup needed inside the portrait helper.
+
+**Files touched (highlight):** `src/types/common.ts`, `src/types/skill.ts`,
+`src/data/eras.ts`, `src/data/skills.ts`, `src/data/occupations.ts`,
+**NEW** `src/data/occupationsWildWest.ts`, `src/data/equipmentV2.ts`,
+`src/data/weaponsV2.ts`, `src/data/occupationNamesEn.ts`, `src/lib/artPrompt.ts`,
+`src/components/wizard/WizardShell.tsx`,
+`src/components/wizard/StepEquipment.tsx`,
+`src/components/wizard/StepOccupation.tsx`,
+`src/components/wizard/StepOccupationSkills.tsx`,
+`src/components/wizard/StepPersonalSkills.tsx`,
+`src/components/wizard/StepReview.tsx`,
+`src/components/wizard/StepPositionsContacts.tsx`,
+`src/components/shared/CharacterSheet.tsx`,
+`src/components/admin/InviteCodeManager.tsx`,
+`src/components/admin/CharacterViewer.tsx`,
+`src/components/admin/edit/SkillsEditor.tsx`,
+`src/components/admin/edit/BasicInfoEditor.tsx`,
+`src/components/player/GeneratePortraitPanel.tsx`,
+`src/pages/SuccessPage.tsx`, `src/pages/SharedCharacterPage.tsx`,
+`src/lib/exportText.ts`, `src/lib/exportCardPdf.ts`, `src/lib/cardFrontMap.ts`,
+`supabase/functions/player/index.ts`,
+**NEW** `supabase/migrations/024_wild_west_era.sql`.
+
+**Catalog sizes after the work:**
+- 26 WW occupations (alphabetical, no categories) — coexist with 111 1920s.
+- 114 WW equipment items + 110 pre-existing (era-filtered).
+- 45 WW weapons + 41 pre-existing (era-filtered).
+- WW skill set = 53 (1920s 51 − 3 excluded + 5 new WW).
+
+**Pre-existing tech debt surfaced but left alone** (per scope discipline):
+- `supabase/functions/admin/index.ts:876` defaults `era: era ?? '1920s'` in
+  POST /drafts. Stale literal — would fail migration 024 CHECK if hit, but
+  the admin UI always sends explicit era. Out of scope; flagged for backlog.
+- 80 lint problems (64 errors, 16 warnings) in pre-existing files
+  (`PortraitCropModal.tsx`, `CardEditorPage.tsx`, etc.). None introduced by
+  WW work. Not blocking.
+
+**Smoke test (Packet 10):** 56 assertions across 8 groups — catalog
+completeness, era plumbing, skill filtering, occupation lookup, portrait
+pipeline trace, migration 024 syntax, wizard skip logic static inspection,
+edge function era references. All pass. 1920s regression checks pass.
+
+**NOT yet done (Pawel's call, intentionally outside NINA's scope):**
+1. `git push -u origin feature/wild-west-variant` — branch is local-only.
+2. `supabase db push` to apply migration 024 to live DB.
+3. `supabase functions deploy player` (only Packet 7 comment changes; not
+   strictly required for WW to work, but Packet 7 added a forward-looking
+   SELECT of `era` to the swap-eligibility query that's good to ship).
+4. Final merge `feature/wild-west-variant` → `master` and the auto-deploy via
+   GH Pages.
+5. Live end-to-end smoke: admin creates WW invite code → player redeems →
+   wizard runs (with auto-skips) → portrait generation → submit → admin view.
+   This is what the spec's Packet 10 originally called for; NINA's static
+   verification covers the data integrity layer but cannot exercise the live
+   stack interactively.
+
+**Branch:** `feature/wild-west-variant` @ `3ea6f67` (9 commits ahead of master).
+**Build:** `npm run build` green throughout. No tests in repo to run.
+
+---
+
 ## 2026-05-28 — Front B closed: residence/birthplace + spending_level (CONSTANTA-1)
 
 **Focus:** bug-fix campaign Front B under MANAGER CONSTANTA-1 (command chain
