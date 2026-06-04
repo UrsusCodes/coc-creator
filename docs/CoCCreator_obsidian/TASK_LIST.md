@@ -122,12 +122,29 @@ Active work, backlog, and known bugs for CoC Creator.
   test player redeems → wizard runs with auto-skips → StepEquipment
   WW free-shop (budget = `assets`, only WW catalog visible) →
   portrait generation → submit → admin verify.
+- [ ] **Manual smoke E2E reroll path** — Pawel: tester account →
+  new draft → wizard step Cechy → "Przerzut całej mechaniki" →
+  "Tak, przerzuć". Oczekiwane: 200, nowe cechy w UI, brak schema-cache
+  errora. (Hotfix `46c10fa` + migration 025 z 2026-06-04.)
 - [ ] **Repo remote URL** — `git remote set-url origin
   https://github.com/UrsusCodes/coc-creator.git` to silence
   "repository moved" warning on every push (informational only).
 - [ ] **Pre-existing lint debt** — 80 issues (64 errors, 16 warnings)
   in `PortraitCropModal.tsx`, `CardEditorPage.tsx`, etc. Untouched by
   WW; tracked here for a separate cleanup pass.
+- [ ] **Allowlist 4 passthrough endpoints** — surfaced by NINA's
+  hotfix recon (2026-06-04). Four edge fn handlers spread raw request
+  body into UPDATE/INSERT on `characters`, which is what let the
+  wealth_v2 + legacy columns drift silently. If any future frontend
+  release ships a new field without a matching migration, the same
+  class of error resurfaces invisibly until something exercises the
+  path. Add `DRAFT_ALLOWLIST`-style filters to:
+  - `supabase/functions/admin/index.ts:318` — PUT `/characters/:id`
+  - `supabase/functions/admin/index.ts:902` — POST `/drafts`
+  - `supabase/functions/public/index.ts:110` — PUT `/character/:token`
+  - `supabase/functions/player/index.ts:1247` — POST `/drafts`
+  Not blocking — current code is functional, just unhardened against
+  future column drift.
 
 ## Next up (prioritized)
 
@@ -169,6 +186,7 @@ _(empty)_
 > [!info]
 > Completions during the current new-version cycle. Older completions live in `docs/TASKLIST.md`.
 
+- **2026-06-04** — **Hotfix `46c10fa` — wealth_v2 + legacy positions/contacts columns added (migration 025).** Post-WW smoke surfaced `Could not find the 'assets_breakdown' column` on the reroll path. Pre-existing bug — `DRAFT_ALLOWLIST` + `DOWNSTREAM_WIPE` payloads referenced 8 columns that no migration ever created (`assets_breakdown`, `equipment_catalogs_available`, `lifestyle_rating`, `lifestyle_stars`, `lifestyle_label`, `spending_free`, `positions`, `contacts`). NINA recon found all eight in one pass; migration 025 adds them idempotently (jsonb/text/numeric per TS types). Edge fn not redeployed (already writes the columns). Deploy: branch `fix/missing-character-columns` → merge `46c10fa` → `db push` → `git push`. ~30 min wall-clock bug-to-prod. Full detail: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Hotfix missing wealth_v2 + legacy positions/contacts columns]]. Spinoff: see "Allowlist 4 passthrough endpoints" in Outstanding above.
 - **2026-06-04** — **Wild West variant — implemented (NINA) + evaluated + deployed to production same day.** Full 10-packet implementation of [[specs/wild_west_variant_spec]]. New era `wild_west` ("Stary Zachód") — 26 occupations (`ww_*`), 114 equipment items, 45 weapons, 5 new skills, 2 new `walka_wrecz` combat specs, era-aware wealth (`calculateWealth('wild_west', cr)`), wizard auto-skip for positions/contacts + in-step gate for wealth UI, portrait pipeline with WW Layer 0 + clothing-by-chip + Pustynia background chip + `defaultClothingChipForEra` + `spendingToTier` ($N→A-F), 26 WW occupation EN names, admin invite dropdown `Stary Zachód`. Migration 024 applied to live DB; edge functions admin v22 + player v26 deployed; merge `33d9520` pushed to master (GH Pages auto-deploy). Smoke test (Packet 10): 56/56 assertions pass, 1920s regression-checked. Build green throughout. Implementation journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant implemented by NINA]]. Deploy day journal: [[DOCS_CHANGES_JOURNAL#2026-06-04 — Wild West variant evaluated + deployed to production]].
   - **Safety patch `72e9b53`:** evaluation flagged `supabase/functions/admin/index.ts:876` with stale `era: era ?? '1920s'` default — would fail migration 024 CHECK if hit. NINA reported it as backlog spinoff; Claude fixed it pre-merge (`'1920s'` → `'classic_1920s'`) so the WW branch landed without leaving a dormant landmine.
 

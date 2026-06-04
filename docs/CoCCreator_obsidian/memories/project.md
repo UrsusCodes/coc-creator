@@ -44,11 +44,13 @@ Spec: [[specs/wild_west_variant_spec]].
 - Edge functions: `admin` **v22** (2026-06-04, includes Packet 9
   invite-dropdown work + safety patch on `/drafts` default era),
   `player` **v26** (2026-06-04, includes Packet 7 era-aware comments
-  + forward `SELECT era`).
-- Frontend last commit: merge `33d9520` (`feat/wild-west-variant`
-  squashed across 12 commits + safety patch + vault docs).
-- DB migration head: **024** (`invite_codes_era_check` extended to
-  include `wild_west`).
+  + forward `SELECT era`). Unchanged by the hotfix below.
+- Frontend last commit: merge `46c10fa` (hotfix for reroll bug; sits
+  on top of WW merge `33d9520`).
+- DB migration head: **025** (`wealth_v2` + legacy positions/contacts
+  columns added after WW smoke surfaced the schema-cache miss on the
+  `/reroll` path). **024** (`invite_codes_era_check` extended to include
+  `wild_west`) underneath.
 - v2.0 (granular commits rework) remains the underlying foundation;
   v2.0 status notes preserved below for continuity.
 
@@ -160,6 +162,7 @@ Summary of what's **standard** vs **modified** vs **custom**:
 
 Low-frequency, durable decisions. Implementation-level decisions go in [[DOCS_CHANGES_JOURNAL]] per session.
 
+- **2026-06-04** — **Schema drift on `characters` fixed (migration 025)**. Eight columns referenced by edge fn write paths (`assets_breakdown`, `equipment_catalogs_available`, `lifestyle_rating`, `lifestyle_stars`, `lifestyle_label`, `spending_free`, `positions`, `contacts`) had no backing migration since they were introduced in TS + edge fn code. The reroll path on WW deploy day surfaced the first one as a PostgREST schema-cache miss; recon found the other seven before they could surface as a cascade of follow-up errors. Underlying cause = four edge fn handlers spread raw `wizard_data` / request bodies into `INSERT`/`UPDATE` on `characters` without an allowlist — column drift is silent until something exercises the write path. Allowlist hardening is on the TASK_LIST backlog; not in this hotfix's scope.
 - **2026-06-04** — **Wild West variant LIVE** (`33d9520`). Same-day implementation by MANAGER NINA (10 packets on `feature/wild-west-variant`) + evaluation by Claude Opus 4.7 + safety patch + deploy. Migration 024 applied (`invite_codes_era_check` extended), edge fn admin v16→v22 and player v15→v26, frontend pushed. Architecture choice: WW = `wild_west` as fourth value of `Era` union (not orthogonal variant axis). New skill type fields `baseByEra`/`specializationsByEra` + `era?` on `CombatSpecialization` (some already in code from prior commits). Separate `OCCUPATIONS_WILD_WEST` array with `ww_*`-prefixed IDs to avoid catalog collisions (10 colliding IDs verified). Wealth math for WW uses `calculateWealth` from `eras.ts` (era-aware) not `calcBaseWealth` from `wealthV2.ts` (1920s-tightly-coupled). Workflow validated: NINA's manager pattern (separate session, dispatch + evaluate, no code by manager) shipped a 12-commit feature with zero re-dispatches and one Claude-side safety fix. Spec: [[specs/wild_west_variant_spec]].
 - **2026-04-28** — **v2.0 stabilized in production**: 8 hotfixes after browser smoke (`fb3552b` → `4c49b76`). Backend (admin v16, player v15) + frontend updated. Two new product features landed in passing: (a) PlayerCharacterViewer "Edytuj fabułę" — always-on direct narrative+distinguisher edit via dedicated endpoints (no admin approve queue), (b) PlayerCharacterViewer "Edytuj mechanikę" — gated button surfacing the existing edit_permission system as an obvious player-side affordance. Decisions: persisted wizard store MUST clear on every login/logout (privacy / cross-user UX); admin POST/PATCH /codes must mirror `assigned_player_id` to `player_codes` junction (player /codes reads junction, not column); narrative edits are direct, mechanical edits require explicit admin grant.
 - **2026-04-27** — **v2.0 deployed to production** (`87340ce`). Edge functions admin v14→v15, player v13→v14 (19:29 UTC). 24-commit push to origin/master = GH Pages auto-deploy. Pre-deploy: 8 balast drafts deleted, Rafał's `7d54eec4` draft_step remapped 10→14 via new `scripts/migrate-draft-step-v1-to-v2.mjs` (one-shot tool). Post-deploy verify: 23/23 OK, zero drift. New DB row count 137 (was 145 before balast). Migration script kept in git for audit. Cold-start 503 on first `/admin/ping` then 200 — known transient pattern after Deno deploys.

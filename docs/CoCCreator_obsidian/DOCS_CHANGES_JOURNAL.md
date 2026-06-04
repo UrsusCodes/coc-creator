@@ -253,6 +253,98 @@ WW packets `efc683b`/`fbf280f`/`19404d3`/`1b3502b`/`e2666e3`/`3024c9e`/
 
 ---
 
+## 2026-06-04 — Hotfix: missing wealth_v2 + legacy positions/contacts columns
+
+**Focus:** post-WW-deploy manual smoke surfaced a hard error on the
+"Przerzut całej mechaniki" (reroll) panel — frontend showed
+`Could not find the 'assets_breakdown' column of 'characters' in the
+schema cache`. Pre-existing bug, **not caused by WW** — it had been
+dormant for weeks because nothing in the prior release exercised the
+hard-zone wipe path end-to-end on prod.
+
+**Diagnosis (recon by MANAGER NINA in a fresh session):** the
+`DRAFT_ALLOWLIST` + `DOWNSTREAM_WIPE` payloads in
+`supabase/functions/player/index.ts` (and the admin counterpart) write
+eight columns onto `characters` that no migration ever created. The
+TypeScript `CharacterData` type and `EMPTY_WIZARD_DATA` constant all
+referenced them, but the schema was missing every one. Naprawienie
+tylko `assets_breakdown` would have surfaced the next missing column on
+the next attempt — recon identified all eight in a single pass so one
+migration closes it.
+
+**Migration 025** (`025_wealth_v2_and_legacy_positions_contacts.sql`,
+26 lines) adds the columns idempotently:
+
+| Column | Type | Default | Origin |
+|---|---|---|---|
+| `assets_breakdown` | jsonb | `'[]'` | wealth_v2 |
+| `equipment_catalogs_available` | jsonb | `'[]'` | wealth_v2 |
+| `lifestyle_rating` | numeric | NULL | wealth_v2 — half-step floats from `calcStarRating` (`Math.round(raw*2)/2`), so NUMERIC not INTEGER |
+| `lifestyle_stars` | text | NULL | wealth_v2 |
+| `lifestyle_label` | text | NULL | wealth_v2 |
+| `spending_free` | text | NULL | wealth_v2 |
+| `positions` | jsonb | `'[]'` | legacy v1 (pre-`main_position`/`additional_positions`/`contacts_v2`) |
+| `contacts` | jsonb | `'[]'` | legacy v1 |
+
+`BEGIN`/`COMMIT`, all `ADD COLUMN IF NOT EXISTS`, all nullable, no
+backfill, no CHECKs.
+
+**Edge fn redeploy not required** — `admin v22` and `player v26` already
+wrote these columns; the schema cache miss was the only failure mode.
+PostgREST refreshes its schema cache automatically after `db push`.
+
+**Production deploy sequence (all green):**
+
+1. NINA recon + migration → commit `0e6f940` on
+   `fix/missing-character-columns` (branched from `cfc0803`).
+2. Branch push: `git push -u origin fix/missing-character-columns`.
+3. Merge to master via `--no-ff` commit `46c10fa`.
+4. Build sanity: 3.13s, no errors.
+5. Migration applied: `npx supabase db push --linked --yes` — only 025
+   pending, applied cleanly.
+6. Frontend push `cfc0803..46c10fa master -> master`. GH Pages
+   auto-deploy triggered.
+
+**Result — reroll path unblocked on prod:** UPDATE on `characters` with
+the full DOWNSTREAM_WIPE payload now matches the schema. Manual smoke
+E2E (admin tester account → new draft → wizard step Cechy → "Przerzut
+całej mechaniki" → "Tak, przerzuć") pending on Pawel's side.
+
+**Spinoff backlog (out of scope for this hotfix):** NINA's recon
+flagged four unfiltered passthrough endpoints that spread raw request
+body into UPDATE/INSERT on `characters`. If frontend ever ships a new
+field without a corresponding migration, the same class of bug
+resurfaces silently:
+
+- `admin/index.ts:318` — PUT `/characters/:id` (no allowlist; raw
+  `updateData = body` minus `_change_comment`).
+- `admin/index.ts:902` — POST `/drafts` (raw `wizard_data` spread to
+  INSERT).
+- `public/index.ts:110` — PUT `/character/:token` share-token edit (raw
+  passthrough).
+- `player/index.ts:1247` — POST `/drafts` (raw `wizard_data` spread to
+  INSERT).
+
+Recommendation: extend allowlist pattern (like `DRAFT_ALLOWLIST`) to
+all four. Tracked in [[TASK_LIST]].
+
+**Live state after deploy:**
+
+- `admin` v22, `player` v26 (unchanged; no fn redeploy).
+- Frontend `master` head: `46c10fa`.
+- DB migration head: **025**.
+
+**Workflow note:** This was a fast hotfix loop — NINA dispatched a
+single recon worker, wrote the migration herself (no code, just SQL),
+delivered a structured report; Claude verified the typing matches TS
+(`lifestyle_rating: number` → NUMERIC, `equipment_catalogs_available:
+string[]` → JSONB), applied + deployed. Roughly 30 min wall-clock from
+bug report to production. Validates the
+[[../memories/feedback_manager_dispatch_pattern.md]] for short hotfix
+loops, not just feature campaigns.
+
+---
+
 ## 2026-05-28 — Front B closed: residence/birthplace + spending_level (CONSTANTA-1)
 
 **Focus:** bug-fix campaign Front B under MANAGER CONSTANTA-1 (command chain
