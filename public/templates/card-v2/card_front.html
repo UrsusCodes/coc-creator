@@ -294,7 +294,7 @@
   .char-cell {
     display: grid;
     grid-template-rows: 5mm 1fr;
-    grid-template-columns: 1fr 7mm;
+    grid-template-columns: 1fr 8mm;
     border-right: 0.2mm solid var(--gold);
     border-bottom: 0.2mm solid var(--gold);
     background: rgba(255, 250, 230, 0.4);
@@ -321,9 +321,11 @@
     --val-bg-full: rgba(255, 250, 230, 0.85);
     --val-bg-half: rgba(0, 0, 0, 0.07);
     --val-bg-fifth: rgba(176, 50, 50, 0.13);
+    --val-bg-easy: rgba(15, 110, 86, 0.13);
     --val-fg-full: var(--ink);
     --val-fg-half: var(--ink-light);
     --val-fg-fifth: #7a2424;
+    --val-fg-easy: #0d6b54;
   }
 
   .char-cell .main {
@@ -338,11 +340,16 @@
   }
   .char-cell .sub {
     display: grid;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
     border-left: 0.15mm solid var(--gold);
     font-family: 'EB Garamond', serif;
     font-weight: 500;
-    font-size: 10pt;
+    font-size: 8.5pt;
+  }
+  .char-cell .sub .easy {
+    background: var(--val-bg-easy);
+    color: var(--val-fg-easy);
+    border-bottom: 0.15mm solid var(--gold);
   }
   .char-cell .sub .half {
     background: var(--val-bg-half);
@@ -562,7 +569,7 @@
   .skill-col:last-child { border-right: none; }
   .skill {
     display: grid;
-    grid-template-columns: 2.4mm 1fr 7mm 4.4mm 4.4mm 4.4mm;
+    grid-template-columns: 2.4mm 1fr 6mm 4.4mm 4.4mm 4.4mm 4.4mm;
     align-items: center;
     gap: 0.3mm;
     padding: 0.4mm 0;
@@ -615,7 +622,7 @@
     width: 100%;
   }
   .skill.blank .nm .ed { font-style: normal; }
-  .skill .v, .skill .h, .skill .f {
+  .skill .v, .skill .e, .skill .h, .skill .f {
     border: 0.18mm solid var(--paper-edge);
     background: rgba(255,255,255,0.5);
     width: 4.4mm;
@@ -623,7 +630,9 @@
     font-family: 'EB Garamond', serif;
     font-size: 8pt;
     font-weight: 500;
-    padding: 0;
+    /* Small top padding compensates for EB Garamond's high cap-position so
+       digits sit optically centred in the square. */
+    padding: 0.35mm 0 0;
     overflow: hidden;
     aspect-ratio: 1 / 1;
     display: flex;
@@ -633,6 +642,7 @@
     font-feature-settings: "lnum" 1, "tnum" 1;
   }
   .skill .v { font-weight: 700; background: var(--val-bg-full); color: var(--val-fg-full); font-size: 9pt; }
+  .skill .e { font-size: 7pt; background: var(--val-bg-easy); color: var(--val-fg-easy); }
   .skill .h { font-size: 7pt; background: var(--val-bg-half); color: var(--val-fg-half); }
   .skill .f { font-size: 7pt; background: var(--val-bg-fifth); color: var(--val-fg-fifth); }
 
@@ -1075,15 +1085,16 @@ function renderChars() {
     const v = window.character.chars[def.key] ?? 0;
     const half = Math.floor(v / 2);
     const fifth = Math.floor(v / 5);
+    const easy = Math.min(99, v * 2);
     const cell = document.createElement('div');
     cell.className = 'char-cell';
     let subInner;
     if (def.key === 'move') {
       const walk   = (window.character.walk   != null && window.character.walk   !== '') ? window.character.walk   : '—';
       const sprint = (window.character.sprint != null && window.character.sprint !== '') ? window.character.sprint : '—';
-      subInner = `<div class="half" data-lbl="CHÓD">${walk}</div><div class="fifth" data-lbl="SPRINT">${sprint}</div>`;
+      subInner = `<div class="easy"></div><div class="half" data-lbl="CHÓD">${walk}</div><div class="fifth" data-lbl="SPRINT">${sprint}</div>`;
     } else {
-      subInner = `<div class="half" data-lbl="½">${half}</div><div class="fifth" data-lbl="⅕">${fifth}</div>`;
+      subInner = `<div class="easy" data-lbl="×2">${easy}</div><div class="half" data-lbl="½">${half}</div><div class="fifth" data-lbl="⅕">${fifth}</div>`;
     }
     cell.innerHTML = `
       <div class="name">${def.label}</div>
@@ -1104,6 +1115,7 @@ function renderSkills() {
   function makeRow(label, value, baseLabel) {
     const half = Math.floor(value / 2);
     const fifth = Math.floor(value / 5);
+    const easy = Math.min(99, value * 2);
     const row = document.createElement('div');
     row.className = 'skill';
     row.innerHTML = `
@@ -1111,6 +1123,7 @@ function renderSkills() {
       <span class="nm">${label}</span>
       <span class="pct">${baseLabel}</span>
       <span class="v">${value || ''}</span>
+      <span class="e">${value ? easy : ''}</span>
       <span class="h">${half || ''}</span>
       <span class="f">${fifth || ''}</span>`;
     return row;
@@ -1123,6 +1136,7 @@ function renderSkills() {
       <span class="nm"><span class="ed wide"></span></span>
       <span class="pct"></span>
       <span class="v"></span>
+      <span class="e"></span>
       <span class="h"></span>
       <span class="f"></span>`;
     return row;
@@ -1184,6 +1198,7 @@ function renderSkills() {
           <span class="nm">${label}</span>
           <span class="pct">${pctSpan(baseVal)}</span>
           <span class="v"></span>
+          <span class="e"></span>
           <span class="h"></span>
           <span class="f"></span>`;
         specRows.push(row);
