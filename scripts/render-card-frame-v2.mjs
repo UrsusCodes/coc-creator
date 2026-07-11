@@ -88,7 +88,7 @@ async function main() {
   // to ~0px height.) Then capture bounding boxes.
   await page.evaluate(() => {
     document.querySelectorAll('[data-bind]').forEach((el) => { el.textContent = '00' })
-    document.querySelectorAll('.skill .v, .skill .h, .skill .f').forEach((el) => { el.textContent = '00' })
+    document.querySelectorAll('.skill .v, .skill .e, .skill .h, .skill .f').forEach((el) => { el.textContent = '00' })
     const tbl = document.getElementById('weapons-table')
     if (tbl) {
       Array.from(tbl.children).slice(9).forEach((el) => { el.textContent = '—' })
@@ -129,14 +129,17 @@ async function main() {
     document.querySelectorAll('.char-cell').forEach((cell, i) => {
       const key = charKeys[i]
       const main = cell.querySelector('.main')
+      const easy = cell.querySelector('.sub .easy')
       const half = cell.querySelector('.sub .half')
       const fifth = cell.querySelector('.sub .fifth')
       if (main) fields.push({ id: `char_${key}`, kind: 'char', ...toPct(main.getBoundingClientRect()) })
       if (key === 'move') {
         // Move cell's sub-slots are repurposed for walk/sprint hex/round speed.
+        // (The easy slot stays empty for move — there is no easy-test movement.)
         if (half) fields.push({ id: 'walk_speed_hex', kind: 'char', ...toPct(half.getBoundingClientRect()) })
         if (fifth) fields.push({ id: 'sprint_speed_hex', kind: 'char', ...toPct(fifth.getBoundingClientRect()) })
       } else {
+        if (easy) fields.push({ id: `char_${key}_easy`, kind: 'char', ...toPct(easy.getBoundingClientRect()) })
         if (half) fields.push({ id: `char_${key}_half`, kind: 'char', ...toPct(half.getBoundingClientRect()) })
         if (fifth) fields.push({ id: `char_${key}_fifth`, kind: 'char', ...toPct(fifth.getBoundingClientRect()) })
       }
@@ -150,10 +153,12 @@ async function main() {
       if (!skillKey) return
       const cb = row.querySelector('.cb')
       const v = row.querySelector('.v')
+      const e = row.querySelector('.e')
       const h = row.querySelector('.h')
       const f = row.querySelector('.f')
       if (cb) fields.push({ id: `skill_${skillKey}_cb`, kind: 'skill_cb', skillKey, ...toPct(cb.getBoundingClientRect()) })
       if (v) fields.push({ id: `skill_${skillKey}_v`, kind: 'skill', skillKey, ...toPct(v.getBoundingClientRect()) })
+      if (e) fields.push({ id: `skill_${skillKey}_e`, kind: 'skill', skillKey, ...toPct(e.getBoundingClientRect()) })
       if (h) fields.push({ id: `skill_${skillKey}_h`, kind: 'skill', skillKey, ...toPct(h.getBoundingClientRect()) })
       if (f) fields.push({ id: `skill_${skillKey}_f`, kind: 'skill', skillKey, ...toPct(f.getBoundingClientRect()) })
     })
@@ -169,11 +174,13 @@ async function main() {
       const cb = row.querySelector('.cb')
       const nm = row.querySelector('.nm .ed')
       const v = row.querySelector('.v')
+      const e = row.querySelector('.e')
       const h = row.querySelector('.h')
       const f = row.querySelector('.f')
       if (cb) fields.push({ id: `spec_${slot.skill_id}_cb`, kind: 'spec_cb', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(cb.getBoundingClientRect()) })
       if (nm && slot.kind === 'open_spec') fields.push({ id: `spec_${slot.skill_id}_name`, kind: 'spec_name', skill_id: slot.skill_id, parent: slot.parent, ...toPct(nm.getBoundingClientRect()) })
       if (v) fields.push({ id: `spec_${slot.skill_id}_v`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(v.getBoundingClientRect()) })
+      if (e) fields.push({ id: `spec_${slot.skill_id}_e`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(e.getBoundingClientRect()) })
       if (h) fields.push({ id: `spec_${slot.skill_id}_h`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(h.getBoundingClientRect()) })
       if (f) fields.push({ id: `spec_${slot.skill_id}_f`, kind: 'spec', skill_id: slot.skill_id, slot_kind: slot.kind, parent: slot.parent, ...toPct(f.getBoundingClientRect()) })
     })
@@ -204,7 +211,7 @@ async function main() {
     document.querySelectorAll('[data-bind]').forEach((el) => { el.textContent = '' })
     document.querySelectorAll('.char-cell .main').forEach((el) => { el.textContent = '' })
     document.querySelectorAll('.char-cell .sub > div').forEach((el) => { el.textContent = '' })
-    document.querySelectorAll('.skill .v, .skill .h, .skill .f').forEach((el) => { el.textContent = '' })
+    document.querySelectorAll('.skill .v, .skill .e, .skill .h, .skill .f').forEach((el) => { el.textContent = '' })
     // Clear the placeholder strings injected in PHASE 1 — these would
     // otherwise bake "placeholder" text into the PDF background for every
     // open_spec slot AND every trailing blank row.
@@ -302,8 +309,10 @@ function emitTypedLayout(fields) {
     const main = fields.find((f) => f.id === `char_${key}`)
     if (main) lines.push(fieldBoxLine(main, CHAR_LABELS[key], 16, 'center', true))
     if (key !== 'move') {
+      const easy = fields.find((f) => f.id === `char_${key}_easy`)
       const half = fields.find((f) => f.id === `char_${key}_half`)
       const fifth = fields.find((f) => f.id === `char_${key}_fifth`)
+      if (easy) lines.push(fieldBoxLine(easy, `${CHAR_LABELS[key]} ×2`, 8, 'center'))
       if (half) lines.push(fieldBoxLine(half, `${CHAR_LABELS[key]} ½`, 8, 'center'))
       if (fifth) lines.push(fieldBoxLine(fifth, `${CHAR_LABELS[key]} ⅕`, 8, 'center'))
     }
@@ -346,10 +355,11 @@ function emitTypedLayout(fields) {
   for (const key of NORMAL_SKILL_KEYS) {
     const cb = fields.find((f) => f.id === `skill_${key}_cb`)
     const v = fields.find((f) => f.id === `skill_${key}_v`)
+    const e = fields.find((f) => f.id === `skill_${key}_e`)
     const h = fields.find((f) => f.id === `skill_${key}_h`)
     const f = fields.find((x) => x.id === `skill_${key}_f`)
-    if (!cb || !v || !h || !f) continue
-    lines.push(`  { skillKey: '${key}', cb: { x: ${cb.x}, y: ${cb.y}, w: ${cb.w}, h: ${cb.h} }, v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }, half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }, fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} } },`)
+    if (!cb || !v || !e || !h || !f) continue
+    lines.push(`  { skillKey: '${key}', cb: { x: ${cb.x}, y: ${cb.y}, w: ${cb.w}, h: ${cb.h} }, v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }, easy: { x: ${e.x}, y: ${e.y}, w: ${e.w}, h: ${e.h} }, half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }, fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} } },`)
   }
   lines.push(']')
   lines.push('')
@@ -359,10 +369,11 @@ function emitTypedLayout(fields) {
   for (const slot of SPEC_SLOT_KEYS) {
     const cb = fields.find((f) => f.id === `spec_${slot.skill_id}_cb`)
     const v = fields.find((f) => f.id === `spec_${slot.skill_id}_v`)
+    const e = fields.find((f) => f.id === `spec_${slot.skill_id}_e`)
     const h = fields.find((f) => f.id === `spec_${slot.skill_id}_h`)
     const f = fields.find((x) => x.id === `spec_${slot.skill_id}_f`)
     const nm = fields.find((x) => x.id === `spec_${slot.skill_id}_name`)
-    if (!cb || !v || !h || !f) continue
+    if (!cb || !v || !e || !h || !f) continue
     const parts = [
       `skillId: '${slot.skill_id}'`,
       `slotKind: '${slot.kind}'`,
@@ -375,6 +386,7 @@ function emitTypedLayout(fields) {
     // at 22% so it never overlaps the value cells starting at ~88.7%.
     if (nm) parts.push(`name: { x: ${nm.x}, y: ${nm.y}, w: 22, h: ${nm.h} }`)
     parts.push(`v: { x: ${v.x}, y: ${v.y}, w: ${v.w}, h: ${v.h} }`)
+    parts.push(`easy: { x: ${e.x}, y: ${e.y}, w: ${e.w}, h: ${e.h} }`)
     parts.push(`half: { x: ${h.x}, y: ${h.y}, w: ${h.w}, h: ${h.h} }`)
     parts.push(`fifth: { x: ${f.x}, y: ${f.y}, w: ${f.w}, h: ${f.h} }`)
     lines.push(`  { ${parts.join(', ')} },`)

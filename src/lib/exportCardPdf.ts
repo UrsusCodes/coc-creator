@@ -8,7 +8,7 @@ import { WEAPONS } from '@/data/weapons'
 import { WEAPONS_CATALOG_V2 } from '@/data/weaponsV2'
 import { BLACK_MARKET_CATALOG } from '@/data/blackMarket'
 import { DRIVES } from '@/data/drivePillars'
-import { halfValue, fifthValue } from '@/lib/utils'
+import { halfValue, fifthValue, easyValue } from '@/lib/utils'
 import { formatSpendingLevel } from '@/lib/spendingLevel'
 import type { CharacteristicKey, Era } from '@/types/common'
 import type { CharacterPosition, CharacterContact, MainPosition, AdditionalPosition, ContactV2 } from '@/types/character'
@@ -259,11 +259,12 @@ function getFieldValue(id: string, char: ExportCharacter): string {
   if (id === 'char_move') return String(derived.move_rate)
   if (id === 'walk_speed_hex') return String(Math.floor(derived.move_rate / 3))
   if (id === 'sprint_speed_hex') return String(Math.floor((derived.move_rate * 5) / 3))
-  const charBase = id.replace(/_half$/, '').replace(/_fifth$/, '')
+  const charBase = id.replace(/_half$/, '').replace(/_fifth$/, '').replace(/_easy$/, '')
   const charKey = CHAR_KEY_MAP[charBase]
   if (charKey) {
     const val = char.characteristics[charKey] ?? 0
     if (val === 0) return ''
+    if (id.endsWith('_easy')) return String(easyValue(val))
     if (id.endsWith('_half')) return String(halfValue(val))
     if (id.endsWith('_fifth')) return String(fifthValue(val))
     return String(val)
@@ -857,8 +858,10 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         if (total === 0) continue
         if (points > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
         drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
+        const easyVal = easyValue(total)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)
+        if (easyVal > 0) drawCenteredInBoxV2(page, row.easy, String(easyVal), 5.5, fontRegular)
         if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 5.5, fontRegular)
         if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 5.5, fontRegular)
       }
@@ -889,8 +892,10 @@ export async function exportCharacterAsCardPdf(char: ExportCharacter): Promise<U
         if (total === 0) continue
         if ((allSkillPoints[resolvedKey] ?? 0) > 0) drawCenteredInBoxV2(page, row.cb, '✓', 6, fontBold)
         drawCenteredInBoxV2(page, row.v, String(total), 7, fontBold)
+        const easyVal = easyValue(total)
         const halfV = halfValue(total)
         const fifthV = fifthValue(total)
+        if (easyVal > 0) drawCenteredInBoxV2(page, row.easy, String(easyVal), 5.5, fontRegular)
         if (halfV > 0) drawCenteredInBoxV2(page, row.half, String(halfV), 5.5, fontRegular)
         if (fifthV > 0) drawCenteredInBoxV2(page, row.fifth, String(fifthV), 5.5, fontRegular)
         // For open_spec, render the player's chosen spec name in the name slot.

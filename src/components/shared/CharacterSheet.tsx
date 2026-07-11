@@ -3,7 +3,7 @@ import { CHARACTERISTIC_MAP } from '@/data/characteristics'
 import { getOccupationById } from '@/data/occupations'
 import { DRIVES } from '@/data/drivePillars'
 import { ERA_LABELS, METHOD_LABELS, type CharacteristicKey, type Era } from '@/types/common'
-import { halfValue, fifthValue } from '@/lib/utils'
+import { halfValue, fifthValue, easyValue } from '@/lib/utils'
 import { formatSpendingLevel } from '@/lib/spendingLevel'
 import { Badge } from '@/components/ui/Badge'
 import { CharacterDescriptions } from '@/components/shared/CharacterDescriptions'
@@ -116,7 +116,10 @@ export function CharacterSheet({ character: char }: CharacterSheetProps) {
             <div key={key} className="text-center bg-coc-surface-light rounded-lg p-2">
               <div className="text-xs text-coc-text-muted">{CHARACTERISTIC_MAP[key].abbreviation}</div>
               <div className="text-lg font-bold font-mono">{val}</div>
-              <div className="text-xs text-coc-text-muted">{halfValue(val)} / {fifthValue(val)}</div>
+              <div className="text-xs">
+                <span className="text-emerald-600 font-mono">{easyValue(val)}</span>
+                <span className="text-coc-text-muted"> · {halfValue(val)} / {fifthValue(val)}</span>
+              </div>
             </div>
           )
         })}

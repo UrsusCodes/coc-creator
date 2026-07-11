@@ -18,6 +18,8 @@ export interface SkillRowV2 {
   cb: BoxV2
   /** Full value cell (`v`). */
   v: BoxV2
+  /** Easy-test cell (`×2`, capped at 99) — sits right of the full value. */
+  easy: BoxV2
   /** Half value cell (`½`). */
   half: BoxV2
   /** Fifth value cell (`⅕`). */
@@ -41,6 +43,8 @@ export interface SpecRowV2 {
   /** Box for the spec name text (only present on `open_spec` rows). */
   name?: BoxV2
   v: BoxV2
+  /** Easy-test cell (`×2`, capped at 99) — sits right of the full value. */
+  easy: BoxV2
   half: BoxV2
   fifth: BoxV2
 }

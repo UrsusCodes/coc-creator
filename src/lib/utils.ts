@@ -20,6 +20,15 @@ export function fifthValue(value: number): number {
 }
 
 /**
+ * Calculate the "easy test" value (łatwy test) for a skill or characteristic:
+ * the value doubled, capped at 99. The 99 cap keeps a roll of 100 an automatic
+ * failure even on an easy test (CoC convention).
+ */
+export function easyValue(value: number): number {
+  return Math.min(99, value * 2)
+}
+
+/**
  * Format a number with sign prefix (+/-)
  */
 export function formatSigned(value: number): string {
