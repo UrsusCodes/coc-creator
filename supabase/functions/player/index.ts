@@ -104,7 +104,9 @@ function clampVal(n: number, lo: number, hi: number): number {
 
 function rollOneConstrained(key: string, c?: RollConstraint | null): number {
   const formula = CHARACTERISTIC_FORMULAS[key]
-  if (c && c.fixed != null) return clampVal(Math.round(c.fixed), 1, 99)
+  // Snap fixed values to the ×5 grid so a pinned stat is indistinguishable
+  // from a real dice result.
+  if (c && c.fixed != null) return clampVal(Math.round(c.fixed / 5) * 5, 1, 99)
   const lo = c && c.min != null ? c.min : null
   const hi = c && c.max != null ? c.max : null
   let val = rollCharacteristic(formula)
@@ -203,6 +205,25 @@ function rollLuckForAge(age: number): number {
     return Math.max(roll3d6x5(), roll3d6x5())
   }
   return roll3d6x5()
+}
+
+// Apply an optional luck constraint. `fixed` pins the value (snapped to ×5);
+// a min/max band is honoured by resampling the age-appropriate luck roll, then
+// clamped as a guarantee. `roller` re-rolls luck the same way as the base.
+function constrainLuck(base: number, roller: () => number, c?: RollConstraint | null): number {
+  if (!c) return base
+  if (c.fixed != null) return clampVal(Math.round(c.fixed / 5) * 5, 1, 99)
+  const lo = c.min != null ? c.min : null
+  const hi = c.max != null ? c.max : null
+  let val = base
+  if (lo != null || hi != null) {
+    for (let i = 0; i < 80; i++) {
+      if ((lo == null || val >= lo) && (hi == null || val <= hi)) break
+      val = roller()
+    }
+    val = clampVal(val, lo ?? 1, hi ?? 99)
+  }
+  return val
 }
 
 // ─── Age modifications (port of src/lib/ageModifiers.ts + src/data/ageRanges.ts) ───
@@ -1983,7 +2004,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: char, error: charErr } = await supabase
         .from('characters')
-        .select('id, status, age, aging_committed_at, luck_committed_at, max_luck')
+        .select('id, status, age, aging_committed_at, luck_committed_at, max_luck, invite_code_id')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
@@ -1993,7 +2014,12 @@ Deno.serve(async (req: Request) => {
       if (!char.aging_committed_at) return errorResponse('Apply aging penalties first', 409)
       if (char.luck_committed_at) return errorResponse('Luck already committed', 409)
 
-      let luck = rollLuckForAge(char.age as number ?? 30)
+      const age = char.age as number ?? 30
+      let luck = rollLuckForAge(age)
+      const luckOpts = await loadRollOptions(supabase, char.invite_code_id)
+      if (luckOpts?.luck) {
+        luck = constrainLuck(luck, () => rollLuckForAge(age), luckOpts.luck)
+      }
       if (typeof char.max_luck === 'number') {
         luck = Math.min(luck, char.max_luck)
       }

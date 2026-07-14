@@ -20,6 +20,9 @@ export interface RollProfile {
 export interface RollOptions {
   initial?: RollProfile | null
   rerolls?: (RollProfile | null)[] | null
+  // Constraint on the Luck roll (global — applies to every luck roll on this
+  // code, including after a reroll). Undefined/null = unconstrained.
+  luck?: RollConstraint | null
 }
 
 export interface InviteCode {

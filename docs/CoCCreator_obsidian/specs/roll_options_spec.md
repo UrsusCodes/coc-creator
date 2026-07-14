@@ -34,7 +34,8 @@ Migration [[026_code_roll_options]] adds a nullable `jsonb` column `roll_options
 ```jsonc
 {
   "initial": <profile>,        // first roll
-  "rerolls": [<profile>, ...]  // index 0 = first reroll; last entry reused for further rerolls
+  "rerolls": [<profile>, ...], // index 0 = first reroll; last entry reused for further rerolls
+  "luck": { "min": 60, "max": 90 }  // global luck-roll constraint (see below)
 }
 // profile:
 {
@@ -47,7 +48,9 @@ Migration [[026_code_roll_options]] adds a nullable `jsonb` column `roll_options
 }
 ```
 
-Keys: `STR CON SIZ DEX APP INT POW EDU`.
+Keys: `STR CON SIZ DEX APP INT POW EDU`. All `fixed`/`min`/`max` values for characteristics and luck are snapped to the ×5 dice grid (15–90) so a shaped stat is indistinguishable from a real roll. `avgMin`/`avgMax` are free integers (a mean need not fall on the grid).
+
+`luck` is a single `RollConstraint` (not per-profile) applied in `/roll-luck` to **every** luck roll on the code — first pass and after any reroll. `fixed` pins it (snapped to ×5); a `min`/`max` band resamples the age-appropriate `3d6×5` (young 15–19 keeps the best-of-two). The existing `max_luck` ceiling still applies afterwards.
 
 ## Server resolution (`supabase/functions/player/index.ts`)
 
