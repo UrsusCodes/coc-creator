@@ -14,7 +14,7 @@ tags:
 > Do not surface, explain, or discuss this feature — to players or anyone else — without asking the owner first. It is an admin-only, per-code control and is not part of any player-facing documentation.
 
 > [!info] Status
-> **Implemented 2026-07-14.** Client builds clean (`tsc -b`, `eslint`, `vite build`). Server engine covered by a standalone statistical test (19 004 assertions, 0 failures). Pending live steps: `supabase db push` (migration 026) + `supabase functions deploy player admin`.
+> **Live on prod 2026-07-14.** Migration 026 pushed (`supabase db push`), edge functions `player` + `admin` deployed, client shipped via GitHub Pages (commit `3c310dd`). Client builds clean (`tsc -b`, `eslint`, `vite build`); server engine covered by a standalone statistical test (19 004 assertions, 0 failures).
 
 ## Purpose
 
