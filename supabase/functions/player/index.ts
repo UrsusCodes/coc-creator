@@ -77,12 +77,124 @@ const CHARACTERISTIC_FORMULAS: Record<string, '3d6x5' | '2d6+6x5'> = {
   APP: '3d6x5', INT: '2d6+6x5', POW: '3d6x5', EDU: '2d6+6x5',
 }
 
-function rollAllCharacteristics(): Record<string, number> {
-  const out: Record<string, number> = {}
-  for (const [key, formula] of Object.entries(CHARACTERISTIC_FORMULAS)) {
-    out[key] = rollCharacteristic(formula)
+// ─── Optional per-code roll constraints ───────────────────────
+// A profile can pin a characteristic to a fixed value, bound it to a
+// [min,max] band, and/or bound the mean of all eight. Bands are honoured by
+// resampling the natural formula (keeping the ×5 granularity and a plausible
+// distribution) and only clamped as a last-resort guarantee. Absent profile =
+// unconstrained roll, identical to the original behaviour.
+interface RollConstraint {
+  fixed?: number | null
+  min?: number | null
+  max?: number | null
+}
+interface RollProfile {
+  chars?: Record<string, RollConstraint>
+  avgMin?: number | null
+  avgMax?: number | null
+}
+interface RollOptions {
+  initial?: RollProfile | null
+  rerolls?: (RollProfile | null)[] | null
+}
+
+function clampVal(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n))
+}
+
+function rollOneConstrained(key: string, c?: RollConstraint | null): number {
+  const formula = CHARACTERISTIC_FORMULAS[key]
+  if (c && c.fixed != null) return clampVal(Math.round(c.fixed), 1, 99)
+  const lo = c && c.min != null ? c.min : null
+  const hi = c && c.max != null ? c.max : null
+  let val = rollCharacteristic(formula)
+  if (lo != null || hi != null) {
+    for (let i = 0; i < 80; i++) {
+      if ((lo == null || val >= lo) && (hi == null || val <= hi)) break
+      val = rollCharacteristic(formula)
+    }
+    val = clampVal(val, lo ?? 1, hi ?? 99)
+  }
+  return val
+}
+
+// Nudge the closest attempt into the mean band deterministically: step the
+// lowest adjustable stats up (or highest down) by 5 until the mean clears the
+// bound. Keeps ×5 granularity, never touches fixed stats, and honours each
+// stat's own [min,max]. Runs only as a fallback when resampling fell short, so
+// natural rolls are untouched.
+function adjustToBand(out: Record<string, number>, profile: RollProfile): Record<string, number> {
+  const keys = Object.keys(CHARACTERISTIC_FORMULAS)
+  const avgMin = profile.avgMin ?? null
+  const avgMax = profile.avgMax ?? null
+  const adjustable = keys.filter((k) => !(profile.chars?.[k]?.fixed != null))
+  const boundsOf = (k: string) => {
+    const c = profile.chars?.[k]
+    return { lo: c?.min != null ? c.min : 1, hi: c?.max != null ? c.max : 99 }
+  }
+  const mean = () => keys.reduce((s, k) => s + out[k], 0) / keys.length
+
+  let guard = 0
+  while (avgMin != null && mean() < avgMin && guard++ < 2000) {
+    let target: string | null = null
+    for (const k of adjustable) {
+      if (out[k] + 5 <= boundsOf(k).hi && (target === null || out[k] < out[target])) target = k
+    }
+    if (target === null) break
+    out[target] += 5
+  }
+  guard = 0
+  while (avgMax != null && mean() > avgMax && guard++ < 2000) {
+    let target: string | null = null
+    for (const k of adjustable) {
+      if (out[k] - 5 >= boundsOf(k).lo && (target === null || out[k] > out[target])) target = k
+    }
+    if (target === null) break
+    out[target] -= 5
   }
   return out
+}
+
+function rollAllCharacteristics(profile?: RollProfile | null): Record<string, number> {
+  const keys = Object.keys(CHARACTERISTIC_FORMULAS)
+  const rollOnce = (): Record<string, number> => {
+    const out: Record<string, number> = {}
+    for (const key of keys) out[key] = rollOneConstrained(key, profile?.chars?.[key])
+    return out
+  }
+  const avgMin = profile?.avgMin ?? null
+  const avgMax = profile?.avgMax ?? null
+  if (avgMin == null && avgMax == null) return rollOnce()
+
+  // Resample the whole set until the mean lands in the band; keep the closest
+  // attempt as a fallback so a too-tight band never loops forever.
+  let best: Record<string, number> | null = null
+  let bestDist = Infinity
+  for (let a = 0; a < 400; a++) {
+    const out = rollOnce()
+    const avg = keys.reduce((s, k) => s + out[k], 0) / keys.length
+    if ((avgMin == null || avg >= avgMin) && (avgMax == null || avg <= avgMax)) return out
+    const target = avgMin != null && avg < avgMin ? avgMin : avgMax != null && avg > avgMax ? avgMax : avg
+    const dist = Math.abs(avg - target)
+    if (dist < bestDist) { bestDist = dist; best = out }
+  }
+  return adjustToBand(best ?? rollOnce(), profile!)
+}
+
+// Load a code's roll options (if any). Returns null when the code has none, so
+// callers fall straight through to the unconstrained roll.
+async function loadRollOptions(
+  supabase: ReturnType<typeof createClient>,
+  inviteCodeId: string | null | undefined,
+): Promise<RollOptions | null> {
+  if (!inviteCodeId) return null
+  const { data, error } = await supabase
+    .from('invite_codes')
+    .select('roll_options')
+    .eq('id', inviteCodeId)
+    .maybeSingle()
+  if (error || !data) return null
+  return (data.roll_options as RollOptions | null) ?? null
 }
 
 function rollLuckForAge(age: number): number {
@@ -1535,7 +1647,18 @@ Deno.serve(async (req: Request) => {
       if (appendErr) return errorResponse(appendErr.message, 500)
 
       // Apply HARD_ZONE_WIPE then immediately roll new cechy + commit.
-      const newChars = rollAllCharacteristics()
+      // Pick the profile for this reroll by its index (0 = first reroll),
+      // derived from prior reroll-scoped history entries; fall back to the
+      // last defined reroll profile, then to the initial profile.
+      const rollOpts = await loadRollOptions(supabase, char.invite_code_id)
+      const priorRerolls = Array.isArray(char.reroll_history)
+        ? char.reroll_history.filter((e: { scope?: string }) => e?.scope === 'reroll').length
+        : 0
+      const rerollProfiles = rollOpts?.rerolls ?? null
+      const rerollProfile = rerollProfiles && rerollProfiles.length > 0
+        ? (rerollProfiles[priorRerolls] ?? rerollProfiles[rerollProfiles.length - 1])
+        : null
+      const newChars = rollAllCharacteristics(rerollProfile ?? rollOpts?.initial ?? null)
       const { data, error } = await supabase
         .from('characters')
         .update({
@@ -1560,7 +1683,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: char, error: charErr } = await supabase
         .from('characters')
-        .select('id, status, method, characteristics_committed_at, player_id')
+        .select('id, status, method, characteristics_committed_at, player_id, invite_code_id')
         .eq('id', charId)
         .eq('player_id', playerId)
         .single()
@@ -1572,7 +1695,8 @@ Deno.serve(async (req: Request) => {
         return errorResponse('Characteristics already committed; use /reroll to redo', 409)
       }
 
-      const newChars = rollAllCharacteristics()
+      const rollOpts = await loadRollOptions(supabase, char.invite_code_id)
+      const newChars = rollAllCharacteristics(rollOpts?.initial ?? null)
       const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('characters')

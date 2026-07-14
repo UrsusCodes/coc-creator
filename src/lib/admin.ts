@@ -1,3 +1,5 @@
+import type { RollOptions } from '@/types/invite'
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
 
@@ -44,6 +46,8 @@ export async function adminCreateCode(
     // Optional ceilings (migration 022)
     max_wealth?: number | null
     max_luck?: number | null
+    // Per-code roll options (migration 026)
+    roll_options?: RollOptions | null
   },
 ) {
   const res = await adminFetch('/codes', password, {
@@ -76,6 +80,7 @@ export async function adminUpdateInviteCode(
     max_skill_value: number
     max_wealth: number | null
     max_luck: number | null
+    roll_options: RollOptions | null
     era: string
     methods: string[]
     is_active: boolean

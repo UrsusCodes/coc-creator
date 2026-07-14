@@ -26,7 +26,9 @@ import {
 import { generateInviteCode } from '@/lib/inviteCode'
 import { ERA_LABELS, METHOD_LABELS, type Era, type CreationMethod } from '@/types/common'
 import { PERKS } from '@/data/perks'
-import type { InviteCode, InviteCodeStatus } from '@/types/invite'
+import type { InviteCode, InviteCodeStatus, RollOptions } from '@/types/invite'
+import { AdvancedRollOptions } from './AdvancedRollOptions'
+import { rollOptionsAreEmpty } from '@/lib/rollOptions'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -75,6 +77,8 @@ interface CodeFormData {
   // Optional ceilings (migration 022). null = no ceiling.
   maxWealth: number | null
   maxLuck: number | null
+  // Per-code roll options (migration 026). Empty object = unconstrained.
+  rollOptions: RollOptions
 }
 
 const emptyForm: CodeFormData = {
@@ -87,6 +91,7 @@ const emptyForm: CodeFormData = {
   assignedPlayerId: '',
   maxWealth: null,
   maxLuck: null,
+  rollOptions: {},
 }
 
 function CodeForm({
@@ -98,6 +103,7 @@ function CodeForm({
   onChange: (next: CodeFormData) => void
   players: PlayerLite[]
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const toggleMethod = (m: CreationMethod) => {
     const next = value.methods.includes(m)
       ? value.methods.length === 1
@@ -253,6 +259,29 @@ function CodeForm({
           </div>
         </div>
       )}
+
+      <div className="pt-2 border-t border-coc-border/60">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((s) => !s)}
+          className="flex items-center gap-1.5 text-xs text-coc-text-muted hover:text-coc-text cursor-pointer"
+        >
+          {showAdvanced ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          Dodatkowe opcje
+          {!rollOptionsAreEmpty(value.rollOptions) && (
+            <span className="w-1.5 h-1.5 rounded-full bg-coc-accent-light" title="Skonfigurowane" />
+          )}
+        </button>
+        {showAdvanced && (
+          <div className="mt-3 p-3 bg-coc-surface rounded-lg border border-coc-border">
+            <AdvancedRollOptions
+              value={value.rollOptions}
+              onChange={(next) => onChange({ ...value, rollOptions: next })}
+              rerollBudget={value.rerollBudget}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -367,6 +396,7 @@ export function InviteCodeManager() {
         assigned_player_id: createForm.assignedPlayerId || null,
         max_wealth: createForm.maxWealth,
         max_luck: createForm.maxLuck,
+        roll_options: rollOptionsAreEmpty(createForm.rollOptions) ? null : createForm.rollOptions,
       })
       setCodes((prev) => [created, ...prev])
       setCreateForm(emptyForm)
@@ -409,6 +439,7 @@ export function InviteCodeManager() {
       assignedPlayerId: code.assigned_player_id ?? '',
       maxWealth: code.max_wealth ?? null,
       maxLuck: code.max_luck ?? null,
+      rollOptions: code.roll_options ?? {},
     })
   }
 
@@ -431,6 +462,7 @@ export function InviteCodeManager() {
         assigned_player_id: editForm.assignedPlayerId || null,
         max_wealth: editForm.maxWealth,
         max_luck: editForm.maxLuck,
+        roll_options: rollOptionsAreEmpty(editForm.rollOptions) ? null : editForm.rollOptions,
       })
       setCodes((prev) => prev.map((c) => (c.id === editingId ? { ...c, ...(updated as InviteCode) } : c)))
       cancelEdit()

@@ -68,6 +68,7 @@ Deno.serve(async (req: Request) => {
           max_skill_value: body.max_skill_value ?? 99,
           max_wealth: body.max_wealth ?? null,
           max_luck: body.max_luck ?? null,
+          roll_options: body.roll_options ?? null,
         })
         .select()
         .single()
@@ -116,6 +117,7 @@ Deno.serve(async (req: Request) => {
         'max_skill_value',
         'max_wealth',
         'max_luck',
+        'roll_options',
         'era',
         'methods',
         'is_active',
