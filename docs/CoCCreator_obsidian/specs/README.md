@@ -24,7 +24,7 @@ One markdown per feature. Created before implementation; iterated as design evol
 
 ### Planned / new version
 
-_(populate as user defines further rework scope)_
+- [[campaign_layer_spec]] — **campaign-layer overhaul** (design complete, not implemented): Zew (4 categories replacing 14 ToC drives), filary as shields against madness states, 5-slot źródła model, development rework (3 checks/session + carry-over + downtime learning), k6-unified reward economy with the Sanity gate, towarzysze, Majętność/Szacunek split, Wygląd as social reach, kontakty rebuilt as person+favour. #feature/drive #feature/pillars #feature/sources-of-stability #feature/companions #feature/contacts #feature/wealth #feature/development
 
 ## Template
 
